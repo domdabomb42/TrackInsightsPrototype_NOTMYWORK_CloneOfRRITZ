@@ -11,7 +11,7 @@
 
 {% block content %}
 
-
+<div class="homepage-font">
 
 
 <!-- Homepage hero and photo slideshow stay in normal document flow. -->
@@ -64,6 +64,15 @@
 
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Impact:wght@400&display=swap');
+    .homepage-font {
+      font-family: 'Oswald', 'Arial Narrow', 'Segoe UI', Arial, sans-serif;
+    }
+    .homepage-font input,
+    .homepage-font button,
+    .homepage-font select,
+    .homepage-font textarea {
+      font-family: inherit;
+    }
     .no-select {
       -webkit-user-select: none;
       -moz-user-select: none;
@@ -223,10 +232,26 @@
       top: 48%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: min(90vw, 42rem);
+      box-sizing: border-box;
+      width: min(90vw, 46rem);
+      padding: clamp(1.15rem, 3vw, 2rem);
       text-align: center;
       color: #fff;
       text-shadow: 0 2px 16px rgba(0, 0, 0, .65);
+    }
+    .home-search-hero::before {
+      content: '';
+      position: absolute;
+      z-index: -1;
+      inset: -14rem -25vw;
+      background: radial-gradient(ellipse at center,
+        rgba(13, 11, 11, .42) 0%,
+        rgba(13, 11, 11, .36) 18%,
+        rgba(13, 11, 11, .27) 38%,
+        rgba(13, 11, 11, .16) 60%,
+        rgba(13, 11, 11, .07) 80%,
+        rgba(13, 11, 11, 0) 100%);
+      pointer-events: none;
     }
     .home-search-hero h1 {
       max-width: 39rem;
@@ -554,5 +579,6 @@
       </div>
     </div>
   </div>
+</div>
 </div>
 {% endblock %}

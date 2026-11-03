@@ -196,7 +196,10 @@
       </div>
     </div>
     <div class="desktop-nav hidden md:flex w-full items-center gap-6 relative overflow-visible justify-between pointer-events-none site-nav-desktop">
-      <a href="{{ url_for('main.home') }}" class="site-nav-brand pointer-events-auto">Track Insights</a>
+      <a href="{{ url_for('main.home') }}" class="site-nav-brand pointer-events-auto">
+        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18M6 17V9m6 8V4m6 13v-6" /></svg>
+        <span>Track Insights</span>
+      </a>
       <div class="site-nav-links flex items-center gap-6 pointer-events-auto">
       <div id="nav-search-pill" class="search-pill pointer-events-auto" data-open="false" role="button" tabindex="0"
         aria-expanded="false" aria-controls="nav-search-results">
@@ -224,7 +227,10 @@
         </div>
       </div>
       <details class="events-dropdown pointer-events-auto">
-        <summary class="events-dropdown__toggle">Events <span aria-hidden="true">⌄</span></summary>
+        <summary class="events-dropdown__toggle">
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16M6 17V7m6 10V4m6 13V9" /></svg>
+          <span class="events-dropdown__label">Events</span><span class="events-dropdown__chevron" aria-hidden="true">⌄</span>
+        </summary>
         <div class="events-dropdown__panel">
           {% for group in event_nav_groups %}
           <section class="events-dropdown__group">
@@ -238,9 +244,14 @@
           {% endfor %}
         </div>
       </details>
-      <a href="{{ url_for('main.insights_page') }}" id="queries-toggle" class="site-nav-link pointer-events-auto">Insights</a>
-      <a href="{{ url_for('main.interviews_page') }}" class="site-nav-link pointer-events-auto">Interviews</a>
-      <a href="{{ url_for('main.home') }}#about" id="about-toggle" class="site-nav-link pointer-events-auto">About</a>
+      <a href="{{ url_for('main.interviews_page') }}" class="site-nav-link pointer-events-auto">
+        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="m16 10 5-3v10l-5-3z"/></svg>
+        <span>Interviews</span>
+      </a>
+      <a href="{{ url_for('main.home') }}#about" id="about-toggle" class="site-nav-link pointer-events-auto">
+        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8h.01"/></svg>
+        <span>About</span>
+      </a>
       </div>
       <div id="nav-search-results" class="search-results-panel text-base-content pointer-events-auto"></div>
     </div>
@@ -765,17 +776,22 @@
         padding: .25rem 2rem 0;
         background: linear-gradient(180deg, rgba(12, 10, 10, .64) 0%, rgba(12, 10, 10, .34) 68%, rgba(12, 10, 10, 0) 100%) !important;
       }
+      .navbar-home .desktop-nav { font-family: 'Oswald', 'Arial Narrow', sans-serif; }
       .navbar-home::before {
         content: none;
       }
       .site-nav-desktop { padding: 0 1rem; min-height: 4rem; }
       .site-nav-brand {
+        display: inline-flex;
+        align-items: center;
+        gap: .55rem;
         color: #fff;
         font: 600 1.55rem/1 'Oswald', sans-serif;
         letter-spacing: .025em;
         text-shadow: 0 2px 12px rgba(0,0,0,.4);
         white-space: nowrap;
       }
+      .site-nav-brand svg { width: 1.35rem; height: 1.35rem; flex: none; }
       .site-nav-links { gap: clamp(1rem, 2.3vw, 2rem); }
       .events-dropdown { position: static; }
       .events-dropdown__toggle {
@@ -791,8 +807,10 @@
         white-space: nowrap;
       }
       .events-dropdown__toggle::-webkit-details-marker { display: none; }
-      .events-dropdown__toggle span { font-size: 1rem; transition: transform 150ms ease; }
-      .events-dropdown[open] .events-dropdown__toggle span { transform: rotate(180deg); }
+      .events-dropdown__toggle svg,
+      .site-nav-link svg { width: 1.15rem; height: 1.15rem; flex: none; }
+      .events-dropdown__toggle .events-dropdown__chevron { font-size: 1rem; transition: transform 150ms ease; }
+      .events-dropdown[open] .events-dropdown__chevron { transform: rotate(180deg); }
       .events-dropdown__panel {
         position: absolute;
         top: calc(100% + .5rem);
@@ -827,6 +845,9 @@
       .events-dropdown__group a:hover,
       .events-dropdown__group a:focus-visible { color: #8c0327; text-decoration: underline; }
       .site-nav-link {
+        display: inline-flex;
+        align-items: center;
+        gap: .45rem;
         color: #fff;
         font-size: 1.2rem;
         font-weight: 500;
@@ -900,19 +921,27 @@
       .navbar:not(.navbar-home) .site-nav-brand,
       .navbar:not(.navbar-home) .site-nav-link,
       .navbar:not(.navbar-home) .site-nav-links .search-pill__label {
-        color: #000;
+        color: #fff;
         text-shadow: none;
       }
-      .navbar:not(.navbar-home) .events-dropdown__toggle { color: #000; text-shadow: none; }
-      .navbar:not(.navbar-home) .site-nav-links .search-pill__icon-bubble,
+      .navbar:not(.navbar-home) {
+        background: var(--color-primary) !important;
+        box-shadow: none !important;
+      }
+      .navbar:not(.navbar-home) .events-dropdown__toggle { color: #fff; text-shadow: none; }
+      .navbar:not(.navbar-home) .site-nav-links .search-pill__icon-bubble { color: #fff; }
       .navbar:not(.navbar-home) .site-nav-links .search-pill[data-open="true"],
       .navbar:not(.navbar-home) .site-nav-links .search-pill.open {
-        color: #000;
+        color: #111;
+        background: #fff;
       }
+      .navbar:not(.navbar-home) .site-nav-links .search-pill[data-open="true"] .search-pill__icon-bubble,
+      .navbar:not(.navbar-home) .site-nav-links .search-pill.open .search-pill__icon-bubble { color: #111; }
       .navbar:not(.navbar-home) .site-nav-links .search-pill__input { color: #000; }
       .navbar:not(.navbar-home) .site-nav-links .search-pill__input::placeholder { color: #555; }
     }
     @media (max-width: 767px) {
+      .navbar-home { font-family: 'Oswald', 'Arial Narrow', sans-serif; }
       .navbar-home {
         position: absolute;
         top: 0;
@@ -925,11 +954,17 @@
       }
       .navbar-home .mobile-nav-brand { color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,.5); }
       .navbar-home .mobile-nav-btn { border-color: rgba(255,255,255,.85); }
-      .navbar:not(.navbar-home) .mobile-nav-brand { color: #000; }
+      .navbar:not(.navbar-home) {
+        background: var(--color-primary) !important;
+        box-shadow: none !important;
+        color: #fff;
+        font-family: 'Oswald', 'Arial Narrow', sans-serif;
+      }
+      .navbar:not(.navbar-home) .mobile-nav-brand { color: #fff; }
       .navbar:not(.navbar-home) .mobile-nav-btn {
-        color: #000 !important;
-        background: #fff !important;
-        border-color: #000;
+        color: #fff !important;
+        background: var(--color-primary) !important;
+        border-color: #fff;
       }
     }
   </style>
