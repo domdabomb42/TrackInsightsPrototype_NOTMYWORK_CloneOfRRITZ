@@ -412,7 +412,7 @@ def card_share_page(athlete_id, meet_id, event_name):
         card=theCard,
         summary=theSummary,
         design=theDesign,
-        other_design='E' if theDesign == 'B' else 'B',
+        other_designs=[(code, cards.design_name(code)) for code in cards.theDesignCodes if code != theDesign],
         design_name=cards.design_name(theDesign),
         png_url=url_for('main.card_png', athlete_id=athlete_id, meet_id=meet_id, event_name=event_name, design=theDesign, _external=True),
         sticker_url=url_for('main.card_sticker', athlete_id=athlete_id, meet_id=meet_id, event_name=event_name, design=theDesign, _external=True),

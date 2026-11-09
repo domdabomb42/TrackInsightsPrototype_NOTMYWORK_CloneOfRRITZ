@@ -448,3 +448,17 @@ def test_a_rebuilt_cards_db_is_picked_up_without_a_restart(app, tmp_path):
         theStat = os.stat(thePath)
         os.utime(thePath, ns=(theStat.st_atime_ns, theStat.st_mtime_ns + 1000000))
         assert list_cards_for_athlete(102)[0]["acc1"] == "Rebuilt Label"
+
+
+def test_centered_design_renders_the_slanted_band(client):
+    theResponse = client.get("/card/102/4/100 Meters?design=A")
+    assert theResponse.status_code == 200
+    theHtml = theResponse.get_data(as_text=True)
+    assert "rotate(-2.5deg)" in theHtml
+    assert "&#9733;" in theHtml
+    assert "Sectional<br>Runner-Up" in theHtml
+    assert "Regional Qualifier" in theHtml
+    theCards = client.get("/api/athletes/102/cards").get_json()["cards"]
+    assert set(theCards[0]["html_url"]) == {"A", "B", "E"}
+    assert theCards[0]["download_name"]["A"].endswith("-a.png")
+    assert client.get("/card/102/4/100 Meters?design=a").status_code == 200

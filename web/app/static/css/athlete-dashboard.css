@@ -71,8 +71,8 @@
 .athlete-card-face { display: block; width: 100%; height: 100%; background: var(--card-color, #16161c); border: 3px solid white; border-radius: 18px; box-shadow: 0 3px 10px #501e3233; transition: transform 220ms ease, box-shadow 220ms ease; transform-origin: center bottom; overflow: hidden; box-sizing: border-box; }
 .athlete-card-face iframe { display: block; width: 1080px; height: 1350px; border: 0; transform-origin: top left; transform: scale(var(--athlete-card-scale, 0.2)); pointer-events: none; background: #16161c; }
 .athlete-card-empty { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; padding: 14px; text-align: center; font-size: 13px; line-height: 1.4; color: #52617a; border: 1px dashed #d4dae4; border-radius: 18px; background: #f7f8fb; }
-.athlete-card-designs { display: grid; grid-template-columns: 1fr 1fr; width: var(--athlete-card-width); margin: 0 0 12px; padding: 3px; border: 1px solid #e0e4eb; border-radius: 999px; background: #f3f4f7; }
-.athlete-card-design { border: 0; border-radius: 999px; padding: 6px 4px; font-size: 12px; font-weight: 600; letter-spacing: 0.01em; color: #52617a; background: transparent; cursor: pointer; transition: background-color 150ms ease, color 150ms ease; white-space: nowrap; }
+.athlete-card-designs { display: grid; grid-template-columns: repeat(3, 1fr); width: var(--athlete-card-width); margin: 0 0 12px; padding: 3px; border: 1px solid #e0e4eb; border-radius: 999px; background: #f3f4f7; }
+.athlete-card-design { border: 0; border-radius: 999px; padding: 6px 2px; font-size: 11.5px; font-weight: 600; letter-spacing: 0.01em; color: #52617a; background: transparent; cursor: pointer; transition: background-color 150ms ease, color 150ms ease; white-space: nowrap; }
 .athlete-card-design[aria-pressed="true"] { background: var(--athlete-accent); color: white; box-shadow: 0 1px 3px #501e3233; }
 .athlete-card-design:not([aria-pressed="true"]):hover { color: var(--athlete-accent); }
 .athlete-card-design:focus-visible { outline: 2px solid var(--athlete-accent); outline-offset: 2px; }

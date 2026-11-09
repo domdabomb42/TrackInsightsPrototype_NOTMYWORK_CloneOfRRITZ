@@ -24,7 +24,7 @@ from .school_colors import school_colors
 
 theCardWidth = 1080
 theCardHeight = 1350
-theDesignCodes = ("B", "E")
+theDesignCodes = ("B", "E", "A")
 theFontFiles = {
     "oswald500": "fonts/oswald-latin-500-normal.woff2",
     "oswald700": "fonts/oswald-latin-700-normal.woff2",

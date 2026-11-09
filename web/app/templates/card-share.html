@@ -53,7 +53,7 @@
       <p id="card-share-status" class="card-share-status" role="status" aria-live="polite"></p>
 
       <div class="card-share-links">
-        <a href="{{ summary.share_url[other_design] }}">Switch to the {{ 'Blackout' if other_design == 'E' else 'School Color' }} design</a>
+        {% for code, label in other_designs %}<a href="{{ summary.share_url[code] }}">{{ label }} design</a>{% endfor %}
         <a href="{{ dashboard_url }}">All of {{ card.first|title }}'s cards</a>
       </div>
     </section>

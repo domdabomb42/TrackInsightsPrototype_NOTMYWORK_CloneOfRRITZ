@@ -20,7 +20,7 @@ theGrain = (
     '<rect width="100%" height="100%" filter="url(#g)"></rect></svg>'
 )
 
-theDesignNames = {"B": "School Color", "E": "Blackout"}
+theDesignNames = {"B": "School Color", "E": "Blackout", "A": "Centered"}
 
 theFitScript = (
     "<script>(function(){function fit(){var els=document.querySelectorAll('[data-fit]');"
@@ -186,7 +186,42 @@ def designBlackout(c, assets):
     )
 
 
-theDesigns = {"B": designRail, "E": designBlackout}
+def designStack(c, assets):
+    s = c["school"]
+    theAccent = s["accent"]
+    theInk = ink(s)
+    theAcc2 = ""
+    if c["acc2"] != "":
+        theAcc2 = (
+            '<div style="position:absolute;left:60px;right:60px;top:958px;text-align:center"><div ' + fitAttrs(50, 30) + ' style="font-size:50px;font-weight:700;letter-spacing:0.06em;color:#ffffff;white-space:nowrap">'
+            '<span style="color:' + theAccent + '">&#9733;</span>&nbsp; ' + escape(c["acc2"]) + ' &nbsp;<span style="color:' + theAccent + '">&#9733;</span></div></div>'
+        )
+    return (
+        '<div style="width:1080px;height:1350px;position:relative;overflow:hidden;background:' + s["primary"] + ";" + theFont + 'color:#ffffff;text-transform:uppercase">'
+        '<div style="position:absolute;inset:0;background:radial-gradient(ellipse 80% 55% at 50% 30%,rgba(255,255,255,0.18) 0%,rgba(255,255,255,0) 70%),linear-gradient(180deg,rgba(0,0,0,0) 40%,rgba(0,0,0,0.55) 100%)"></div>'
+        + whiteLogo(s, "position:absolute;left:50%;top:48%;width:1050px;height:auto;transform:translate(-50%,-50%);opacity:0.13;filter:blur(2px)")
+        + theGrain
+        + '<div style="position:absolute;top:56px;left:60px;right:60px;display:flex;align-items:flex-start;justify-content:space-between">' + tiBlock(assets) + yearTag(s, c["year"], c["cardId"]) + "</div>"
+        '<div style="position:absolute;left:60px;right:60px;top:250px;text-align:center">'
+        '<div ' + fitAttrs(156, 84) + ' style="font-size:156px;font-weight:700;line-height:0.88;letter-spacing:-0.02em;text-shadow:0 10px 30px rgba(0,0,0,0.35);white-space:nowrap">' + nameLines(c) + "</div>"
+        '<div style="display:flex;align-items:center;justify-content:center;gap:22px;margin-top:28px">'
+        '<div style="height:3px;width:90px;background:' + theAccent + ';flex-shrink:0"></div>'
+        '<div style="min-width:0;max-width:700px"><div ' + fitAttrs(28, 16) + ' style="' + mono(28, "font-weight:700;white-space:nowrap") + '">' + escape(s["name"]) + "</div></div>"
+        '<div style="height:3px;width:90px;background:' + theAccent + ';flex-shrink:0"></div></div></div>'
+        '<div style="position:absolute;left:-300px;top:-200px;width:260px;height:1500px;background:linear-gradient(90deg,rgba(255,255,255,0) 0%,rgba(255,255,255,0.22) 50%,rgba(255,255,255,0) 100%);transform:rotate(24deg) translateX(900px);filter:blur(10px)"></div>'
+        '<div style="position:absolute;left:-40px;right:-40px;top:642px;height:300px;background:rgba(0,0,0,0.45);transform:rotate(-2.5deg)"></div>'
+        '<div style="position:absolute;left:-40px;right:-40px;top:620px;height:300px;background:' + theAccent + ';transform:rotate(-2.5deg);box-shadow:0 20px 50px rgba(0,0,0,0.35)"></div>'
+        '<div style="position:absolute;left:0;right:0;top:628px;height:290px;display:flex;align-items:center;justify-content:center;text-align:center;transform:rotate(-2.5deg)">'
+        '<div style="width:960px"><div ' + fitAttrs(126, 64) + ' style="font-size:126px;font-weight:700;line-height:0.86;letter-spacing:-0.01em;color:' + theInk + ';white-space:nowrap">' + twoLines(c["acc1"]) + "</div></div></div>"
+        + theAcc2
+        + '<div style="position:absolute;left:60px;right:60px;bottom:56px;text-align:center">'
+        '<div ' + fitAttrs(30, 18) + ' style="' + mono(30, "font-weight:700;color:rgba(255,255,255,0.9);white-space:nowrap") + '">' + escape(c["gender"]) + " " + escape(c["event"]) + "</div>"
+        '<div ' + fitAttrs(196, 100) + ' style="font-size:196px;font-weight:700;line-height:0.9;letter-spacing:-0.03em;margin-top:6px;text-shadow:0 10px 30px rgba(0,0,0,0.4);white-space:nowrap">' + escape(c["result"]) + "</div></div>"
+        "</div>"
+    )
+
+
+theDesigns = {"B": designRail, "E": designBlackout, "A": designStack}
 
 
 def cardHtml(design, c, assets):
