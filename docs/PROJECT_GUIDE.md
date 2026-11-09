@@ -255,7 +255,7 @@ named on a school relay gets that relay's card. An athlete who competed in a
 season without earning one of those gets a single season card for their best
 result, labelled Finalist with their place, so every athlete has a card. The
 dashboard shows them in the deck at the bottom of the page, with a School Color
-/ Blackout / Centered toggle (designs B, E and A), and the share buttons send the
+/ Blackout / Banner toggle (designs B, E and A), and the share buttons send the
 rendered PNG.
 
 The cards are precomputed into `web/data/cards.db` by `app.jobs.precompute_cards`

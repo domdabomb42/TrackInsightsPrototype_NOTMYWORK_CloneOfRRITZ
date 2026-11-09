@@ -20,7 +20,7 @@ theGrain = (
     '<rect width="100%" height="100%" filter="url(#g)"></rect></svg>'
 )
 
-theDesignNames = {"B": "School Color", "E": "Blackout", "A": "Centered"}
+theDesignNames = {"B": "School Color", "E": "Blackout", "A": "Banner"}
 
 theFitScript = (
     "<script>(function(){function fit(){var els=document.querySelectorAll('[data-fit]');"
