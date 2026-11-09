@@ -46,11 +46,12 @@ theKnockoutNear = 30
 theKnockoutFar = 90
 theRenderGate = threading.BoundedSemaphore(2)
 theRenderTimeout = 20000
-theTemplateVersion = "3"
+theTemplateVersion = "4"
 theSilhouetteWidth = 1200
 theInkDark = 170
 theInkLight = 235
 theMinInkCoverage = 0.015
+theBorderShare = 0.8
 theStickerSize = 400
 theChromiumArgs = ["--disable-gpu", "--headless"]
 theChromiumNoSandbox = "--no-sandbox"
@@ -88,43 +89,59 @@ def school_logo_path(school_id):
     return None
 
 
-def _ink_mask(image):
+def _border_background(image):
     theWidth, theHeight = image.size
-    theAlpha = image.getchannel("A")
-    theCorners = [
-        image.getpixel((0, 0)),
-        image.getpixel((theWidth - 1, 0)),
-        image.getpixel((0, theHeight - 1)),
-        image.getpixel((theWidth - 1, theHeight - 1)),
-    ]
-    theOpaqueCorners = []
-    for n in range(len(theCorners)):
-        if theCorners[n][3] >= 250:
-            theOpaqueCorners.append(theCorners[n][:3])
-    theBackground = None
-    if len(theOpaqueCorners) >= 3 and min(theOpaqueCorners[0]) < theInkLight:
-        theBackground = theOpaqueCorners[0]
+    theFrame = max(2, int(round(min(theWidth, theHeight) * 0.04)))
+    theCounts = {}
+    theTotal = 0
+    theBorderPixels = 0
+    for y in range(theHeight):
+        theEdgeRow = y < theFrame or y >= theHeight - theFrame
+        for x in range(theWidth):
+            if theEdgeRow == False and x >= theFrame and x < theWidth - theFrame:
+                continue
+            theBorderPixels = theBorderPixels + 1
+            thePixel = image.getpixel((x, y))
+            if thePixel[3] < 250:
+                continue
+            theKey = (thePixel[0] // 16 * 16 + 8, thePixel[1] // 16 * 16 + 8, thePixel[2] // 16 * 16 + 8)
+            theCounts[theKey] = theCounts.get(theKey, 0) + 1
+            theTotal = theTotal + 1
+    if theTotal == 0 or theTotal < theBorderPixels * 0.6:
+        return None
+    theBest = max(theCounts.items(), key=lambda item: item[1])
+    if theBest[1] < theTotal * theBorderShare:
+        return None
+    return theBest[0]
+
+
+def _ink_mask(image):
+    theAlphaChannel = image.getchannel("A")
+    theBackground = _border_background(image)
+    theAlphaValues = list(theAlphaChannel.getdata())
     thePixels = list(image.getdata())
-    theAlphaValues = list(theAlpha.getdata())
     theValues = []
     for n in range(len(thePixels)):
         thePixel = thePixels[n]
-        if theBackground is None:
-            theLightest = min(thePixel[0], thePixel[1], thePixel[2])
-            if theLightest >= theInkLight:
-                theInk = 0
-            elif theLightest <= theInkDark:
-                theInk = 255
-            else:
-                theInk = int(255 * (theInkLight - theLightest) / float(theInkLight - theInkDark))
+        theLightest = min(thePixel[0], thePixel[1], thePixel[2])
+        if theLightest >= theInkLight:
+            theInk = 0
+        elif theLightest <= theInkDark:
+            theInk = 255
         else:
+            theInk = int(255 * (theInkLight - theLightest) / float(theInkLight - theInkDark))
+        if theBackground is not None:
             theDistance = abs(thePixel[0] - theBackground[0]) + abs(thePixel[1] - theBackground[1]) + abs(thePixel[2] - theBackground[2])
             if theDistance <= theKnockoutNear:
-                theInk = 0
+                theBackgroundInk = 0
             elif theDistance >= theKnockoutFar:
-                theInk = 255
+                theBackgroundInk = 255
             else:
-                theInk = int(255 * (theDistance - theKnockoutNear) / float(theKnockoutFar - theKnockoutNear))
+                theBackgroundInk = int(255 * (theDistance - theKnockoutNear) / float(theKnockoutFar - theKnockoutNear))
+            if min(theBackground) < theInkLight:
+                theInk = theBackgroundInk
+            else:
+                theInk = min(theInk, theBackgroundInk)
         theValues.append(theInk * theAlphaValues[n] // 255)
     return theValues
 

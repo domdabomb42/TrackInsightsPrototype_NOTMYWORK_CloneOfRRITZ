@@ -140,7 +140,7 @@ def designRail(c, assets):
         '<div style="position:absolute;top:56px;left:90px;right:60px;display:flex;align-items:flex-start;justify-content:space-between">' + tiBlock(assets) + yearTag(s, c["year"], c["cardId"]) + "</div>"
         '<div style="position:absolute;left:90px;right:60px;top:280px">'
         '<div ' + fitAttrs(170, 90) + ' style="font-size:170px;font-weight:700;line-height:0.86;letter-spacing:-0.025em;text-shadow:0 10px 30px rgba(0,0,0,0.35);white-space:nowrap">' + nameLines(c) + "</div>"
-        '<div style="display:flex;align-items:center;gap:20px;margin-top:26px"><div style="height:4px;width:70px;background:' + theAccent + ';flex-shrink:0"></div><div style="min-width:0;flex:1"><div ' + fitAttrs(28, 16) + ' style="' + mono(28, "font-weight:700;color:rgba(255,255,255,0.92);white-space:nowrap") + '">' + escape(s["name"]) + "</div></div></div></div>"
+        '<div style="display:flex;align-items:center;gap:20px;margin-top:26px"><div style="height:4px;width:70px;background:' + theAccent + ';flex-shrink:0"></div><div style="min-width:0;max-width:700px"><div ' + fitAttrs(28, 16) + ' style="' + mono(28, "font-weight:700;color:rgba(255,255,255,0.92);white-space:nowrap") + '">' + escape(s["name"]) + '</div></div><div style="height:4px;width:70px;background:' + theAccent + ';flex-shrink:0"></div></div></div>'
         '<div style="position:absolute;left:90px;right:60px;top:690px">'
         '<div ' + fitAttrs(124, 64) + ' style="font-size:124px;font-weight:700;line-height:0.88;letter-spacing:-0.01em;color:' + theAccent + ';text-shadow:0 6px 0 rgba(0,0,0,0.3);white-space:nowrap">' + twoLines(c["acc1"]) + "</div>"
         + theAcc2 + "</div>"
@@ -208,7 +208,6 @@ def designStack(c, assets):
         '<div style="height:3px;width:90px;background:' + theAccent + ';flex-shrink:0"></div>'
         '<div style="min-width:0;max-width:700px"><div ' + fitAttrs(28, 16) + ' style="' + mono(28, "font-weight:700;white-space:nowrap") + '">' + escape(s["name"]) + "</div></div>"
         '<div style="height:3px;width:90px;background:' + theAccent + ';flex-shrink:0"></div></div></div>'
-        '<div style="position:absolute;left:-300px;top:-200px;width:260px;height:1500px;background:linear-gradient(90deg,rgba(255,255,255,0) 0%,rgba(255,255,255,0.22) 50%,rgba(255,255,255,0) 100%);transform:rotate(24deg) translateX(900px);filter:blur(10px)"></div>'
         '<div style="position:absolute;left:-40px;right:-40px;top:642px;height:300px;background:rgba(0,0,0,0.45);transform:rotate(-2.5deg)"></div>'
         '<div style="position:absolute;left:-40px;right:-40px;top:620px;height:300px;background:' + theAccent + ';transform:rotate(-2.5deg);box-shadow:0 20px 50px rgba(0,0,0,0.35)"></div>'
         '<div style="position:absolute;left:0;right:0;top:628px;height:290px;display:flex;align-items:center;justify-content:center;text-align:center;transform:rotate(-2.5deg)">'
