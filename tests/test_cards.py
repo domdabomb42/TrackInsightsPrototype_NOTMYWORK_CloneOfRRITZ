@@ -84,8 +84,8 @@ def test_athlete_cards_follow_the_fixture_results(app):
         theCards = list_cards_for_athlete(101)
         theKeys = [(c["year"], c["meet_type"], c["event"], c["acc1"], c["acc2"], c["kind"]) for c in theCards]
         assert theKeys == [
-            (2024, "Regional", "100 Meters", "State Qualifier", "", "accolade"),
             (2024, "Regional", "4 x 100 Relay", "Regional Champion", "State Qualifier", "accolade"),
+            (2024, "Regional", "100 Meters", "State Qualifier", "", "accolade"),
             (2024, "Sectional", "100 Meters", "Regional Qualifier", "", "accolade"),
             (2023, "Sectional", "100 Meters", "Sectional Finalist", "10th Place", "season"),
         ]
@@ -125,8 +125,8 @@ def test_stored_cards_db_is_read_when_it_matches_the_results(app, tmp_path):
         assert theStatus["count"] == theTotal
         list_cards_for_athlete.cache_clear()
         theStored = list_cards_for_athlete(102)
-        assert [c["acc1"] for c in theStored] == ["Regional Runner-Up", "Regional Champion", "Sectional Runner-Up"]
-        assert theStored[0]["cardId"] == card_id(102, 5, "100 Meters", 2024, "Regional")
+        assert [c["acc1"] for c in theStored] == ["Regional Champion", "Regional Runner-Up", "Sectional Runner-Up"]
+        assert theStored[1]["cardId"] == card_id(102, 5, "100 Meters", 2024, "Regional")
 
 
 def test_a_fourth_place_who_ran_the_next_round_is_a_qualifier(app):
@@ -310,8 +310,8 @@ def test_design_parameter_is_case_insensitive(client):
 def test_cards_come_newest_season_and_latest_round_first(app):
     with app.app_context():
         theCards = list_cards_for_athlete(101)
-        theOrder = [(c["year"], c["meet_type"]) for c in theCards]
-        assert theOrder == [(2024, "Regional"), (2024, "Regional"), (2024, "Sectional"), (2023, "Sectional")]
+        theOrder = [(c["year"], c["meet_type"], c["place"]) for c in theCards]
+        assert theOrder == [(2024, "Regional", 1), (2024, "Regional", 3), (2024, "Sectional", 4), (2023, "Sectional", 10)]
 
 
 def test_a_stale_cards_db_is_ignored_in_favour_of_live_results(app, tmp_path):
@@ -428,3 +428,23 @@ def test_sticker_is_a_square_transparent_png(app, client):
     assert theImage.getpixel((2, 200))[3] == 0
     assert theImage.getpixel((200, 200))[3] == 255
     assert len(theResponse.data) < 1000000
+
+
+def test_a_rebuilt_cards_db_is_picked_up_without_a_restart(app, tmp_path):
+    import os
+    import sqlite3
+    from app.jobs.precompute_cards import build_cards_db
+
+    with app.app_context():
+        thePath = str(tmp_path / "cards.db")
+        app.config["CARDS_DB_PATH"] = thePath
+        build_cards_db(thePath)
+        list_cards_for_athlete.cache_clear()
+        assert list_cards_for_athlete(102)[0]["acc1"] == "Regional Champion"
+        theConnection = sqlite3.connect(thePath)
+        theConnection.execute("update card set acc1 = 'Rebuilt Label' where athlete_id = 102 and sort_order = 0")
+        theConnection.commit()
+        theConnection.close()
+        theStat = os.stat(thePath)
+        os.utime(thePath, ns=(theStat.st_atime_ns, theStat.st_mtime_ns + 1000000))
+        assert list_cards_for_athlete(102)[0]["acc1"] == "Rebuilt Label"

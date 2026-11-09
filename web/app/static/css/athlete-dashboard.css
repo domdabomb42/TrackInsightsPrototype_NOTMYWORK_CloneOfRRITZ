@@ -95,18 +95,18 @@
 .athlete-card-share-info { min-width: 0; flex: 1; }
 .athlete-card-share-title { color: var(--athlete-accent); font-size: clamp(28px, 3.8vw, 46px); line-height: 1.15; }
 .athlete-card-caption { font-size: clamp(14px, 1.7vw, 18px); color: #445168; margin: 8px 0 18px; }
-.athlete-card-share-tools { display: flex; align-items: stretch; gap: 20px; }
-.athlete-card-qr { position: relative; display: flex; align-items: center; justify-content: center; align-self: flex-start; flex: 0 1 190px; min-width: 132px; aspect-ratio: 1; border: 1px solid #e0e4eb; border-radius: 16px; background: white; box-shadow: 0 2px 5px #1720330a; overflow: hidden; }
+.athlete-card-share-tools { display: flex; align-items: stretch; gap: 22px; }
+.athlete-card-qr { position: relative; display: flex; align-items: center; justify-content: center; align-self: stretch; flex: 0 1 300px; min-width: 180px; aspect-ratio: 1; border: 1px solid #e0e4eb; border-radius: 18px; background: white; box-shadow: 0 2px 5px #1720330a; overflow: hidden; }
 #athlete-card-qr-code { display: block; width: 100%; }
 #athlete-card-qr-code svg { display: block; width: 100%; height: auto; }
 .athlete-card-qr-logo { position: absolute; width: 21%; height: 21%; object-fit: contain; padding: 3px; background: white; border-radius: 4px; }
 .athlete-card-qr-logo[hidden] { display: none; }
-.athlete-card-actions { flex: 1; min-width: 155px; display: flex; flex-direction: column; justify-content: center; padding: 8px 12px; border: 1px solid #e0e4eb; border-radius: 18px; background: linear-gradient(130deg, #fff, #f3f4f7); box-shadow: 0 2px 5px #1720330a; }
-.athlete-card-action { display: flex; align-items: center; gap: 12px; width: 100%; padding: 7px 4px; color: #334155; text-align: left; font-size: 15px; font-weight: 600; border: 0; background: transparent; border-radius: 8px; cursor: pointer; transition: background-color 150ms ease; }
+.athlete-card-actions { flex: 1; min-width: 180px; display: flex; flex-direction: column; justify-content: space-evenly; gap: 2px; padding: 14px 18px; border: 1px solid #e0e4eb; border-radius: 18px; background: linear-gradient(130deg, #fff, #f3f4f7); box-shadow: 0 2px 5px #1720330a; }
+.athlete-card-action { display: flex; align-items: center; gap: 16px; width: 100%; padding: 12px 10px; color: #334155; text-align: left; font-size: 17px; font-weight: 600; border: 0; background: transparent; border-radius: 12px; cursor: pointer; transition: background-color 150ms ease; }
 .athlete-card-action:hover { background: #a609420b; }
 .athlete-card-action:focus-visible, .athlete-card-qr:focus-visible { outline: 2px solid var(--athlete-accent); outline-offset: 3px; }
-.athlete-card-action svg { display: block; width: 30px; height: 30px; flex-shrink: 0; }
-.athlete-card-share-status { color: #52617a; font-size: 12px; margin-top: 10px; min-height: 18px; }
+.athlete-card-action svg { display: block; width: 38px; height: 38px; flex-shrink: 0; }
+.athlete-card-share-status { color: #52617a; font-size: 13px; margin-top: 12px; min-height: 18px; }
 @media (max-width: 800px) {
   .athlete-card-share-tools { flex-wrap: wrap; gap: 12px; }
   .athlete-card-qr { flex-basis: 160px; }

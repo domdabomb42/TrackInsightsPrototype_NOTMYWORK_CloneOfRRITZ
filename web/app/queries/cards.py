@@ -417,8 +417,18 @@ def _compute_cards_for_athlete(athlete_id):
         theSeasonCard = _season_card(theAthlete, athlete_id, theRows, theMissingYears[n], thePrelims)
         if theSeasonCard is not None:
             theCards.append(theSeasonCard)
-    theCards.sort(key=lambda item: (-item["year"], -_stage_rank(item["meet_type"]), item["event"]))
+    theCards.sort(key=_deck_order)
     return theCards
+
+
+def _deck_order(card):
+    thePlace = card["place"]
+    if thePlace is None or thePlace <= 0:
+        thePlace = 10000
+    theKind = 0
+    if card["kind"] != theKindAccolade:
+        theKind = 1
+    return (-card["year"], -_stage_rank(card["meet_type"]), theKind, thePlace, card["event"])
 
 
 def cards_db_path():
@@ -483,12 +493,28 @@ def _stored_cards_for_athlete(athlete_id):
     return theCards
 
 
-@lru_cache(maxsize=1024)
+def _cards_db_stamp():
+    try:
+        theStat = os.stat(cards_db_path())
+    except OSError:
+        return 0
+    return (theStat.st_mtime_ns, theStat.st_size)
+
+
 def list_cards_for_athlete(athlete_id):
+    return _list_cards_for_athlete_at(athlete_id, _cards_db_stamp())
+
+
+@lru_cache(maxsize=1024)
+def _list_cards_for_athlete_at(athlete_id, stamp):
     theStored = _stored_cards_for_athlete(athlete_id)
     if theStored is not None:
         return theStored
     return _compute_cards_for_athlete(athlete_id)
+
+
+list_cards_for_athlete.cache_clear = _list_cards_for_athlete_at.cache_clear
+list_cards_for_athlete.cache_info = _list_cards_for_athlete_at.cache_info
 
 
 def get_card_data(athlete_id, meet_id, event):
