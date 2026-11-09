@@ -800,7 +800,17 @@
         white-space: nowrap;
       }
       .site-nav-brand svg { width: 1.35rem; height: 1.35rem; flex: none; }
-      .site-nav-links { gap: clamp(1rem, 2.3vw, 2rem); }
+      .site-nav-links { gap: .55rem; }
+      .site-nav-links > .site-nav-search-slot,
+      .site-nav-links > .events-dropdown,
+      .site-nav-links > .site-nav-link {
+        width: clamp(6rem, 8vw, 8.2rem);
+        height: 2.6rem;
+        flex: 0 0 clamp(6rem, 8vw, 8.2rem);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
       .site-nav-search-slot {
         position: relative;
         flex: 0 0 auto;
@@ -810,13 +820,16 @@
       .events-dropdown { position: static; }
       .events-dropdown__toggle {
         display: inline-flex;
+        width: 100%;
+        height: 100%;
         align-items: center;
-        gap: .45rem;
-        padding: 0 .55rem;
+        justify-content: center;
+        gap: .25rem;
+        padding: 0 .25rem;
         border-radius: 999px;
         color: #fff;
         cursor: pointer;
-        font-size: 1.2rem;
+        font-size: clamp(.9rem, 1.2vw, 1.2rem);
         font-weight: 500;
         list-style: none;
         text-shadow: 0 2px 10px rgba(0,0,0,.5);
@@ -826,8 +839,8 @@
       .events-dropdown__toggle:hover,
       .events-dropdown__toggle:focus-visible { background: rgba(255,255,255,.14); box-shadow: 0 0 0 1px rgba(255,255,255,.3); outline: none; }
       .events-dropdown__toggle::-webkit-details-marker { display: none; }
-      .events-dropdown__toggle svg,
-      .site-nav-link svg { width: 1.15rem; height: 1.15rem; flex: none; }
+      .events-dropdown__toggle > svg:not(.events-dropdown__chevron),
+      .site-nav-link svg { width: 1rem; height: 1rem; flex: none; }
       .events-dropdown__chevron {
         display: block;
         width: 1rem !important;
@@ -884,16 +897,34 @@
       .events-dropdown__category a:focus-visible { color: #8c0327; text-decoration: underline; }
       .site-nav-link {
         display: inline-flex;
+        width: 100%;
+        height: 100%;
+        justify-content: center;
         align-items: center;
+        border-radius: 999px;
+        line-height: 1;
         gap: .45rem;
         color: #fff;
-        font-size: 1.2rem;
+        font-size: clamp(.9rem, 1.2vw, 1.2rem);
         font-weight: 500;
         text-shadow: 0 2px 10px rgba(0,0,0,.5);
-        transition: opacity 150ms ease;
+        transition: background-color 150ms ease, box-shadow 150ms ease;
         white-space: nowrap;
       }
-      .site-nav-link:hover, .site-nav-link:focus-visible { opacity: .76; }
+      .events-dropdown__toggle > svg,
+      .site-nav-link > svg,
+      .site-nav-links .search-pill__icon-bubble,
+      .site-nav-links .search-pill__label {
+        align-self: center;
+        line-height: 1;
+        vertical-align: middle;
+      }
+      .site-nav-link:hover,
+      .site-nav-link:focus-visible {
+        background: rgba(255,255,255,.14);
+        box-shadow: 0 0 0 1px rgba(255,255,255,.3);
+        outline: none;
+      }
       .site-nav-links .search-pill {
         width: max-content;
         min-width: 0;
@@ -907,9 +938,14 @@
         box-shadow: none;
         overflow: visible;
       }
+      .site-nav-links .search-pill:not([data-open="true"]):not(.open) {
+        width: 100%;
+        justify-content: center;
+      }
       .site-nav-links .search-pill:not([data-open="true"]):not(.open):hover,
       .site-nav-links .search-pill:not([data-open="true"]):not(.open):focus-visible {
-        width: max-content;
+        width: 100%;
+        justify-content: center;
         padding: 0 .6rem;
         background: rgba(255,255,255,.14);
         box-shadow: 0 0 0 1px rgba(255,255,255,.3);
@@ -935,7 +971,7 @@
         transform: none;
         pointer-events: auto;
         color: #fff;
-        font-size: 1.2rem;
+        font-size: clamp(.9rem, 1.2vw, 1.2rem);
         font-weight: 500;
         letter-spacing: 0;
         text-transform: none;
@@ -961,12 +997,6 @@
         background: #fff;
         box-shadow: 0 8px 28px rgba(0,0,0,.25);
       }
-      .navbar-home .search-results-panel {
-        left: 50%;
-        width: min(38rem, 72vw);
-        transform: translate(-50%, -.4rem);
-      }
-      .navbar-home .search-results-panel.open { transform: translate(-50%, 0); }
       .navbar:not(.navbar-home) .site-nav-brand,
       .navbar:not(.navbar-home) .site-nav-link,
       .navbar:not(.navbar-home) .site-nav-links .search-pill__label {
