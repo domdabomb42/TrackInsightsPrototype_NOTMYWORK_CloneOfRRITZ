@@ -30,8 +30,11 @@ theCardBlack = (11, 11, 15)
 theMinAccentOnPrimary = 3.0
 theMinAccentOnBlack = 4.5
 theMinWhiteOnPrimary = 3.0
-theSameHue = 0.08
-theVividAccent = 0.3
+theSameHue = 0.11
+theVividAccent = 0.5
+theLightPrimary = 0.3
+theYellowHueLow = 0.07
+theYellowHueHigh = 0.2
 theMinPrimaryShare = 0.025
 
 
@@ -121,6 +124,15 @@ def _mix(rgb, target, amount):
         int(round(rgb[1] + (target[1] - rgb[1]) * amount)),
         int(round(rgb[2] + (target[2] - rgb[2]) * amount)),
     )
+
+
+def _reads_as_accent(rgb):
+    if _relative_luminance(rgb) > theLightPrimary:
+        return True
+    theHue = colorsys.rgb_to_hsv(rgb[0] / 255.0, rgb[1] / 255.0, rgb[2] / 255.0)[0]
+    if theHue >= theYellowHueLow and theHue <= theYellowHueHigh:
+        return True
+    return False
 
 
 def _fit_primary(rgb):
@@ -242,20 +254,31 @@ def _colors_from_logo(path):
     theColors = []
     for n in range(len(theRanked)):
         theColors.append(theRanked[n][0])
-    theSaturatedShare = []
+    theVivid = []
     for n in range(len(theRanked)):
         theCandidate = theRanked[n][0]
-        if _saturation(theCandidate) >= theSaturated and max(theCandidate) >= 60:
-            theSaturatedShare.append((theCandidate, theRanked[n][1] / theTotal))
+        if _saturation(theCandidate) >= theSaturated and max(theCandidate) >= 60 and theRanked[n][1] / theTotal >= theMinPrimaryShare:
+            theVivid.append(theCandidate)
     thePrimary = None
-    for n in range(len(theSaturatedShare)):
-        if theSaturatedShare[n][1] >= theMinPrimaryShare:
-            thePrimary = theSaturatedShare[n][0]
-            break
+    theAccent = None
+    if len(theVivid) > 0:
+        theLead = theVivid[0]
+        if _reads_as_accent(theLead) == True:
+            for n in range(1, len(theVivid)):
+                theOther = theVivid[n]
+                if _reads_as_accent(theOther) == False and _same_hue(theOther, theLead) == False:
+                    thePrimary = theOther
+                    break
+            if thePrimary is None:
+                thePrimary = (17, 17, 17)
+            theAccent = theLead
+        else:
+            thePrimary = theLead
     if thePrimary is None:
         thePrimary = (17, 17, 17)
     thePrimary = _fit_primary(thePrimary)
-    theAccent = _pick_accent(theColors, thePrimary)
+    if theAccent is None:
+        theAccent = _pick_accent(theColors, thePrimary)
     thePrimaryHex = _snap_edges(_to_hex(thePrimary))
     if theAccent is None:
         theAccentHex = theWhite

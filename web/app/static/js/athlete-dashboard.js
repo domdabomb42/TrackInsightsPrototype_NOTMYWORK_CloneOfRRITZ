@@ -194,6 +194,7 @@ const shareStatus = document.getElementById('share-dashboard-status');
             window.addEventListener('resize', scaleFaces);
         }
 
+        let suppressClickUntil = 0;
         const cardButtons = cards.map((card, index) => {
             const button = document.createElement('button');
             button.type = 'button';
@@ -210,7 +211,15 @@ const shareStatus = document.getElementById('share-dashboard-status');
             frame.setAttribute('scrolling', 'no');
             face.appendChild(frame);
             button.appendChild(face);
-            button.addEventListener('click', () => selectCard(index));
+            button.addEventListener('click', () => {
+                if (Date.now() < suppressClickUntil) return;
+                // Tapping the top card steps forward; tapping one behind brings it up.
+                if (index === selectedCard && cards.length > 1) {
+                    selectCard((selectedCard + 1) % cards.length);
+                } else {
+                    selectCard(index);
+                }
+            });
             button.addEventListener('keydown', event => {
                 let next;
                 if (event.key === 'ArrowRight') next = (selectedCard + 1) % cards.length;
@@ -240,6 +249,11 @@ const shareStatus = document.getElementById('share-dashboard-status');
             position.textContent = `${index + 1} / ${cards.length}`;
             detail.innerHTML = cardDetail(cards[index]);
             prepareCardImage(index);
+            // Warm the neighbours so the next step is instant.
+            if (cards.length > 1) {
+                prepareCardImage((index + 1) % cards.length);
+                prepareCardImage((index - 1 + cards.length) % cards.length);
+            }
             updateImageButtons();
         }
 
@@ -259,13 +273,56 @@ const shareStatus = document.getElementById('share-dashboard-status');
             button.addEventListener('click', () => setDesign(button.dataset.design));
         });
 
+        const stepCard = delta => selectCard((selectedCard + delta + cards.length) % cards.length);
+
         selectCard(0);
         if (cards.length === 1) {
             previousButton.disabled = true;
             nextButton.disabled = true;
         }
-        previousButton.addEventListener('click', () => selectCard((selectedCard - 1 + cards.length) % cards.length));
-        nextButton.addEventListener('click', () => selectCard((selectedCard + 1) % cards.length));
+        previousButton.addEventListener('click', () => stepCard(-1));
+        nextButton.addEventListener('click', () => stepCard(1));
+
+        if (cards.length > 1) {
+            // Swipe through the deck on touch screens and with a mouse drag.
+            let dragStartX = null;
+            let dragPointer = null;
+            stack.addEventListener('pointerdown', event => {
+                if (event.button !== undefined && event.button !== 0) return;
+                dragStartX = event.clientX;
+                dragPointer = event.pointerId;
+                stack.classList.add('athlete-card-stack-dragging');
+            });
+            const endDrag = event => {
+                if (dragStartX === null || event.pointerId !== dragPointer) return;
+                const distance = event.clientX - dragStartX;
+                dragStartX = null;
+                dragPointer = null;
+                stack.classList.remove('athlete-card-stack-dragging');
+                if (Math.abs(distance) < 40) return;
+                event.preventDefault();
+                stepCard(distance < 0 ? 1 : -1);
+                // A swipe must not also count as a tap on the card underneath.
+                suppressClickUntil = Date.now() + 350;
+            };
+            stack.addEventListener('pointerup', endDrag);
+            stack.addEventListener('pointercancel', () => {
+                dragStartX = null;
+                dragPointer = null;
+                stack.classList.remove('athlete-card-stack-dragging');
+            });
+
+            // A horizontal wheel or trackpad swipe steps too, one card per gesture.
+            let wheelBusyUntil = 0;
+            stack.addEventListener('wheel', event => {
+                if (Math.abs(event.deltaX) <= Math.abs(event.deltaY) || Math.abs(event.deltaX) < 12) return;
+                event.preventDefault();
+                const now = Date.now();
+                if (now < wheelBusyUntil) return;
+                wheelBusyUntil = now + 450;
+                stepCard(event.deltaX > 0 ? 1 : -1);
+            }, {passive: false});
+        }
 
         function prepareCardImage(index) {
             const key = imageKey(index);
