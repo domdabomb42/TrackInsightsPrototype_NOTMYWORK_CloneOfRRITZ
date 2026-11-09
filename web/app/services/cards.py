@@ -43,6 +43,7 @@ theKnockoutNear = 30
 theKnockoutFar = 90
 theRenderGate = threading.BoundedSemaphore(2)
 theRenderTimeout = 20000
+theTemplateVersion = "2"
 theChromiumArgs = ["--disable-gpu", "--headless"]
 theChromiumNoSandbox = "--no-sandbox"
 
@@ -263,6 +264,7 @@ def _render_key(card, design):
         str(card["acc2"]),
         str(card["school_id"]),
         design,
+        theTemplateVersion,
     ]
     return hashlib.sha1("|".join(theParts).encode("utf-8")).hexdigest()[:16]
 
@@ -275,6 +277,7 @@ def png_path(card, design):
 def _screenshot(page, html, path):
     page.set_content(html, wait_until="load", timeout=theRenderTimeout)
     page.evaluate("document.fonts.ready")
+    page.evaluate("window.fitCardText && window.fitCardText()")
     page.screenshot(path=path, clip={"x": 0, "y": 0, "width": theCardWidth, "height": theCardHeight}, timeout=theRenderTimeout)
 
 

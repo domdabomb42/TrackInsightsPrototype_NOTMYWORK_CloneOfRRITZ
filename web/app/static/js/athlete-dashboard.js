@@ -118,8 +118,11 @@ const shareStatus = document.getElementById('share-dashboard-status');
         let selectedCard = 0;
         let sharingImage = false;
 
+        const titleCase = value => String(value || '').toLowerCase()
+            .replace(/(^|[\s'\-(])([a-z])/g, (match, lead, letter) => lead + letter.toUpperCase());
+        const displayFirst = titleCase(athlete.first) || titleCase(name);
         document.getElementById('athlete-card-caption').textContent =
-            `Scan or share ${athlete.first || name}'s athlete cards.`;
+            `Scan or share ${displayFirst}'s athlete cards.`;
         const qrLink = document.getElementById('athlete-card-qr-link');
         qrLink.href = url;
         qrLink.setAttribute('aria-label', `Open ${name}'s athlete dashboard`);
@@ -173,7 +176,7 @@ const shareStatus = document.getElementById('share-dashboard-status');
         function cardDetail(card) {
             const second = card.acc2 ? ` \u00b7 ${card.acc2}` : '';
             const meet = `${card.year} ${card.meet_type} \u00b7 ${card.event} \u00b7 ${card.result}`;
-            return `<strong>${escapeHtml(card.acc1)}</strong>${escapeHtml(second)}<br>${escapeHtml(meet)}`;
+            return `<strong>${escapeHtml(card.acc1)}${escapeHtml(second)}</strong>${escapeHtml(meet)}`;
         }
 
         function imageKey(index) {
@@ -257,6 +260,10 @@ const shareStatus = document.getElementById('share-dashboard-status');
         });
 
         selectCard(0);
+        if (cards.length === 1) {
+            previousButton.disabled = true;
+            nextButton.disabled = true;
+        }
         previousButton.addEventListener('click', () => selectCard((selectedCard - 1 + cards.length) % cards.length));
         nextButton.addEventListener('click', () => selectCard((selectedCard + 1) % cards.length));
 
@@ -299,17 +306,27 @@ const shareStatus = document.getElementById('share-dashboard-status');
             setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
         }
 
+        const appSites = {
+            Instagram: 'https://www.instagram.com/',
+            Snapchat: 'https://web.snapchat.com/',
+        };
+
         const shareToApp = async platform => {
             const image = cardImages.get(imageKey(selectedCard));
             const filename = cards[selectedCard].download_name[design];
             if (!image?.blob || sharingImage) return;
             sharingImage = true;
             updateImageButtons();
+            const canShareFile = Boolean(isMobile && image.file && navigator.share && navigator.canShare
+                && navigator.canShare({files: [image.file]}));
+            // On a desktop there is no share sheet: save the card, then open the
+            // app's site in a new tab. Opening it here, inside the tap, is what
+            // keeps the browser from treating the new tab as a popup.
+            const appWindow = canShareFile ? null : window.open(appSites[platform], '_blank', 'noopener');
             try {
                 // Call share directly in the tap handler, with the prepared PNG.
                 // File support must be checked separately from text/link support.
-                if (isMobile && image.file && navigator.share && navigator.canShare
-                    && navigator.canShare({files: [image.file]})) {
+                if (canShareFile) {
                     await navigator.share({files: [image.file], title: `${name} - Track Insights`});
                     setStatus('Athlete card shared.');
                     return;
@@ -326,9 +343,10 @@ const shareStatus = document.getElementById('share-dashboard-status');
             }
             try {
                 downloadCardImage(image, filename);
+                const opened = appWindow ? ` ${platform} is open in a new tab.` : '';
                 setStatus(platform === 'Instagram'
-                    ? 'Card downloaded. Save it to your photos, then add it to an Instagram Story.'
-                    : 'Card downloaded. Save it to your photos, then choose it in Snapchat Memories.');
+                    ? `Card saved to your downloads. Upload it as a post or story.${opened}`
+                    : `Card saved to your downloads. Add it to a Snap or Memories.${opened}`);
             } catch {
                 setStatus('Unable to download the card. Please try again.');
             }

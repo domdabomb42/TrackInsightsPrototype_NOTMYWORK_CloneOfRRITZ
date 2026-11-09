@@ -74,8 +74,9 @@
 .athlete-card-design:not([aria-pressed="true"]):hover { color: var(--athlete-accent); }
 .athlete-card-design:focus-visible { outline: 2px solid var(--athlete-accent); outline-offset: 2px; }
 .athlete-card-design:disabled { opacity: 0.5; cursor: default; }
-.athlete-card-detail { font-size: 13px; color: #52617a; margin: -10px 0 16px; min-height: 18px; line-height: 1.4; }
-.athlete-card-detail strong { color: #172033; font-weight: 600; }
+.athlete-card-detail { width: var(--athlete-card-width); margin: 10px 0 0; padding: 8px 10px; border-radius: 10px; background: #f3f4f7; font-size: 12px; line-height: 1.35; color: #52617a; text-align: center; min-height: 44px; }
+.athlete-card-detail strong { display: block; color: #172033; font-weight: 700; font-size: 13px; }
+.athlete-card-detail:empty { display: none; }
 .athlete-card-option:not([aria-pressed="true"]):hover .athlete-card-face, .athlete-card-option:not([aria-pressed="true"]):focus-visible .athlete-card-face { transform: translateX(70%) translateY(-8px) rotate(3deg); box-shadow: 0 10px 24px #501e3240; }
 .athlete-card-option:not([aria-pressed="true"]):hover::after { content: ''; position: absolute; inset: -12px -78% 0 0; }
 .athlete-card-option:focus-visible { outline: 2px solid var(--athlete-accent); outline-offset: 4px; }

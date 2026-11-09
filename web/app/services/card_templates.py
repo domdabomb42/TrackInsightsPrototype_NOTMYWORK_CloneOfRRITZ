@@ -20,7 +20,17 @@ theGrain = (
     '<rect width="100%" height="100%" filter="url(#g)"></rect></svg>'
 )
 
-theDesignNames = {"B": "Left", "E": "Blackout"}
+theDesignNames = {"B": "School Color", "E": "Blackout"}
+
+theFitScript = (
+    "<script>(function(){function fit(){var els=document.querySelectorAll('[data-fit]');"
+    "for(var i=0;i<els.length;i++){var el=els[i];var min=parseInt(el.getAttribute('data-fit'),10)||24;"
+    "var size=parseFloat(el.getAttribute('data-size'))||parseFloat(getComputedStyle(el).fontSize);"
+    "el.style.fontSize=size+'px';var limit=el.parentNode.clientWidth;"
+    "var guard=0;while(el.scrollWidth>limit&&size>min&&guard<80){size=size-2;el.style.fontSize=size+'px';guard++;}}}"
+    "window.fitCardText=fit;if(document.fonts&&document.fonts.ready){document.fonts.ready.then(fit);}else{fit();}"
+    "window.addEventListener('load',fit);})();</script>"
+)
 
 
 def fontCss(fonts):
@@ -84,8 +94,20 @@ def yearTag(school, year, theId):
 def wrap(assets, inner):
     return (
         '<!doctype html><html lang="en"><head><meta charset="utf-8"><style>' + fontCss(assets["fonts"])
-        + "</style></head><body>" + inner + "</body></html>"
+        + "</style></head><body>" + inner + theFitScript + "</body></html>"
     )
+
+
+def fitAttrs(size, minimum):
+    return 'data-fit="' + str(minimum) + '" data-size="' + str(size) + '"'
+
+
+def nameLines(c):
+    theFirst = (c.get("first") or "").strip()
+    theLast = (c.get("last") or "").strip()
+    if theFirst != "" and theLast != "":
+        return escape(theFirst) + "<br>" + escape(theLast)
+    return twoLines(c["name"])
 
 
 def whiteLogo(school, style):
@@ -98,8 +120,8 @@ def logoChip(school):
     if school.get("logo") is None:
         return ""
     return (
-        '<div style="width:110px;height:110px;background:#ffffff;border-radius:16px;display:flex;align-items:center;'
-        'justify-content:center;margin-bottom:10px"><img src="' + school["logo"] + '" alt="" style="height:84px;width:auto"></div>'
+        '<div style="width:110px;height:110px;flex-shrink:0;background:#ffffff;border-radius:16px;display:flex;align-items:center;'
+        'justify-content:center;margin-bottom:10px"><img src="' + school["logo"] + '" alt="" style="max-height:84px;max-width:84px;width:auto;height:auto"></div>'
     )
 
 
@@ -108,7 +130,7 @@ def designRail(c, assets):
     theAccent = s["accent"]
     theAcc2 = ""
     if c["acc2"] != "":
-        theAcc2 = '<div style="margin-top:16px;font-size:62px;font-weight:700;letter-spacing:0.04em;color:#ffffff">' + escape(c["acc2"]) + "</div>"
+        theAcc2 = '<div ' + fitAttrs(62, 36) + ' style="margin-top:16px;font-size:62px;font-weight:700;letter-spacing:0.04em;color:#ffffff;white-space:nowrap">' + escape(c["acc2"]) + "</div>"
     return (
         '<div style="width:1080px;height:1350px;position:relative;overflow:hidden;background:' + s["primary"] + ";" + theFont + 'color:#ffffff;text-transform:uppercase">'
         '<div style="position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,0.45) 0%,rgba(0,0,0,0) 55%),linear-gradient(180deg,rgba(0,0,0,0) 50%,rgba(0,0,0,0.5) 100%)"></div>'
@@ -117,14 +139,14 @@ def designRail(c, assets):
         + '<div style="position:absolute;left:0;top:0;bottom:0;width:30px;background:' + theAccent + '"></div>'
         '<div style="position:absolute;top:56px;left:90px;right:60px;display:flex;align-items:flex-start;justify-content:space-between">' + tiBlock(assets) + yearTag(s, c["year"], c["cardId"]) + "</div>"
         '<div style="position:absolute;left:90px;right:60px;top:280px">'
-        '<div style="font-size:170px;font-weight:700;line-height:0.86;letter-spacing:-0.025em;text-shadow:0 10px 30px rgba(0,0,0,0.35)">' + twoLines(c["name"]) + "</div>"
-        '<div style="display:flex;align-items:center;gap:20px;margin-top:26px"><div style="height:4px;width:70px;background:' + theAccent + '"></div><div style="' + mono(28, "font-weight:700;color:rgba(255,255,255,0.92)") + '">' + escape(s["name"]) + "</div></div></div>"
+        '<div ' + fitAttrs(170, 90) + ' style="font-size:170px;font-weight:700;line-height:0.86;letter-spacing:-0.025em;text-shadow:0 10px 30px rgba(0,0,0,0.35);white-space:nowrap">' + nameLines(c) + "</div>"
+        '<div style="display:flex;align-items:center;gap:20px;margin-top:26px"><div style="height:4px;width:70px;background:' + theAccent + ';flex-shrink:0"></div><div style="min-width:0;flex:1"><div ' + fitAttrs(28, 16) + ' style="' + mono(28, "font-weight:700;color:rgba(255,255,255,0.92);white-space:nowrap") + '">' + escape(s["name"]) + "</div></div></div></div>"
         '<div style="position:absolute;left:90px;right:60px;top:690px">'
-        '<div style="font-size:124px;font-weight:700;line-height:0.88;letter-spacing:-0.01em;color:' + theAccent + ';text-shadow:0 6px 0 rgba(0,0,0,0.3)">' + twoLines(c["acc1"]) + "</div>"
+        '<div ' + fitAttrs(124, 64) + ' style="font-size:124px;font-weight:700;line-height:0.88;letter-spacing:-0.01em;color:' + theAccent + ';text-shadow:0 6px 0 rgba(0,0,0,0.3);white-space:nowrap">' + twoLines(c["acc1"]) + "</div>"
         + theAcc2 + "</div>"
-        '<div style="position:absolute;left:90px;right:60px;bottom:64px;display:flex;align-items:flex-end;justify-content:space-between">'
-        '<div><div style="' + mono(30, "font-weight:700;color:rgba(255,255,255,0.9)") + '">' + escape(c["gender"]) + " " + escape(c["event"]) + "</div>"
-        '<div style="font-size:200px;font-weight:700;line-height:0.86;letter-spacing:-0.035em;margin-top:8px;text-shadow:0 10px 30px rgba(0,0,0,0.4)">' + escape(c["result"]) + "</div></div>"
+        '<div style="position:absolute;left:90px;right:60px;bottom:64px;display:flex;align-items:flex-end;justify-content:space-between;gap:30px">'
+        '<div style="min-width:0;flex:1"><div ' + fitAttrs(30, 18) + ' style="' + mono(30, "font-weight:700;color:rgba(255,255,255,0.9);white-space:nowrap") + '">' + escape(c["gender"]) + " " + escape(c["event"]) + "</div>"
+        '<div ' + fitAttrs(200, 100) + ' style="font-size:200px;font-weight:700;line-height:0.86;letter-spacing:-0.035em;margin-top:8px;text-shadow:0 10px 30px rgba(0,0,0,0.4);white-space:nowrap">' + escape(c["result"]) + "</div></div>"
         + logoChip(s) + "</div>"
         "</div>"
     )
@@ -142,7 +164,7 @@ def designBlackout(c, assets):
         theHot = "#ff4d6d"
     theAcc2 = ""
     if c["acc2"] != "":
-        theAcc2 = '<div style="position:absolute;left:60px;right:60px;top:860px;text-align:center;font-size:56px;font-weight:700;letter-spacing:0.06em;color:' + theHot + '">' + escape(c["acc2"]) + "</div>"
+        theAcc2 = '<div style="position:absolute;left:60px;right:60px;top:860px;text-align:center"><div ' + fitAttrs(56, 32) + ' style="font-size:56px;font-weight:700;letter-spacing:0.06em;color:' + theHot + ';white-space:nowrap">' + escape(c["acc2"]) + "</div></div>"
     return (
         '<div style="width:1080px;height:1350px;position:relative;overflow:hidden;background:#0b0b0f;' + theFont + 'color:#ffffff;text-transform:uppercase">'
         '<div style="position:absolute;inset:0;background:radial-gradient(ellipse 90% 60% at 50% 20%,rgba(255,255,255,0.10) 0%,rgba(255,255,255,0) 70%)"></div>'
@@ -152,14 +174,14 @@ def designBlackout(c, assets):
         '<div style="position:absolute;left:0;right:0;top:26px;height:6px;background:' + theHot + '"></div>'
         '<div style="position:absolute;top:80px;left:60px;right:60px;display:flex;align-items:flex-start;justify-content:space-between">' + tiBlock(assets) + yearTag(s, c["year"], c["cardId"]) + "</div>"
         '<div style="position:absolute;left:60px;right:60px;top:290px;text-align:center">'
-        '<div style="font-size:156px;font-weight:700;line-height:0.88;letter-spacing:-0.02em">' + twoLines(c["name"]) + "</div>"
-        '<div style="' + mono(28, "font-weight:700;margin-top:26px;color:rgba(255,255,255,0.8)") + '">' + escape(s["name"]) + "</div></div>"
+        '<div ' + fitAttrs(156, 84) + ' style="font-size:156px;font-weight:700;line-height:0.88;letter-spacing:-0.02em;white-space:nowrap">' + nameLines(c) + "</div>"
+        '<div ' + fitAttrs(28, 16) + ' style="' + mono(28, "font-weight:700;margin-top:26px;color:rgba(255,255,255,0.8);white-space:nowrap") + '">' + escape(s["name"]) + "</div></div>"
         '<div style="position:absolute;left:60px;right:60px;top:650px;background:' + theBlock + ";color:" + theBlockInk + ';padding:34px 30px 30px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,0.6)">'
-        '<div style="font-size:' + str(oneLineSize(c["acc1"], 110, 92)) + 'px;font-weight:700;line-height:0.9;letter-spacing:-0.01em">' + escape(c["acc1"]) + "</div></div>"
+        '<div ' + fitAttrs(oneLineSize(c["acc1"], 110, 92), 56) + ' style="font-size:' + str(oneLineSize(c["acc1"], 110, 92)) + 'px;font-weight:700;line-height:0.9;letter-spacing:-0.01em;white-space:nowrap">' + escape(c["acc1"]) + "</div></div>"
         + theAcc2
-        + '<div style="position:absolute;left:0;right:0;bottom:70px;text-align:center">'
-        '<div style="' + mono(30, "font-weight:700;color:rgba(255,255,255,0.8)") + '">' + escape(c["gender"]) + " " + escape(c["event"]) + "</div>"
-        '<div style="font-size:200px;font-weight:700;line-height:0.9;letter-spacing:-0.03em;margin-top:6px;color:' + theHot + '">' + escape(c["result"]) + "</div></div>"
+        + '<div style="position:absolute;left:60px;right:60px;bottom:70px;text-align:center">'
+        '<div ' + fitAttrs(30, 18) + ' style="' + mono(30, "font-weight:700;color:rgba(255,255,255,0.8);white-space:nowrap") + '">' + escape(c["gender"]) + " " + escape(c["event"]) + "</div>"
+        '<div ' + fitAttrs(200, 100) + ' style="font-size:200px;font-weight:700;line-height:0.9;letter-spacing:-0.03em;margin-top:6px;color:' + theHot + ';white-space:nowrap">' + escape(c["result"]) + "</div></div>"
         "</div>"
     )
 

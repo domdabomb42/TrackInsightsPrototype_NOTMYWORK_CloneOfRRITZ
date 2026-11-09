@@ -160,6 +160,8 @@ def test_card_page_renders_the_approved_markup(client):
     assert "Regional Qualifier" in theHtml
     assert "Blake<br>Sprinter" in theHtml
     assert "width:1080px;height:1350px" in theHtml
+    assert "window.fitCardText" in theHtml
+    assert theHtml.count("data-fit=") >= 6
     assert "/static/fonts/oswald-latin-700-normal.woff2" in theHtml
     theBlackout = client.get("/card/102/4/100 Meters?design=E")
     assert theBlackout.status_code == 200
@@ -202,3 +204,126 @@ def test_card_png_renders_once_and_is_cached(app, client):
     theAgain = client.get("/card/102/4/100 Meters.png?design=B")
     assert theAgain.status_code == 200
     assert theAgain.data == theResponse.data
+
+
+def test_long_names_split_on_first_and_last_not_the_first_space(app):
+    from app.services.card_templates import nameLines, twoLines
+
+    theCard = {"name": "Maria Antonia Vadell Perello", "first": "Maria Antonia", "last": "Vadell Perello"}
+    assert nameLines(theCard) == "Maria Antonia<br>Vadell Perello"
+    assert nameLines({"name": "Cher", "first": "Cher", "last": ""}) == "Cher"
+    assert twoLines("State Runner-Up") == "State<br>Runner-Up"
+    assert nameLines({"name": "A <b> B", "first": "A <b>", "last": "B"}) == "A &lt;b&gt;<br>B"
+
+
+def test_a_final_with_no_time_falls_back_to_the_prelim_mark(app):
+    from app import db
+    from app.models import AthleteResult
+
+    with app.app_context():
+        theFinal = db.session.get(AthleteResult, (103, 4, "200 Meters", "Final"))
+        theFinal.result = "NT"
+        theFinal.result2 = 9999
+        db.session.add(AthleteResult(athlete_id=103, meet_id=4, event="200 Meters", result_type="Prelim",
+                                     result="22.31", result2=22.31, place=1, grade="SR"))
+        db.session.commit()
+        list_cards_for_athlete.cache_clear()
+        theCard = get_card_data(103, 4, "200 Meters")
+        assert theCard["acc1"] == "Sectional Champion"
+        assert theCard["result"] == "22.31"
+
+
+def test_an_athlete_with_no_school_still_gets_a_card(app, client):
+    from app import db
+    from app.models import Athlete, AthleteResult
+
+    with app.app_context():
+        db.session.add(Athlete(athlete_id=901, first="Solo", last="Runner", school_id=None, gender="Boys", graduation_year=2026))
+        db.session.add(AthleteResult(athlete_id=901, meet_id=4, event="400 Meters", result_type="Final",
+                                     result="52.10", result2=52.1, place=1, grade="JR"))
+        db.session.commit()
+        list_cards_for_athlete.cache_clear()
+        theCard = get_card_data(901, 4, "400 Meters")
+        assert theCard["acc1"] == "Sectional Champion"
+        assert theCard["school_id"] is None
+        assert theCard["school_name"] == ""
+    theResponse = client.get("/card/901/4/400 Meters?design=B")
+    assert theResponse.status_code == 200
+    theHtml = theResponse.get_data(as_text=True)
+    assert "school_logos" not in theHtml
+    assert "Solo<br>Runner" in theHtml
+
+
+def test_a_prelims_only_sprinter_gets_a_competitor_card(app):
+    from app import db
+    from app.models import Athlete, AthleteResult
+
+    with app.app_context():
+        db.session.add(Athlete(athlete_id=902, first="Pre", last="Lim", school_id=2, gender="Boys", graduation_year=2026))
+        db.session.add(AthleteResult(athlete_id=902, meet_id=4, event="100 Meters", result_type="Prelim",
+                                     result="11.90", result2=11.9, place=14, grade="SO"))
+        db.session.commit()
+        list_cards_for_athlete.cache_clear()
+        theCards = list_cards_for_athlete(902)
+        assert len(theCards) == 1
+        assert theCards[0]["acc1"] == "Sectional Competitor"
+        assert theCards[0]["acc2"] == ""
+        assert theCards[0]["result"] == "11.90"
+        assert theCards[0]["kind"] == "season"
+
+
+def test_a_relay_only_athlete_has_no_cards_and_the_api_says_so(app, client):
+    from app import db
+    from app.models import Athlete, RelayAthlete
+
+    with app.app_context():
+        db.session.add(Athlete(athlete_id=903, first="Relay", last="Only", school_id=1, gender="Boys", graduation_year=2026))
+        db.session.add(RelayAthlete(relay_id=2, athlete_id=903))
+        db.session.commit()
+        list_cards_for_athlete.cache_clear()
+        assert list_cards_for_athlete(903) == []
+    theResponse = client.get("/api/athletes/903/cards")
+    assert theResponse.status_code == 200
+    assert theResponse.get_json() == {"cards": []}
+
+
+def test_design_parameter_is_case_insensitive(client):
+    assert client.get("/card/102/4/100 Meters?design=b").status_code == 200
+    assert client.get("/card/102/4/100 Meters?design=e").status_code == 200
+    assert client.get("/card/102/4/100 Meters").status_code == 200
+
+
+def test_cards_come_newest_season_and_latest_round_first(app):
+    with app.app_context():
+        theCards = list_cards_for_athlete(101)
+        theOrder = [(c["year"], c["meet_type"]) for c in theCards]
+        assert theOrder == [(2024, "Regional"), (2024, "Sectional"), (2023, "Sectional")]
+
+
+def test_a_stale_cards_db_is_ignored_in_favour_of_live_results(app, tmp_path):
+    from app import db
+    from app.jobs.precompute_cards import build_cards_db
+    from app.models import AthleteResult
+
+    with app.app_context():
+        thePath = str(tmp_path / "cards.db")
+        app.config["CARDS_DB_PATH"] = thePath
+        build_cards_db(thePath)
+        assert cards_status()["stale"] is False
+        theResult = db.session.get(AthleteResult, (102, 4, "100 Meters", "Final"))
+        theResult.place = 1
+        db.session.commit()
+        db.engine.dispose()
+        list_cards_for_athlete.cache_clear()
+        theStatus = cards_status()
+        assert theStatus["built"] is True
+        assert theStatus["stale"] is True
+        theCard = get_card_data(102, 4, "100 Meters")
+        assert theCard["acc1"] == "Sectional Champion"
+
+
+def test_card_ids_carry_the_season_and_round(app):
+    with app.app_context():
+        theCards = list_cards_for_athlete(101)
+        theIds = [c["cardId"][:8] for c in theCards]
+        assert theIds == ["TI24-REG", "TI24-SEC", "TI23-SEC"]

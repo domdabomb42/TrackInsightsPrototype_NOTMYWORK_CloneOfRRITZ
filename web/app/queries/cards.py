@@ -204,7 +204,29 @@ def _stage_rank(meet_type):
     return -1
 
 
-def _card_row(athlete, athlete_id, result, meet, kind, acc1, acc2):
+def _best_mark(result, event_type, prelims):
+    if _is_valid_postseason_mark(result.result2, event_type) == True:
+        return card_result(result.result)
+    thePrelim = prelims.get((result.meet_id, result.event))
+    if thePrelim is not None:
+        return card_result(thePrelim)
+    return card_result(result.result)
+
+
+def _prelim_marks(rows):
+    theMarks = {}
+    for n in range(len(rows)):
+        theResult = rows[n][0]
+        theType = rows[n][2] or CONST.EVENT_TYPE.TRACK
+        if theResult.result_type != CONST.RESULT_TYPE.PRELIM:
+            continue
+        if _is_valid_postseason_mark(theResult.result2, theType) == False:
+            continue
+        theMarks[(theResult.meet_id, theResult.event)] = theResult.result
+    return theMarks
+
+
+def _card_row(athlete, athlete_id, result, meet, kind, acc1, acc2, mark):
     theSchoolName = ""
     theSchoolId = None
     if athlete.school is not None:
@@ -220,7 +242,7 @@ def _card_row(athlete, athlete_id, result, meet, kind, acc1, acc2):
         "meet_type": meet.meet_type,
         "tier": theTierName[meet.meet_type],
         "place": result.place,
-        "result": card_result(result.result),
+        "result": mark,
         "gender": athlete.gender,
         "name": (theFirst + " " + theLast).strip(),
         "first": theFirst,
@@ -234,7 +256,7 @@ def _card_row(athlete, athlete_id, result, meet, kind, acc1, acc2):
     }
 
 
-def _season_card(athlete, athlete_id, rows, year):
+def _season_card(athlete, athlete_id, rows, year, prelims):
     theBest = None
     theBestKey = None
     for n in range(len(rows)):
@@ -263,9 +285,10 @@ def _season_card(athlete, athlete_id, rows, year):
         return None
     theResult = theBest[0]
     theMeet = theBest[1]
+    theMark = _best_mark(theResult, theBest[2] or CONST.EVENT_TYPE.TRACK, prelims)
     if theResult.result_type == CONST.RESULT_TYPE.FINAL and theResult.place is not None and theResult.place > 0:
-        return _card_row(athlete, athlete_id, theResult, theMeet, theKindSeason, theMeet.meet_type + " Finalist", ordinal(theResult.place) + " Place")
-    return _card_row(athlete, athlete_id, theResult, theMeet, theKindSeason, theMeet.meet_type + " Competitor", "")
+        return _card_row(athlete, athlete_id, theResult, theMeet, theKindSeason, theMeet.meet_type + " Finalist", ordinal(theResult.place) + " Place", theMark)
+    return _card_row(athlete, athlete_id, theResult, theMeet, theKindSeason, theMeet.meet_type + " Competitor", "", theMark)
 
 
 def _compute_cards_for_athlete(athlete_id):
@@ -291,6 +314,7 @@ def _compute_cards_for_athlete(athlete_id):
     if len(theRows) == 0:
         return []
     theAppeared = _athlete_appearances(athlete_id)
+    thePrelims = _prelim_marks(theRows)
     theGender = theAthlete.gender
     theCards = []
     theYearsCovered = set()
@@ -320,11 +344,12 @@ def _compute_cards_for_athlete(athlete_id):
         theAccolade = accolade_for(theMeet.meet_type, theResult.place, theAdvanced)
         if theAccolade is None:
             continue
-        theCards.append(_card_row(theAthlete, athlete_id, theResult, theMeet, theKindAccolade, theAccolade[0], theAccolade[1]))
+        theMark = _best_mark(theResult, theType, thePrelims)
+        theCards.append(_card_row(theAthlete, athlete_id, theResult, theMeet, theKindAccolade, theAccolade[0], theAccolade[1], theMark))
         theYearsCovered.add(theMeet.year)
     theMissingYears = sorted(theYearsSeen - theYearsCovered)
     for n in range(len(theMissingYears)):
-        theSeasonCard = _season_card(theAthlete, athlete_id, theRows, theMissingYears[n])
+        theSeasonCard = _season_card(theAthlete, athlete_id, theRows, theMissingYears[n], thePrelims)
         if theSeasonCard is not None:
             theCards.append(theSeasonCard)
     theCards.sort(key=lambda item: (-item["year"], -_stage_rank(item["meet_type"]), item["event"]))
