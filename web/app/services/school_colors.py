@@ -36,6 +36,10 @@ theLightPrimary = 0.3
 theYellowHueLow = 0.07
 theYellowHueHigh = 0.2
 theMinPrimaryShare = 0.025
+theTintedSaturation = 0.12
+theRichSaturation = 0.6
+theRichValueLow = 0.35
+theRichValueHigh = 0.62
 
 
 def _colors_file_stamp():
@@ -133,6 +137,16 @@ def _reads_as_accent(rgb):
     if theHue >= theYellowHueLow and theHue <= theYellowHueHigh:
         return True
     return False
+
+
+def _richen(rgb):
+    if _saturation(rgb) < theTintedSaturation or max(rgb) < 60:
+        return rgb
+    theHue, theSat, theVal = colorsys.rgb_to_hsv(rgb[0] / 255.0, rgb[1] / 255.0, rgb[2] / 255.0)
+    theSat = max(theSat, theRichSaturation)
+    theVal = min(max(theVal, theRichValueLow), theRichValueHigh)
+    theRed, theGreen, theBlue = colorsys.hsv_to_rgb(theHue, theSat, theVal)
+    return (int(round(theRed * 255)), int(round(theGreen * 255)), int(round(theBlue * 255)))
 
 
 def _fit_primary(rgb):
@@ -259,6 +273,12 @@ def _colors_from_logo(path):
         theCandidate = theRanked[n][0]
         if _saturation(theCandidate) >= theSaturated and max(theCandidate) >= 60 and theRanked[n][1] / theTotal >= theMinPrimaryShare:
             theVivid.append(theCandidate)
+    if len(theVivid) == 0:
+        for n in range(len(theRanked)):
+            theCandidate = theRanked[n][0]
+            if _saturation(theCandidate) >= theTintedSaturation and max(theCandidate) >= 60 and theRanked[n][1] / theTotal >= theMinPrimaryShare:
+                theVivid.append(_richen(theCandidate))
+                break
     thePrimary = None
     theAccent = None
     if len(theVivid) > 0:
@@ -276,6 +296,8 @@ def _colors_from_logo(path):
             thePrimary = theLead
     if thePrimary is None:
         thePrimary = (17, 17, 17)
+    else:
+        thePrimary = _richen(thePrimary)
     thePrimary = _fit_primary(thePrimary)
     if theAccent is None:
         theAccent = _pick_accent(theColors, thePrimary)
