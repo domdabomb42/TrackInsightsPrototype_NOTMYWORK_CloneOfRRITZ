@@ -75,11 +75,11 @@ def oneLineSize(text, big, small):
     return small
 
 
-def tiBlock(assets, size=110):
+def tiBlock(assets, size=110, theInk="#ffffff"):
     return (
         '<div style="display:flex;align-items:center;gap:18px"><img src="' + assets["tiLogo"] + '" alt="Track Insights" '
         'style="width:' + str(size) + "px;height:" + str(size) + "px;border-radius:" + str(int(size * 0.18)) + 'px">'
-        '<div style="font-size:' + str(int(size * 0.4)) + 'px;font-weight:700;line-height:0.95;color:#ffffff">Track<br>Insights</div></div>'
+        '<div style="font-size:' + str(int(size * 0.4)) + 'px;font-weight:700;line-height:0.95;color:' + theInk + '">Track<br>Insights</div></div>'
     )
 
 
@@ -87,11 +87,11 @@ def yearTag(school, year, theId):
     return tag(school["accent"], ink(school), year, theId)
 
 
-def tag(theColor, theInk, year, theId):
+def tag(theColor, theInk, year, theId, theIdColor="rgba(255,255,255,0.75)"):
     return (
         '<div style="display:flex;flex-direction:column;align-items:flex-end"><div style="background:' + theColor
         + ";color:" + theInk + ";" + mono(26, "font-weight:700;padding:14px 22px 10px;line-height:1") + '">' + str(year) + "</div>"
-        '<div style="' + mono(16, "margin-top:10px;text-align:right;color:rgba(255,255,255,0.75)") + '">' + escape(theId) + "</div></div>"
+        '<div style="' + mono(16, "margin-top:10px;text-align:right;color:" + theIdColor) + '">' + escape(theId) + "</div></div>"
     )
 
 
@@ -131,7 +131,13 @@ def logoChip(school):
 
 def designRail(c, assets):
     s = c["school"]
-    return railCard(c, assets, s["primary"], s["accent"], ink(s), "linear-gradient(90deg,rgba(0,0,0,0.45) 0%,rgba(0,0,0,0) 55%),linear-gradient(180deg,rgba(0,0,0,0) 50%,rgba(0,0,0,0.5) 100%)", 0.15)
+    theDarkWash = "linear-gradient(90deg,rgba(0,0,0,0.45) 0%,rgba(0,0,0,0) 55%),linear-gradient(180deg,rgba(0,0,0,0) 50%,rgba(0,0,0,0.5) 100%)"
+    theLightWash = "linear-gradient(90deg,rgba(255,255,255,0.3) 0%,rgba(255,255,255,0) 55%),linear-gradient(180deg,rgba(0,0,0,0) 55%,rgba(0,0,0,0.14) 100%)"
+    if s["primary"] != "#111111":
+        return railCard(c, assets, s["primary"], s["accent"], ink(s), theDarkWash, 0.15)
+    if s["accent"] != "#ffffff":
+        return railCard(c, assets, s["accent"], "#111111", s["accent"], theLightWash, 0.1, "#111111")
+    return railCard(c, assets, "#f2f2f3", "#111111", "#ffffff", theLightWash, 0.07, "#111111")
 
 
 def designBlackout(c, assets):
@@ -143,27 +149,38 @@ def designBlackout(c, assets):
     return railCard(c, assets, "#0b0b0f", theGlow, theInk, "radial-gradient(ellipse 90% 60% at 30% 20%,rgba(255,255,255,0.08) 0%,rgba(255,255,255,0) 70%),linear-gradient(180deg,rgba(0,0,0,0) 50%,rgba(0,0,0,0.5) 100%)", 0.1)
 
 
-def railCard(c, assets, theBackground, theAccent, theTagInk, theWash, theLogoOpacity):
+def railCard(c, assets, theBackground, theAccent, theTagInk, theWash, theLogoOpacity, theInk="#ffffff"):
     s = c["school"]
+    theMuted = "rgba(255,255,255,0.9)"
+    theFaint = "rgba(255,255,255,0.75)"
+    theShadow = "text-shadow:0 10px 30px rgba(0,0,0,0.35);"
+    theAccShadow = "text-shadow:0 6px 0 rgba(0,0,0,0.3);"
+    theLogoFilter = "filter:blur(2px)"
+    if theInk != "#ffffff":
+        theMuted = "rgba(17,17,17,0.85)"
+        theFaint = "rgba(17,17,17,0.7)"
+        theShadow = ""
+        theAccShadow = ""
+        theLogoFilter = "filter:brightness(0) blur(2px)"
     theAcc2 = ""
     if c["acc2"] != "":
-        theAcc2 = '<div ' + fitAttrs(62, 36) + ' style="margin-top:16px;font-size:62px;font-weight:700;letter-spacing:0.04em;color:#ffffff;white-space:nowrap">' + escape(c["acc2"]) + "</div>"
+        theAcc2 = '<div ' + fitAttrs(62, 36) + ' style="margin-top:16px;font-size:62px;font-weight:700;letter-spacing:0.04em;color:' + theInk + ';white-space:nowrap">' + escape(c["acc2"]) + "</div>"
     return (
-        '<div style="width:1080px;height:1350px;position:relative;overflow:hidden;background:' + theBackground + ";" + theFont + 'color:#ffffff;text-transform:uppercase">'
+        '<div style="width:1080px;height:1350px;position:relative;overflow:hidden;background:' + theBackground + ";" + theFont + "color:" + theInk + ';text-transform:uppercase">'
         '<div style="position:absolute;inset:0;background:' + theWash + '"></div>'
-        + whiteLogo(s, "position:absolute;right:-380px;top:120px;width:1250px;height:auto;opacity:" + str(theLogoOpacity) + ";transform:rotate(-8deg);filter:blur(2px)")
+        + whiteLogo(s, "position:absolute;right:-380px;top:120px;width:1250px;height:auto;opacity:" + str(theLogoOpacity) + ";transform:rotate(-8deg);" + theLogoFilter)
         + theGrain
         + '<div style="position:absolute;left:0;top:0;bottom:0;width:30px;background:' + theAccent + '"></div>'
-        '<div style="position:absolute;top:56px;left:90px;right:60px;display:flex;align-items:flex-start;justify-content:space-between">' + tiBlock(assets) + tag(theAccent, theTagInk, c["year"], c["cardId"]) + "</div>"
+        '<div style="position:absolute;top:56px;left:90px;right:60px;display:flex;align-items:flex-start;justify-content:space-between">' + tiBlock(assets, 110, theInk) + tag(theAccent, theTagInk, c["year"], c["cardId"], theFaint) + "</div>"
         '<div style="position:absolute;left:90px;right:60px;top:280px">'
-        '<div ' + fitAttrs(170, 90) + ' style="font-size:170px;font-weight:700;line-height:0.86;letter-spacing:-0.025em;text-shadow:0 10px 30px rgba(0,0,0,0.35);white-space:nowrap">' + nameLines(c) + "</div>"
-        '<div style="display:flex;align-items:center;gap:20px;margin-top:26px"><div style="height:4px;width:70px;background:' + theAccent + ';flex-shrink:0"></div><div style="min-width:0;max-width:700px"><div ' + fitAttrs(28, 16) + ' style="' + mono(28, "font-weight:700;color:rgba(255,255,255,0.92);white-space:nowrap") + '">' + escape(s["name"]) + '</div></div><div style="height:4px;width:70px;background:' + theAccent + ';flex-shrink:0"></div></div></div>'
+        '<div ' + fitAttrs(170, 90) + ' style="font-size:170px;font-weight:700;line-height:0.86;letter-spacing:-0.025em;' + theShadow + 'white-space:nowrap">' + nameLines(c) + "</div>"
+        '<div style="display:flex;align-items:center;gap:20px;margin-top:26px"><div style="height:4px;width:70px;background:' + theAccent + ';flex-shrink:0"></div><div style="min-width:0;max-width:700px"><div ' + fitAttrs(28, 16) + ' style="' + mono(28, "font-weight:700;color:" + theMuted + ";white-space:nowrap") + '">' + escape(s["name"]) + '</div></div><div style="height:4px;width:70px;background:' + theAccent + ';flex-shrink:0"></div></div></div>'
         '<div style="position:absolute;left:90px;right:60px;top:690px">'
-        '<div ' + fitAttrs(124, 64) + ' style="font-size:124px;font-weight:700;line-height:0.88;letter-spacing:-0.01em;color:' + theAccent + ';text-shadow:0 6px 0 rgba(0,0,0,0.3);white-space:nowrap">' + twoLines(c["acc1"]) + "</div>"
+        '<div ' + fitAttrs(124, 64) + ' style="font-size:124px;font-weight:700;line-height:0.88;letter-spacing:-0.01em;color:' + theAccent + ";" + theAccShadow + 'white-space:nowrap">' + twoLines(c["acc1"]) + "</div>"
         + theAcc2 + "</div>"
         '<div style="position:absolute;left:90px;right:60px;bottom:64px;display:flex;align-items:flex-end;justify-content:space-between;gap:30px">'
-        '<div style="min-width:0;flex:1"><div ' + fitAttrs(30, 18) + ' style="' + mono(30, "font-weight:700;color:rgba(255,255,255,0.9);white-space:nowrap") + '">' + escape(c["gender"]) + " " + escape(c["event"]) + "</div>"
-        '<div ' + fitAttrs(200, 100) + ' style="font-size:200px;font-weight:700;line-height:0.86;letter-spacing:-0.035em;margin-top:8px;text-shadow:0 10px 30px rgba(0,0,0,0.4);white-space:nowrap">' + escape(c["result"]) + "</div></div>"
+        '<div style="min-width:0;flex:1"><div ' + fitAttrs(30, 18) + ' style="' + mono(30, "font-weight:700;color:" + theMuted + ";white-space:nowrap") + '">' + escape(c["gender"]) + " " + escape(c["event"]) + "</div>"
+        '<div ' + fitAttrs(200, 100) + ' style="font-size:200px;font-weight:700;line-height:0.86;letter-spacing:-0.035em;margin-top:8px;' + theShadow + 'white-space:nowrap">' + escape(c["result"]) + "</div></div>"
         + logoChip(s) + "</div>"
         "</div>"
     )

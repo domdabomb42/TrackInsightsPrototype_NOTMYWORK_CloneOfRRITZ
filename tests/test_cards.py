@@ -474,3 +474,22 @@ def test_glow_color_keeps_the_school_hue_on_black():
     assert theRed != "#ffffff"
     assert glow_color("#111111", "#ffffff") == "#ffffff"
     assert glow_color("#1b2a57", "#ffffff") != "#ffffff"
+
+
+def test_black_schools_get_a_light_school_color_card():
+    from app.services.card_templates import designRail, designBlackout
+
+    theCard = {
+        "name": "JACOB COLE", "first": "JACOB", "last": "COLE", "gender": "Boys", "event": "100 Meters",
+        "result": "11.20", "acc1": "Sectional Champion", "acc2": "Regional Qualifier", "cardId": "TI26-SEC-0000",
+        "year": 2026, "school": {"name": "Rossville", "primary": "#111111", "accent": "#9e9e3f", "glow": "#9e9e3f", "logo": None, "logoWhite": None},
+    }
+    theAssets = {"tiLogo": "ti.png"}
+    theRail = designRail(theCard, theAssets)
+    theBlackout = designBlackout(theCard, theAssets)
+    assert "overflow:hidden;background:#9e9e3f;" in theRail
+    assert "overflow:hidden;background:#0b0b0f;" in theBlackout
+    assert "color:#111111;text-transform:uppercase" in theRail
+    theCard["school"]["accent"] = "#ffffff"
+    theCard["school"]["glow"] = "#ffffff"
+    assert "overflow:hidden;background:#f2f2f3;" in designRail(theCard, theAssets)
