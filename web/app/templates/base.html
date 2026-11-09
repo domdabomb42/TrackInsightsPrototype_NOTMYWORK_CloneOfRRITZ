@@ -175,9 +175,9 @@
   </style>
 
   
-  <nav class="navbar fixed top-0 left-0 right-0 w-screen max-w-screen px-3 sm:px-5 z-50 bg-white shadow-md md:bg-transparent md:shadow-none md:pointer-events-none navbar-mobile-pad" aria-label="Primary" style="--nav-top-desktop: 0.75rem;">
-    <div class="flex w-full items-center justify-center relative md:hidden min-w-0">
-      <a href="{{ url_for('main.home') }}" class="font-impact italic text-primary text-3xl font-bold tracking-wide truncate">Track Insights</a>
+  <nav class="navbar relative w-full max-w-screen px-3 sm:px-5 z-50 bg-white shadow-md md:bg-transparent md:shadow-none md:pointer-events-none navbar-mobile-pad {% if request.path == '/' %}navbar-home{% endif %}" aria-label="Primary" style="--nav-top-desktop: 0.75rem;">
+    <div class="flex w-full items-center justify-start relative md:hidden min-w-0">
+      <a href="{{ url_for('main.home') }}" class="mobile-nav-brand font-impact italic text-primary text-3xl font-bold tracking-wide truncate">Track Insights</a>
       <div class="flex items-center gap-2 shrink-0 absolute right-0">
         <a href="{{ url_for('main.search_page') }}" class="btn btn-circle btn-sm border-2 border-gray-900 text-primary bg-white/90 mobile-nav-btn"
           aria-label="Go to search">
@@ -196,17 +196,13 @@
         </button>
       </div>
     </div>
-    <div class="desktop-nav hidden md:flex w-full gap-2 sm:gap-3 relative overflow-visible justify-end pointer-events-none" style="padding-left: 2.5rem; padding-right: 2.5rem; padding-top: var(--nav-top-desktop);">
-      <a href="{{ url_for('main.home') }}" aria-label="Home" class="nav-pill pointer-events-auto">
-        <span class="nav-pill__icon-bubble" aria-hidden="true">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="nav-pill__icon" aria-hidden="true"
-            focusable="false">
-            <path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-6v-6h-4v6H4a1 1 0 0 1-1-1z" fill="none" stroke="currentColor"
-              stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-          </svg>
-        </span>
-        <span class="nav-pill__label">Home</span>
+    <div class="desktop-nav hidden md:flex w-full items-center gap-6 relative overflow-visible justify-between pointer-events-none site-nav-desktop">
+      <a href="{{ url_for('main.home') }}" class="site-nav-brand pointer-events-auto">
+        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18M6 17V9m6 8V4m6 13v-6" /></svg>
+        <span>Track Insights</span>
       </a>
+      <div class="site-nav-links flex items-center gap-6 pointer-events-auto">
+      <div class="site-nav-search-slot">
       <div id="nav-search-pill" class="search-pill pointer-events-auto" data-open="false" role="button" tabindex="0"
         aria-expanded="false" aria-controls="nav-search-results">
         <span class="search-pill__icon-bubble" aria-hidden="true">
@@ -232,35 +228,38 @@
           </button>
         </div>
       </div>
-      <a href="{{ url_for('main.insights_page') }}" id="queries-toggle" aria-label="Insights" class="nav-pill pointer-events-auto">
-        <span class="nav-pill__icon-bubble" aria-hidden="true">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" class="nav-pill__icon" fill="currentColor"
-            aria-hidden="true" focusable="false">
-            <path
-              d="m665.216 768 110.848 192h-73.856L591.36 768H433.024L322.176 960H248.32l110.848-192H160a32 32 0 0 1-32-32V192H64a32 32 0 0 1 0-64h896a32 32 0 1 1 0 64h-64v544a32 32 0 0 1-32 32H665.216zM832 192H192v512h640V192zM352 448a32 32 0 0 1 32 32v64a32 32 0 0 1-64 0v-64a32 32 0 0 1 32-32zm160-64a32 32 0 0 1 32 32v128a32 32 0 0 1-64 0V416a32 32 0 0 1 32-32zm160-64a32 32 0 0 1 32 32v192a32 32 0 1 1-64 0V352a32 32 0 0 1 32-32z" />
-          </svg>
-        </span>
-        <span class="nav-pill__label">Insights</span>
+      </div>
+      <details class="events-dropdown pointer-events-auto">
+        <summary class="events-dropdown__toggle">
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16M6 17V7m6 10V4m6 13V9" /></svg>
+          <span class="events-dropdown__label">Events</span>
+          <svg class="events-dropdown__chevron" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6" /></svg>
+        </summary>
+        <div class="events-dropdown__panel">
+          {% for group in event_nav_groups %}
+          <details class="events-dropdown__category">
+            <summary>
+              <span>{{ group.label }}</span>
+              <svg class="events-dropdown__chevron" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6" /></svg>
+            </summary>
+            <ul>
+              {% for event_name, event_label in group.events %}
+              <li><a href="{{ url_for('main.events_page', event=event_name) }}" data-event-name="{{ event_name }}">{{ event_label }}</a></li>
+              {% endfor %}
+            </ul>
+          </details>
+          {% endfor %}
+        </div>
+      </details>
+      <a href="{{ url_for('main.interviews_page') }}" class="site-nav-link pointer-events-auto">
+        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="m16 10 5-3v10l-5-3z"/></svg>
+        <span>Interviews</span>
       </a>
-      <a href="{{ url_for('main.interviews_page') }}" aria-label="Interviews" class="nav-pill nav-pill--wide pointer-events-auto">
-        <span class="nav-pill__icon-bubble" aria-hidden="true">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="nav-pill__icon" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
-            <path d="M15 10l4.553-2.277A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z" />
-          </svg>
-        </span>
-        <span class="nav-pill__label">Interviews</span>
+      <a href="{{ url_for('main.home') }}#about" id="about-toggle" class="site-nav-link pointer-events-auto">
+        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8h.01"/></svg>
+        <span>About</span>
       </a>
-      <a href="{{ url_for('main.home') }}#about" id="about-toggle" aria-label="About" class="nav-pill pointer-events-auto">
-        <span class="nav-pill__icon-bubble" aria-hidden="true">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="nav-pill__icon" aria-hidden="true"
-            focusable="false">
-            <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.8" />
-            <rect x="11.1" y="10.4" width="1.8" height="6.1" rx="0.9" fill="currentColor" />
-            <circle cx="12" cy="7.3" r="1.2" fill="currentColor" />
-          </svg>
-        </span>
-        <span class="nav-pill__label">About</span>
-      </a>
+      </div>
       <div id="nav-search-results" class="search-results-panel text-base-content pointer-events-auto"></div>
     </div>
   </nav>
@@ -276,6 +275,7 @@
     <nav class="flex flex-col items-center gap-6 text-2xl font-impact tracking-wider text-center">
       <a href="{{ url_for('main.home') }}" class="mobile-menu-link uppercase">Home</a>
       <a href="{{ url_for('main.search_page') }}" class="mobile-menu-link uppercase">Search</a>
+      <a href="{{ url_for('main.events_page') }}" class="mobile-menu-link uppercase">Events</a>
       <a href="{{ url_for('main.insights_page') }}" class="mobile-menu-link uppercase">Insights</a>
       <a href="{{ url_for('main.interviews_page') }}" class="mobile-menu-link uppercase">Interviews</a>
       <a href="{{ url_for('main.home') }}#about" class="mobile-menu-link uppercase">About</a>
@@ -384,7 +384,7 @@
       box-shadow: 3px 3px 0 0 #111827;
       cursor: pointer;
       overflow: hidden;
-      transition: width 340ms cubic-bezier(0.22, 1, 0.36, 1), height 220ms ease, padding 220ms ease, box-shadow 100ms ease, transform 100ms ease;
+      transition: width 340ms cubic-bezier(0.22, 1, 0.36, 1), flex-basis 340ms cubic-bezier(0.22, 1, 0.36, 1), height 220ms ease, padding 220ms ease, box-shadow 100ms ease, transform 100ms ease;
     }
 
     .search-pill:not([data-open="true"]):not(.open):hover,
@@ -770,6 +770,249 @@
     @media (min-width: 768px) {
       .navbar-mobile-pad {
         padding-top: 0.5rem; /* Tailwind pt-2 */
+      }
+    }
+
+    /* Desktop navigation over the rotating homepage photography. */
+    @media (min-width: 768px) {
+      .navbar-home {
+        position: absolute;
+        top: 0;
+        left: 0;
+        min-height: 5rem;
+        padding: .25rem 2rem 0;
+        background: linear-gradient(180deg, rgba(12, 10, 10, .64) 0%, rgba(12, 10, 10, .34) 68%, rgba(12, 10, 10, 0) 100%) !important;
+      }
+      .navbar-home .desktop-nav { font-family: 'Oswald', 'Arial Narrow', sans-serif; }
+      .navbar-home::before {
+        content: none;
+      }
+      .site-nav-desktop { padding: 0 1rem; min-height: 4rem; }
+      .site-nav-brand {
+        display: inline-flex;
+        align-items: center;
+        gap: .55rem;
+        color: #fff;
+        font: 600 1.55rem/1 'Oswald', sans-serif;
+        letter-spacing: .025em;
+        text-shadow: 0 2px 12px rgba(0,0,0,.4);
+        white-space: nowrap;
+      }
+      .site-nav-brand svg { width: 1.35rem; height: 1.35rem; flex: none; }
+      .site-nav-links { gap: clamp(1rem, 2.3vw, 2rem); }
+      .site-nav-search-slot {
+        position: relative;
+        flex: 0 0 auto;
+        width: 6rem;
+        height: 2.6rem;
+      }
+      .events-dropdown { position: static; }
+      .events-dropdown__toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: .45rem;
+        padding: 0 .55rem;
+        border-radius: 999px;
+        color: #fff;
+        cursor: pointer;
+        font-size: 1.2rem;
+        font-weight: 500;
+        list-style: none;
+        text-shadow: 0 2px 10px rgba(0,0,0,.5);
+        white-space: nowrap;
+        transition: background-color 150ms ease, box-shadow 150ms ease;
+      }
+      .events-dropdown__toggle:hover,
+      .events-dropdown__toggle:focus-visible { background: rgba(255,255,255,.14); box-shadow: 0 0 0 1px rgba(255,255,255,.3); outline: none; }
+      .events-dropdown__toggle::-webkit-details-marker { display: none; }
+      .events-dropdown__toggle svg,
+      .site-nav-link svg { width: 1.15rem; height: 1.15rem; flex: none; }
+      .events-dropdown__chevron {
+        display: block;
+        width: 1rem !important;
+        height: 1rem !important;
+        flex: 0 0 1rem !important;
+        transform-origin: center center;
+        transition: transform 160ms ease;
+      }
+      .events-dropdown[open] > .events-dropdown__toggle .events-dropdown__chevron,
+      .events-dropdown__category[open] > summary .events-dropdown__chevron { transform: rotate(180deg); }
+      .events-dropdown__panel {
+        position: absolute;
+        top: calc(100% + .5rem);
+        right: 1rem;
+        z-index: 70;
+        display: flex;
+        flex-direction: column;
+        gap: .25rem;
+        width: min(22rem, calc(100vw - 2rem));
+        max-height: min(75vh, 36rem);
+        overflow-y: auto;
+        padding: .85rem 1.1rem;
+        border: 1px solid rgba(0,0,0,.14);
+        border-radius: 1rem;
+        background: rgba(255,255,255,.98);
+        color: #171717;
+        box-shadow: 0 14px 40px rgba(0,0,0,.28);
+      }
+      .events-dropdown__category > summary {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: .4rem;
+        margin: 0;
+        padding: .65rem .15rem;
+        border-bottom: 1px solid #ddd;
+        font-size: .95rem;
+        font-weight: 700;
+        cursor: pointer;
+        list-style: none;
+      }
+      .events-dropdown__category > summary:hover,
+      .events-dropdown__category > summary:focus-visible { color: #8c0327; outline: none; }
+      .events-dropdown__category > summary::-webkit-details-marker { display: none; }
+      .events-dropdown__category ul { list-style: none; margin: 0; padding: 0; }
+      .events-dropdown__category a {
+        display: block;
+        padding: .32rem 0;
+        color: #262626;
+        font-size: .88rem;
+        line-height: 1.3;
+      }
+      .events-dropdown__category a:hover,
+      .events-dropdown__category a:focus-visible { color: #8c0327; text-decoration: underline; }
+      .site-nav-link {
+        display: inline-flex;
+        align-items: center;
+        gap: .45rem;
+        color: #fff;
+        font-size: 1.2rem;
+        font-weight: 500;
+        text-shadow: 0 2px 10px rgba(0,0,0,.5);
+        transition: opacity 150ms ease;
+        white-space: nowrap;
+      }
+      .site-nav-link:hover, .site-nav-link:focus-visible { opacity: .76; }
+      .site-nav-links .search-pill {
+        width: max-content;
+        min-width: 0;
+        height: 2.6rem;
+        flex: 0 0 auto;
+        justify-content: flex-start;
+        padding: 0;
+        gap: .45rem;
+        border: 0;
+        background: transparent;
+        box-shadow: none;
+        overflow: visible;
+      }
+      .site-nav-links .search-pill:not([data-open="true"]):not(.open):hover,
+      .site-nav-links .search-pill:not([data-open="true"]):not(.open):focus-visible {
+        width: max-content;
+        padding: 0 .6rem;
+        background: rgba(255,255,255,.14);
+        box-shadow: 0 0 0 1px rgba(255,255,255,.3);
+        border-radius: 999px;
+      }
+      .site-nav-links .search-pill__icon-bubble,
+      .site-nav-links .search-pill:not([data-open="true"]):not(.open):hover .search-pill__icon-bubble,
+      .site-nav-links .search-pill:not([data-open="true"]):not(.open):focus-visible .search-pill__icon-bubble {
+        position: static;
+        transform: none;
+        width: 1.2rem;
+        height: 1.2rem;
+        margin: 0;
+      }
+      .site-nav-links .search-pill__icon { width: 1.2rem; height: 1.2rem; }
+      .site-nav-links .search-pill__label {
+        display: block;
+        width: max-content;
+        flex: 0 0 auto;
+        padding-right: .1rem;
+        white-space: nowrap;
+        opacity: 1;
+        transform: none;
+        pointer-events: auto;
+        color: #fff;
+        font-size: 1.2rem;
+        font-weight: 500;
+        letter-spacing: 0;
+        text-transform: none;
+        text-shadow: 0 2px 10px rgba(0,0,0,.5);
+      }
+      .site-nav-links .search-pill:not([data-open="true"]):not(.open) .search-pill__content {
+        display: none;
+      }
+      .site-nav-links .search-pill:not([data-open="true"]):not(.open) .search-pill__icon-bubble {
+        flex: 0 0 1.2rem;
+      }
+      .site-nav-links .search-pill[data-open="true"],
+      .site-nav-links .search-pill.open {
+        position: absolute;
+        top: 50%;
+        right: 0;
+        left: auto;
+        z-index: 61;
+        width: var(--search-open-width, clamp(9rem, calc(100vw - 40rem), 52rem));
+        flex: 0 0 var(--search-open-width, clamp(9rem, calc(100vw - 40rem), 52rem));
+        padding: 0 .7rem;
+        transform: translateY(-50%);
+        background: #fff;
+        box-shadow: 0 8px 28px rgba(0,0,0,.25);
+      }
+      .navbar-home .search-results-panel {
+        left: 50%;
+        width: min(38rem, 72vw);
+        transform: translate(-50%, -.4rem);
+      }
+      .navbar-home .search-results-panel.open { transform: translate(-50%, 0); }
+      .navbar:not(.navbar-home) .site-nav-brand,
+      .navbar:not(.navbar-home) .site-nav-link,
+      .navbar:not(.navbar-home) .site-nav-links .search-pill__label {
+        color: #fff;
+        text-shadow: none;
+      }
+      .navbar:not(.navbar-home) {
+        background: var(--color-primary) !important;
+        box-shadow: none !important;
+      }
+      .navbar:not(.navbar-home) .events-dropdown__toggle { color: #fff; text-shadow: none; }
+      .navbar:not(.navbar-home) .site-nav-links .search-pill__icon-bubble { color: #fff; }
+      .navbar:not(.navbar-home) .site-nav-links .search-pill[data-open="true"],
+      .navbar:not(.navbar-home) .site-nav-links .search-pill.open {
+        color: #111;
+        background: #fff;
+      }
+      .navbar:not(.navbar-home) .site-nav-links .search-pill[data-open="true"] .search-pill__icon-bubble,
+      .navbar:not(.navbar-home) .site-nav-links .search-pill.open .search-pill__icon-bubble { color: #111; }
+      .navbar:not(.navbar-home) .site-nav-links .search-pill__input { color: #000; }
+      .navbar:not(.navbar-home) .site-nav-links .search-pill__input::placeholder { color: #555; }
+    }
+    @media (max-width: 767px) {
+      .navbar-home { font-family: 'Oswald', 'Arial Narrow', sans-serif; }
+      .navbar-home {
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: linear-gradient(180deg, rgba(12,10,10,.68), rgba(12,10,10,.3) 75%, transparent) !important;
+        box-shadow: none !important;
+      }
+      .navbar-home::before {
+        content: none;
+      }
+      .navbar-home .mobile-nav-brand { color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,.5); }
+      .navbar-home .mobile-nav-btn { border-color: rgba(255,255,255,.85); }
+      .navbar:not(.navbar-home) {
+        background: var(--color-primary) !important;
+        box-shadow: none !important;
+        color: #fff;
+        font-family: 'Oswald', 'Arial Narrow', sans-serif;
+      }
+      .navbar:not(.navbar-home) .mobile-nav-brand { color: #fff; }
+      .navbar:not(.navbar-home) .mobile-nav-btn {
+        color: #fff !important;
+        background: var(--color-primary) !important;
+        border-color: #fff;
       }
     }
   </style>

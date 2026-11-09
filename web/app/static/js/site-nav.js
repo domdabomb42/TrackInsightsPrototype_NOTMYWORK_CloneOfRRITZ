@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const resultsPanel = document.getElementById('nav-search-results');
   const queriesButton = document.getElementById('queries-toggle');
   const aboutButton = document.getElementById('about-toggle');
+  const eventsDropdown = document.querySelector('.events-dropdown');
   const navbarEnd = document.querySelector('.desktop-nav');
   const mobileNavToggle = document.getElementById('mobile-nav-toggle');
   const mobileNavOverlay = document.getElementById('mobile-nav-overlay');
@@ -38,6 +39,16 @@ document.addEventListener('DOMContentLoaded', function () {
   const redirectToSearchPage = () => {
     window.location.href = SEARCH_URL;
   };
+
+  if (eventsDropdown) {
+    eventsDropdown.addEventListener('toggle', () => {
+      if (!eventsDropdown.open) {
+        eventsDropdown.querySelectorAll('.events-dropdown__category[open]').forEach(category => {
+          category.open = false;
+        });
+      }
+    });
+  }
 
   const openMobileMenu = () => {
     if (!mobileNavOverlay) return;
@@ -102,7 +113,20 @@ document.addEventListener('DOMContentLoaded', function () {
     resultsPanel.style.setProperty('--results-width', `${width}px`);
   };
 
+  const updateExpandedSearchWidth = () => {
+    if (!searchPill || !isSearchOpen || isMobileViewport()) return;
+    const searchSlot = searchPill.parentElement;
+    const brand = document.querySelector('.site-nav-brand');
+    if (!searchSlot || !brand) return;
+
+    const slotRect = searchSlot.getBoundingClientRect();
+    const brandRect = brand.getBoundingClientRect();
+    const availableWidth = Math.max(0, slotRect.right - brandRect.right - 24);
+    searchPill.style.setProperty('--search-open-width', `${availableWidth}px`);
+  };
+
   const scheduleResultsPanelUpdate = () => {
+    updateExpandedSearchWidth();
     adjustResultsPanelBounds();
     requestAnimationFrame(adjustResultsPanelBounds);
 
@@ -146,6 +170,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!searchPill || !isSearchOpen) return;
     isSearchOpen = false;
     setExpanded(false);
+    searchPill.style.removeProperty('--search-open-width');
     if (resultsPanel) {
       resultsPanel.classList.remove('open');
     }
