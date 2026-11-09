@@ -310,6 +310,14 @@ const shareStatus = document.getElementById('share-dashboard-status');
             Instagram: 'https://www.instagram.com/',
             Snapchat: 'https://web.snapchat.com/',
         };
+        // Deep links that open each app on its story camera. Neither app lets
+        // a web page attach the image or post for the user, so the card is
+        // handed over through the share sheet where that exists, and saved to
+        // the camera roll first where it does not.
+        const appStoryLinks = {
+            Instagram: 'instagram://story-camera',
+            Snapchat: 'snapchat://camera',
+        };
 
         const shareToApp = async platform => {
             const image = cardImages.get(imageKey(selectedCard));
@@ -322,13 +330,13 @@ const shareStatus = document.getElementById('share-dashboard-status');
             // On a desktop there is no share sheet: save the card, then open the
             // app's site in a new tab. Opening it here, inside the tap, is what
             // keeps the browser from treating the new tab as a popup.
-            const appWindow = canShareFile ? null : window.open(appSites[platform], '_blank', 'noopener');
+            const appWindow = (canShareFile || isMobile) ? null : window.open(appSites[platform], '_blank', 'noopener');
             try {
                 // Call share directly in the tap handler, with the prepared PNG.
                 // File support must be checked separately from text/link support.
                 if (canShareFile) {
                     await navigator.share({files: [image.file], title: `${name} - Track Insights`});
-                    setStatus('Athlete card shared.');
+                    setStatus(`Shared. In ${platform}, choose Story to post it.`);
                     return;
                 }
             } catch (error) {
@@ -343,6 +351,13 @@ const shareStatus = document.getElementById('share-dashboard-status');
             }
             try {
                 downloadCardImage(image, filename);
+                if (isMobile) {
+                    // No share sheet on this phone: the card is in the camera
+                    // roll now, so open the app on its story camera.
+                    setStatus(`Card saved to your photos. Opening ${platform}: pick it from your camera roll to post your story.`);
+                    setTimeout(() => { window.location.href = appStoryLinks[platform]; }, 600);
+                    return;
+                }
                 const opened = appWindow ? ` ${platform} is open in a new tab.` : '';
                 setStatus(platform === 'Instagram'
                     ? `Card saved to your downloads. Upload it as a post or story.${opened}`

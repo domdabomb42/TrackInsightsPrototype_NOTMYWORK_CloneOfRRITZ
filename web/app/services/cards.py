@@ -43,7 +43,12 @@ theKnockoutNear = 30
 theKnockoutFar = 90
 theRenderGate = threading.BoundedSemaphore(2)
 theRenderTimeout = 20000
-theTemplateVersion = "2"
+theTemplateVersion = "3"
+theSilhouetteVersion = "2"
+theSilhouetteWidth = 1200
+theInkDark = 170
+theInkLight = 235
+theMinInkCoverage = 0.015
 theChromiumArgs = ["--disable-gpu", "--headless"]
 theChromiumNoSandbox = "--no-sandbox"
 
@@ -88,7 +93,7 @@ def white_logo_path(school_id):
     theSource = school_logo_path(school_id)
     if theSource is None:
         return None
-    theTarget = os.path.join(_white_logo_dir(), str(school_id) + "_white.png")
+    theTarget = os.path.join(_white_logo_dir(), str(school_id) + "_white_v" + theSilhouetteVersion + ".png")
     if os.path.isfile(theTarget) == True:
         return theTarget
     try:
@@ -99,7 +104,9 @@ def white_logo_path(school_id):
     try:
         theImage = Image.open(theSource).convert("RGBA")
         theAlpha = _silhouette_alpha(theImage)
-        theWhite = Image.new("RGBA", theImage.size, (255, 255, 255, 255))
+        if theAlpha is None:
+            return None
+        theWhite = Image.new("RGBA", theAlpha.size, (255, 255, 255, 255))
         theWhite.putalpha(theAlpha)
         os.makedirs(_white_logo_dir(), exist_ok=True)
         theHandle, theTemp = tempfile.mkstemp(dir=_white_logo_dir(), suffix=".png")
@@ -112,32 +119,61 @@ def white_logo_path(school_id):
     return theTarget
 
 
-def _silhouette_alpha(image):
-    theAlpha = image.getchannel("A")
-    if theAlpha.getextrema()[0] <= theFlatAlpha:
-        return theAlpha
+def _ink_mask(image):
     theWidth, theHeight = image.size
+    theAlpha = image.getchannel("A")
     theCorners = [
-        image.getpixel((0, 0))[:3],
-        image.getpixel((theWidth - 1, 0))[:3],
-        image.getpixel((0, theHeight - 1))[:3],
-        image.getpixel((theWidth - 1, theHeight - 1))[:3],
+        image.getpixel((0, 0)),
+        image.getpixel((theWidth - 1, 0)),
+        image.getpixel((0, theHeight - 1)),
+        image.getpixel((theWidth - 1, theHeight - 1)),
     ]
-    theBackground = theCorners[0]
+    theOpaqueCorners = []
+    for n in range(len(theCorners)):
+        if theCorners[n][3] >= 250:
+            theOpaqueCorners.append(theCorners[n][:3])
+    theBackground = None
+    if len(theOpaqueCorners) >= 3 and min(theOpaqueCorners[0]) < theInkLight:
+        theBackground = theOpaqueCorners[0]
     thePixels = list(image.getdata())
+    theAlphaValues = list(theAlpha.getdata())
     theValues = []
     for n in range(len(thePixels)):
         thePixel = thePixels[n]
-        theDistance = abs(thePixel[0] - theBackground[0]) + abs(thePixel[1] - theBackground[1]) + abs(thePixel[2] - theBackground[2])
-        if theDistance <= theKnockoutNear:
-            theValues.append(0)
-        elif theDistance >= theKnockoutFar:
-            theValues.append(255)
+        if theBackground is None:
+            theLightest = min(thePixel[0], thePixel[1], thePixel[2])
+            if theLightest >= theInkLight:
+                theInk = 0
+            elif theLightest <= theInkDark:
+                theInk = 255
+            else:
+                theInk = int(255 * (theInkLight - theLightest) / float(theInkLight - theInkDark))
         else:
-            theValues.append(int(255 * (theDistance - theKnockoutNear) / float(theKnockoutFar - theKnockoutNear)))
-    from PIL import Image
+            theDistance = abs(thePixel[0] - theBackground[0]) + abs(thePixel[1] - theBackground[1]) + abs(thePixel[2] - theBackground[2])
+            if theDistance <= theKnockoutNear:
+                theInk = 0
+            elif theDistance >= theKnockoutFar:
+                theInk = 255
+            else:
+                theInk = int(255 * (theDistance - theKnockoutNear) / float(theKnockoutFar - theKnockoutNear))
+        theValues.append(theInk * theAlphaValues[n] // 255)
+    return theValues
+
+
+def _silhouette_alpha(image):
+    from PIL import Image, ImageFilter
+
+    theValues = _ink_mask(image)
+    theCoverage = sum(1 for n in range(len(theValues)) if theValues[n] > 128) / float(max(len(theValues), 1))
+    if theCoverage < theMinInkCoverage:
+        return None
     theMask = Image.new("L", image.size)
     theMask.putdata(theValues)
+    theMask = theMask.filter(ImageFilter.MedianFilter(3))
+    theScale = theSilhouetteWidth / float(image.size[0])
+    theSize = (theSilhouetteWidth, max(1, int(round(image.size[1] * theScale))))
+    theMask = theMask.resize(theSize, Image.LANCZOS)
+    theMask = theMask.filter(ImageFilter.GaussianBlur(1.2))
     return theMask
 
 
