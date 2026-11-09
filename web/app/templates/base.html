@@ -23,7 +23,8 @@
   <meta property="og:description" content="{% block og_description %}Explore Indiana high school track and field data ΓÇö athlete dashboards, school comparisons, percentile rankings, and sectional projections.{% endblock %}" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="{{ request.url }}" />
-  <meta property="og:image" content="{{ url_for('static', filename='images/favicon-ti.webp', _external=True) }}" />
+  <meta property="og:image" content="{% block og_image %}{{ url_for('static', filename='images/favicon-ti.webp', _external=True) }}{% endblock %}" />
+  {% block head_extra %}{% endblock %}
 
   <link rel="icon" type="image/webp" href="{{ url_for('static', filename='images/favicon-ti.webp') }}" />
 

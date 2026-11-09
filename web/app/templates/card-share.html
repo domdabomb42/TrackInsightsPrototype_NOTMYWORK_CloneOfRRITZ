@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ card.name|title }} · {{ card.acc1 }} - Track Insights{% endblock %}
+{% block meta_description %}{{ card.name|title }} of {{ card.school_name }}: {{ card.acc1 }}{% if card.acc2 %}, {{ card.acc2 }}{% endif %}, {{ card.year }} {{ card.meet_type }} {{ card.event }} in {{ card.result }}.{% endblock %}
+{% block og_title %}{{ card.name|title }} · {{ card.acc1 }}{% endblock %}
+{% block og_description %}{{ card.year }} {{ card.meet_type }} · {{ card.gender }} {{ card.event }} · {{ card.result }} · {{ card.school_name }}{% endblock %}
+{% block og_image %}{{ png_url }}{% endblock %}
+{% block head_extra %}
+  <meta property="og:site_name" content="Track Insights" />
+  <meta property="og:image:width" content="1080" />
+  <meta property="og:image:height" content="1350" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta property="snapchat:sticker" content="{{ sticker_url }}" />
+  <meta name="robots" content="noindex" />
+{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/card-share.css') }}?v={{ asset_version('css/card-share.css') }}">
+<main class="card-share-page pt-20 sm:pt-24 pb-16 px-4"
+      data-png-url="{{ png_url }}"
+      data-share-url="{{ share_url }}"
+      data-dashboard-url="{{ dashboard_url }}"
+      data-download-name="{{ summary.download_name[design] }}"
+      data-title="{{ card.name|title }} · {{ card.acc1 }}">
+  <div class="card-share-layout">
+    <figure class="card-share-figure">
+      <img id="card-share-image" src="{{ png_url }}" alt="{{ card.name|title }}, {{ card.acc1 }}{% if card.acc2 %}, {{ card.acc2 }}{% endif %}, {{ card.year }} {{ card.meet_type }} {{ card.event }}, {{ card.result }}" width="1080" height="1350">
+    </figure>
+    <section class="card-share-panel" aria-labelledby="card-share-title">
+      <p class="card-share-eyebrow">{{ card.year }} {{ card.meet_type }} · {{ card.gender }} {{ card.event }}</p>
+      <h1 id="card-share-title" class="card-share-title font-impact">{{ card.name|title }}</h1>
+      <p class="card-share-accolade"><strong>{{ card.acc1 }}</strong>{% if card.acc2 %} · {{ card.acc2 }}{% endif %} · {{ card.result }}</p>
+      <p class="card-share-school">{{ card.school_name }}</p>
+
+      <div class="card-share-actions">
+        <button type="button" id="card-share-instagram" class="card-share-action card-share-action-instagram">
+          <svg viewBox="0 0 48 48" aria-hidden="true"><rect width="48" height="48" rx="12" fill="url(#card-share-ig)" /><defs><linearGradient id="card-share-ig" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#ffcf55" /><stop offset=".35" stop-color="#ff543e" /><stop offset=".65" stop-color="#c837ab" /><stop offset="1" stop-color="#5b51d8" /></linearGradient></defs><rect x="10" y="10" width="28" height="28" rx="8" fill="none" stroke="white" stroke-width="3" /><circle cx="24" cy="24" r="7" fill="none" stroke="white" stroke-width="3" /><circle cx="33" cy="15" r="2" fill="white" /></svg>
+          <span>Add to Instagram Story</span>
+        </button>
+        <button type="button" id="card-share-snapchat" class="card-share-action card-share-action-snapchat" data-share-url="{{ share_url }}">
+          <svg viewBox="0 0 48 48" aria-hidden="true"><rect width="48" height="48" rx="12" fill="#fffc00" /><path d="M24 8c-7 0-10 5-10 11l.2 4c-1.5.6-3.3-1.5-4.3.2-1 1.6 2.1 2.8 3.7 3.4-.9 3.8-3.6 6.3-7.1 7.3-.8.3-.7 1.4.2 1.7 1.9.7 3.7.9 5.1 1.2l.8 2.5c.2.6.7.8 1.3.6 2.9-1 5.2.5 7.2 1.3 1.9.8 3.9.8 5.8 0 2-.8 4.3-2.3 7.2-1.3.6.2 1.1 0 1.3-.6l.8-2.5c1.4-.3 3.2-.5 5.1-1.2.9-.3 1-1.4.2-1.7-3.5-1-6.2-3.5-7.1-7.3 1.6-.6 4.7-1.8 3.7-3.4-1-1.7-2.8.4-4.3-.2l.2-4C34 13 31 8 24 8Z" fill="white" stroke="#111" stroke-width="1.6" stroke-linejoin="round" /></svg>
+          <span>Send to Snapchat</span>
+        </button>
+        <button type="button" id="card-share-more" class="card-share-action">
+          <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg>
+          <span>Share elsewhere</span>
+        </button>
+        <a id="card-share-download" class="card-share-action" href="{{ png_url }}&download=1" download="{{ summary.download_name[design] }}">
+          <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m-4-4 4 4 4-4M4 16v5h16v-5"/></svg>
+          <span>Save image</span>
+        </a>
+      </div>
+      <p id="card-share-status" class="card-share-status" role="status" aria-live="polite"></p>
+
+      <div class="card-share-links">
+        <a href="{{ summary.share_url[other_design] }}">Switch to the {{ 'Blackout' if other_design == 'E' else 'School Color' }} design</a>
+        <a href="{{ dashboard_url }}">All of {{ card.first|title }}'s cards</a>
+      </div>
+    </section>
+  </div>
+</main>
+
+<div id="snapchat-share-anchor" hidden></div>
+<script src="{{ url_for('static', filename='js/card-share.js') }}?v={{ asset_version('js/card-share.js') }}" defer></script>
+{% endblock %}

@@ -1,0 +1,32 @@
+.card-share-page { --share-accent: #a60942; min-height: 100vh; background: #f6f7fa; color: #172033; }
+.card-share-layout { max-width: 960px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 420px) minmax(0, 1fr); gap: clamp(20px, 4vw, 48px); align-items: start; }
+.card-share-figure { margin: 0; }
+.card-share-figure img { display: block; width: 100%; height: auto; border-radius: 18px; box-shadow: 0 18px 40px #17203333; background: #16161c; }
+.card-share-panel { padding-top: 6px; }
+.card-share-eyebrow { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #52617a; margin: 0 0 6px; }
+.card-share-title { font-size: clamp(32px, 6vw, 56px); line-height: 1.02; text-transform: uppercase; color: var(--share-accent); margin: 0 0 8px; overflow-wrap: anywhere; }
+.card-share-accolade { font-size: 17px; margin: 0 0 2px; }
+.card-share-accolade strong { font-weight: 700; }
+.card-share-school { color: #52617a; margin: 0 0 22px; }
+.card-share-actions { display: grid; gap: 10px; }
+.card-share-action { display: flex; align-items: center; gap: 14px; width: 100%; padding: 13px 16px; border: 1px solid #e0e4eb; border-radius: 14px; background: white; color: #172033; font-size: 16px; font-weight: 600; text-align: left; text-decoration: none; cursor: pointer; box-shadow: 0 1px 3px #1720330d; transition: transform 120ms ease, box-shadow 120ms ease; }
+.card-share-action:hover { box-shadow: 0 4px 12px #17203322; }
+.card-share-action:active { transform: scale(0.99); }
+.card-share-action:disabled { opacity: 0.6; cursor: default; }
+.card-share-action:focus-visible { outline: 2px solid var(--share-accent); outline-offset: 3px; }
+.card-share-action svg { width: 32px; height: 32px; flex-shrink: 0; }
+.card-share-action-instagram { background: linear-gradient(120deg, #fff 65%, #fff4f0); }
+.card-share-action-snapchat { background: linear-gradient(120deg, #fff 65%, #fffde6); }
+.card-share-status { min-height: 20px; margin: 12px 0 0; font-size: 13px; color: #52617a; }
+.card-share-links { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 22px; font-size: 14px; }
+.card-share-links a { color: var(--share-accent); text-decoration: underline; text-underline-offset: 2px; }
+@media (max-width: 720px) {
+  .card-share-layout { grid-template-columns: 1fr; }
+  .card-share-figure { max-width: 320px; margin: 0 auto; }
+  .card-share-panel { text-align: center; }
+  .card-share-action { text-align: left; }
+  .card-share-links { justify-content: center; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .card-share-action { transition: none; }
+}

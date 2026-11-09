@@ -153,8 +153,10 @@ const shareStatus = document.getElementById('share-dashboard-status');
 
         function updateImageButtons() {
             const image = cardImages.get(imageKey(selectedCard));
-            const disabled = !cards.length || !image?.blob || sharingImage;
-            imageButtons.forEach(button => { button.disabled = disabled; });
+            imageButtons.forEach(button => {
+                const needsImage = button.id === 'athlete-card-download';
+                button.disabled = !cards.length || sharingImage || (needsImage && !image?.blob);
+            });
         }
 
         if (!cards.length) {
@@ -363,65 +365,92 @@ const shareStatus = document.getElementById('share-dashboard-status');
             setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
         }
 
-        const appSites = {
-            Instagram: 'https://www.instagram.com/',
-            Snapchat: 'https://web.snapchat.com/',
-        };
-        // Deep links that open each app on its story camera. Neither app lets
-        // a web page attach the image or post for the user, so the card is
-        // handed over through the share sheet where that exists, and saved to
-        // the camera roll first where it does not.
-        const appStoryLinks = {
-            Instagram: 'instagram://story-camera',
-            Snapchat: 'snapchat://camera',
-        };
+        // Snapchat's Creative Kit: no registration needed. Its SDK wires any
+        // element with the snapchat-share-button class and deep links into
+        // Snapchat with the share page attached (card as sticker, athlete link).
+        const SNAP_SDK_ID = 'snapkit-creative-kit-sdk';
+        if (!document.getElementById(SNAP_SDK_ID)) {
+            const first = document.getElementsByTagName('script')[0];
+            const script = document.createElement('script');
+            script.id = SNAP_SDK_ID;
+            script.src = 'https://sdk.snapkit.com/js/v1/create.js';
+            script.async = true;
+            first.parentNode.insertBefore(script, first);
+        }
+        const snapAnchor = document.getElementById('snapchat-share-anchor');
+        const snapButtons = new Map();
+        function snapKitButton(url) {
+            if (snapButtons.has(url)) return snapButtons.get(url);
+            const kit = window.snap && window.snap.creativekit;
+            const init = kit && (kit.initalizeShareButtons || kit.initializeShareButtons);
+            if (typeof init !== 'function') return null;
+            const node = document.createElement('div');
+            node.className = 'snapchat-share-button';
+            node.setAttribute('data-share-url', url);
+            snapAnchor.appendChild(node);
+            init([node]);
+            snapButtons.set(url, node);
+            return node;
+        }
+        window.snapKitInit = () => {};
 
-        const copyImageToClipboard = async blob => {
-            if (!navigator.clipboard?.write || typeof ClipboardItem !== 'function') return false;
+        // Desktop hand-off: a QR code straight to this card's one-tap share page.
+        const handoff = document.getElementById('athlete-card-handoff');
+        const handoffQr = document.getElementById('athlete-card-handoff-qr');
+        const handoffLink = document.getElementById('athlete-card-handoff-link');
+        const handoffText = document.getElementById('athlete-card-handoff-text');
+        function showHandoff(platform, url) {
+            handoffText.textContent = platform === 'Instagram'
+                ? 'Instagram stories can only be posted from the app. Scan this with your phone\'s camera, then tap "Add to Instagram Story".'
+                : 'Scan this with your phone\'s camera, then tap "Send to Snapchat" to open the card in Snapchat.';
+            handoffLink.href = url;
             try {
-                await navigator.clipboard.write([new ClipboardItem({'image/png': blob})]);
-                return true;
+                const code = qrcode(0, 'M');
+                code.addData(url);
+                code.make();
+                handoffQr.innerHTML = code.createSvgTag({cellSize: 4, margin: 8, scalable: true});
             } catch (error) {
-                console.warn('Clipboard image copy failed', error);
-                return false;
+                console.warn('QR code failed', error);
+                handoffQr.textContent = url;
             }
-        };
+            if (typeof handoff.showModal === 'function') handoff.showModal();
+            else window.open(url, '_blank', 'noopener');
+        }
 
         const shareToApp = async platform => {
+            const card = cards[selectedCard];
             const image = cardImages.get(imageKey(selectedCard));
-            if (!image?.blob || sharingImage) return;
+            const shareUrl = card.share_url[design];
+            if (sharingImage) return;
             sharingImage = true;
             updateImageButtons();
-            const canShareFile = Boolean(image.file && navigator.share && navigator.canShare
-                && navigator.canShare({files: [image.file]}));
-            // A desktop has no share sheet and Instagram's web site cannot post
-            // stories, so open the app's site now, inside the tap, and put the
-            // card on the clipboard for the post composer.
-            const appWindow = (canShareFile || isMobile) ? null : window.open(appSites[platform], '_blank', 'noopener');
             try {
+                const canShareFile = Boolean(isMobile && image?.file && navigator.share && navigator.canShare
+                    && navigator.canShare({files: [image.file]}));
+                if (platform === 'Snapchat') {
+                    const kitButton = /^https:/.test(shareUrl) ? snapKitButton(shareUrl) : null;
+                    if (kitButton) {
+                        // Snap's handler lives on this node; clicking it inside our
+                        // tap keeps the user activation it needs to open the app.
+                        kitButton.click();
+                        setStatus(isMobile ? 'Opening Snapchat with your card.' : 'Scan the Snapcode with Snapchat to open the card there.');
+                        return;
+                    }
+                }
                 if (canShareFile) {
                     // The share sheet hands the image straight to the app; the
                     // story composer is the next tap. This is the most direct
                     // route a web page is allowed to take.
                     await navigator.share({files: [image.file], title: `${name} - Track Insights`});
-                    setStatus(`Pick ${platform} in the share sheet, then ${platform === 'Instagram' ? 'Your Story' : 'Story'} to post it.`);
+                    setStatus(`Pick ${platform} in the sheet, then ${platform === 'Instagram' ? 'Your Story' : 'Story'} to post it.`);
                     return;
                 }
                 if (isMobile) {
-                    // No file sharing on this phone: open the app's story camera.
-                    // The card must already be in the camera roll, so save it.
-                    downloadCardImage(image, cards[selectedCard].download_name[design]);
-                    setStatus(`Card saved to your photos. Opening ${platform}: pick it from your camera roll to post your story.`);
-                    setTimeout(() => { window.location.href = appStoryLinks[platform]; }, 600);
+                    window.location.href = shareUrl;
                     return;
                 }
-                const copied = await copyImageToClipboard(image.blob);
-                const opened = appWindow ? ` ${platform} is open in a new tab.` : '';
-                if (copied) {
-                    setStatus(`Card copied to your clipboard.${opened} For a story, scan the QR code on your phone and tap ${platform} there.`);
-                } else {
-                    setStatus(`${platform} is open in a new tab. For a story, scan the QR code on your phone and tap ${platform} there, or use Download here.`);
-                }
+                showHandoff(platform, shareUrl);
+                setStatus(`Scan the code with your phone to post the card to ${platform}.`);
             } catch (error) {
                 if (error.name === 'AbortError') {
                     setStatus('Sharing canceled.');

@@ -387,6 +387,40 @@ def card_png(athlete_id, meet_id, event_name):
                      as_attachment=request.args.get('download') == '1', max_age=86400)
 
 
+@main_bp.route('/card/<int:athlete_id>/<int:meet_id>/<path:event_name>/sticker.png')
+def card_sticker(athlete_id, meet_id, event_name):
+    theDesign = _card_design()
+    theCard = _card_or_404(athlete_id, meet_id, event_name)
+    try:
+        thePath = cards.sticker_path(theCard, theDesign)
+    except cards.CardRenderUnavailable as theError:
+        current_app.logger.warning('card sticker unavailable: %s', theError)
+        return Response('Card images are not available on this server yet.', status=503, mimetype='text/plain')
+    except Exception:
+        current_app.logger.exception('card sticker failed for %s', theCard['cardId'])
+        return Response('The card image could not be rendered. Try again in a moment.', status=503, mimetype='text/plain')
+    return send_file(thePath, mimetype='image/png', max_age=86400)
+
+
+@main_bp.route('/card/<int:athlete_id>/<int:meet_id>/<path:event_name>/share')
+def card_share_page(athlete_id, meet_id, event_name):
+    theDesign = _card_design()
+    theCard = _card_or_404(athlete_id, meet_id, event_name)
+    theSummary = cards.card_summary(theCard)
+    return render_template(
+        'card-share.html',
+        card=theCard,
+        summary=theSummary,
+        design=theDesign,
+        other_design='E' if theDesign == 'B' else 'B',
+        design_name=cards.design_name(theDesign),
+        png_url=url_for('main.card_png', athlete_id=athlete_id, meet_id=meet_id, event_name=event_name, design=theDesign, _external=True),
+        sticker_url=url_for('main.card_sticker', athlete_id=athlete_id, meet_id=meet_id, event_name=event_name, design=theDesign, _external=True),
+        share_url=theSummary['share_url'][theDesign],
+        dashboard_url=url_for('main.athlete_dashboard', athlete_id=athlete_id, _external=True),
+    )
+
+
 @main_bp.route('/card/<int:athlete_id>/<int:meet_id>/<path:event_name>')
 def card_page(athlete_id, meet_id, event_name):
     theDesign = _card_design()

@@ -59,6 +59,7 @@ EXPECTED = {
     # Rendering needs Playwright and Chromium. Where they are not installed the
     # route says so with a 503 rather than failing; where they are, it renders.
     '/card/<int:athlete_id>/<int:meet_id>/<path:event_name>.png': (200, 503),
+    '/card/<int:athlete_id>/<int:meet_id>/<path:event_name>/sticker.png': (200, 503),
 }
 
 

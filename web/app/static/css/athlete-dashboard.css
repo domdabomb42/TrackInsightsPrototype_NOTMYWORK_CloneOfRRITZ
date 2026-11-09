@@ -154,3 +154,14 @@
   .event-progression { padding: 16px 0 0; border-left: none; border-top: 1px solid #edf0f4; }
   .athlete-section-title { font-size: 27px; }
 }
+
+.athlete-card-handoff { position: fixed; inset: 0; margin: auto; width: fit-content; height: fit-content; border: 0; border-radius: 20px; padding: 0; max-width: min(92vw, 380px); box-shadow: 0 24px 60px #17203355; }
+.athlete-card-handoff::backdrop { background: #17203399; }
+.athlete-card-handoff-inner { position: relative; padding: 26px 24px 22px; text-align: center; margin: 0; }
+.athlete-card-handoff-close { position: absolute; top: 8px; right: 10px; width: 34px; height: 34px; border: 0; border-radius: 50%; background: transparent; font-size: 24px; line-height: 1; color: #52617a; cursor: pointer; }
+.athlete-card-handoff-close:hover { background: #f3e3e9; color: var(--athlete-accent); }
+.athlete-card-handoff h3 { color: var(--athlete-accent); font-size: 28px; line-height: 1.1; margin: 0 0 8px; }
+.athlete-card-handoff p { font-size: 14px; color: #445168; margin: 0 0 16px; line-height: 1.45; }
+.athlete-card-handoff-qr { width: 220px; margin: 0 auto 14px; padding: 10px; border: 1px solid #e0e4eb; border-radius: 14px; background: white; }
+.athlete-card-handoff-qr svg { display: block; width: 100%; height: auto; }
+.athlete-card-handoff-link { font-size: 13px; color: var(--athlete-accent); text-decoration: underline; text-underline-offset: 2px; }

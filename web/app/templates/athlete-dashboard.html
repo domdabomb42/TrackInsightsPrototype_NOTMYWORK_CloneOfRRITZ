@@ -177,6 +177,17 @@
     </div>
 </div>
 
+<dialog id="athlete-card-handoff" class="athlete-card-handoff" aria-labelledby="athlete-card-handoff-title">
+    <form method="dialog" class="athlete-card-handoff-inner">
+        <button type="submit" class="athlete-card-handoff-close" aria-label="Close">&times;</button>
+        <h3 id="athlete-card-handoff-title" class="font-impact">Post it from your phone</h3>
+        <p id="athlete-card-handoff-text">Stories can only be posted from the app. Scan this with your phone's camera, then tap once to share the card.</p>
+        <div id="athlete-card-handoff-qr" class="athlete-card-handoff-qr" aria-label="QR code to this card's share page"></div>
+        <a id="athlete-card-handoff-link" class="athlete-card-handoff-link" href="#" target="_blank" rel="noopener">Open the share page</a>
+    </form>
+</dialog>
+<div id="snapchat-share-anchor" hidden></div>
+
 <script src="{{ url_for('static', filename='js/athlete-card-vendor/qrcode.js') }}?v={{ asset_version('js/athlete-card-vendor/qrcode.js') }}" defer></script>
 <script src="{{ url_for('static', filename='js/athlete-dashboard.js') }}?v={{ asset_version('js/athlete-dashboard.js') }}" defer></script>
 {% endblock %}

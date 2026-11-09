@@ -45,6 +45,7 @@ theRenderGate = threading.BoundedSemaphore(2)
 theRenderTimeout = 20000
 theTemplateVersion = "3"
 theSilhouetteVersion = "2"
+theStickerSize = 400
 theSilhouetteWidth = 1200
 theInkDark = 170
 theInkLight = 235
@@ -59,6 +60,10 @@ class CardRenderUnavailable(Exception):
 
 def is_design(design):
     return design in theDesignCodes
+
+
+def design_name(design):
+    return card_templates.theDesignNames.get(design, design)
 
 
 def _static_folder():
@@ -245,13 +250,38 @@ def download_name(card, design):
 def _urls(card):
     theHtml = {}
     thePng = {}
+    theShare = {}
     theNames = {}
     for n in range(len(theDesignCodes)):
         theDesign = theDesignCodes[n]
         theHtml[theDesign] = url_for("main.card_page", athlete_id=card["athlete_id"], meet_id=card["meet_id"], event_name=card["event"], design=theDesign)
         thePng[theDesign] = url_for("main.card_png", athlete_id=card["athlete_id"], meet_id=card["meet_id"], event_name=card["event"], design=theDesign)
+        theShare[theDesign] = url_for("main.card_share_page", athlete_id=card["athlete_id"], meet_id=card["meet_id"], event_name=card["event"], design=theDesign, _external=True)
         theNames[theDesign] = download_name(card, theDesign)
-    return {"html_url": theHtml, "png_url": thePng, "download_name": theNames}
+    return {"html_url": theHtml, "png_url": thePng, "share_url": theShare, "download_name": theNames}
+
+
+def sticker_path(card, design):
+    theTarget = os.path.join(card_cache_dir(), card["cardId"] + "-" + _render_key(card, design) + "-" + design + "-sticker.png")
+    if os.path.isfile(theTarget) == True:
+        return theTarget
+    from PIL import Image
+
+    theSource = render_png(card, design)
+    theCard = Image.open(theSource).convert("RGBA")
+    theScale = theStickerSize / float(theCard.height)
+    theWidth = int(round(theCard.width * theScale))
+    theCard = theCard.resize((theWidth, theStickerSize), Image.LANCZOS)
+    theSticker = Image.new("RGBA", (theStickerSize, theStickerSize), (0, 0, 0, 0))
+    theSticker.paste(theCard, ((theStickerSize - theWidth) // 2, 0))
+    theTemp = _temp_beside(theTarget)
+    try:
+        theSticker.save(theTemp, format="PNG", optimize=True)
+        _finish(theTemp, theTarget)
+    finally:
+        if os.path.exists(theTemp) == True:
+            os.remove(theTemp)
+    return theTarget
 
 
 def card_summary(card):

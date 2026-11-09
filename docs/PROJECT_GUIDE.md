@@ -290,6 +290,18 @@ Chromium, `python -m app.jobs.render_cards --all --year 2026 --workers 5` does
 about fifteen cards a second; it skips cards that are already rendered, so it
 can be stopped and restarted.
 
+**Sharing.** Neither Instagram nor Snapchat lets a web page post a story on
+someone's behalf, so the buttons take the most direct route each platform
+allows. On a phone, Instagram opens the system share sheet with the card image
+attached; Instagram is one tap and "Your Story" the next. Snapchat uses Snap's
+Creative Kit for the web (`sdk.snapkit.com`, no registration needed): it deep
+links into Snapchat with the card attached as a sticker and the athlete's page
+as the link. Creative Kit reads the share page's `og:image` and
+`snapchat:sticker` tags, so it only works on the public site over https, never
+on localhost. On a desktop the buttons show a QR code to the card's share page
+(`/card/<athlete>/<meet>/<event>/share`), a one-screen phone page with the same
+buttons. The sticker is `/card/.../sticker.png`, a 400 x 400 transparent PNG.
+
 **School colors** live in `web/data/school_colors.json`, keyed by `school_id`,
 with `primary` and `accent` as hex. A school without an entry gets colors sampled
 from its logo: the most common saturated color becomes the primary, darkened

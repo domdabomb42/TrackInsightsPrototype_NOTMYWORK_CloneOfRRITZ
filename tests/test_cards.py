@@ -391,3 +391,40 @@ def test_a_linked_relay_from_the_other_gender_is_ignored(app):
         list_cards_for_athlete.cache_clear()
         theCards = list_cards_for_athlete(112)
         assert all("4 x 100" not in c["event"] for c in theCards)
+
+
+def test_share_page_carries_the_card_image_and_snapchat_sticker_tags(client):
+    theResponse = client.get("/card/102/4/100 Meters/share?design=B")
+    assert theResponse.status_code == 200
+    theHtml = theResponse.get_data(as_text=True)
+    assert 'property="og:image" content="http://localhost/card/102/4/100%20Meters.png?design=B"' in theHtml
+    assert 'property="snapchat:sticker" content="http://localhost/card/102/4/100%20Meters/sticker.png?design=B"' in theHtml
+    assert "Add to Instagram Story" in theHtml
+    assert "Send to Snapchat" in theHtml
+    assert "Blake Sprinter" in theHtml
+    assert "Sectional Runner-Up" in theHtml
+    assert client.get("/card/102/4/100 Meters/share?design=Z").status_code == 400
+    assert client.get("/card/101/6/100 Meters/share").status_code == 404
+
+
+def test_cards_api_includes_a_share_url_per_design(client):
+    theCards = client.get("/api/athletes/102/cards").get_json()["cards"]
+    assert theCards[0]["share_url"]["B"].endswith("/share?design=B")
+    assert theCards[0]["share_url"]["E"].startswith("http://localhost/card/")
+
+
+def test_sticker_is_a_square_transparent_png(app, client):
+    pytest.importorskip("playwright")
+    theResponse = client.get("/card/102/4/100 Meters/sticker.png?design=B")
+    if theResponse.status_code == 503:
+        pytest.skip("Chromium is not installed for Playwright on this machine")
+    assert theResponse.status_code == 200
+    from io import BytesIO
+    from PIL import Image
+
+    theImage = Image.open(BytesIO(theResponse.data))
+    assert theImage.size == (400, 400)
+    assert theImage.mode == "RGBA"
+    assert theImage.getpixel((2, 200))[3] == 0
+    assert theImage.getpixel((200, 200))[3] == 255
+    assert len(theResponse.data) < 1000000
