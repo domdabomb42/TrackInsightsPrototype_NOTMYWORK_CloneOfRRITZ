@@ -4,7 +4,14 @@ import re
 
 import pytest
 
-from app.queries.cards import accolade_for, card_id, card_result, list_cards_for_athlete, get_card_data
+from app.queries.cards import (
+    accolade_for,
+    card_id,
+    card_result,
+    cards_status,
+    get_card_data,
+    list_cards_for_athlete,
+)
 from app.services.school_colors import normalize_hex
 
 
@@ -75,13 +82,50 @@ def test_normalize_hex():
 def test_athlete_cards_follow_the_fixture_results(app):
     with app.app_context():
         theCards = list_cards_for_athlete(101)
-        theKeys = [(c["year"], c["meet_type"], c["event"], c["acc1"], c["acc2"]) for c in theCards]
+        theKeys = [(c["year"], c["meet_type"], c["event"], c["acc1"], c["acc2"], c["kind"]) for c in theCards]
         assert theKeys == [
-            (2024, "Regional", "100 Meters", "State Qualifier", ""),
-            (2024, "Sectional", "100 Meters", "Regional Qualifier", ""),
+            (2024, "Regional", "100 Meters", "State Qualifier", "", "accolade"),
+            (2024, "Sectional", "100 Meters", "Regional Qualifier", "", "accolade"),
+            (2023, "Sectional", "100 Meters", "Sectional Finalist", "10th Place", "season"),
         ]
         assert theCards[0]["cardId"].startswith("TI24-REG-")
         assert theCards[1]["school_name"] == "Alpha High"
+
+
+def test_every_competitor_gets_a_season_card(app):
+    with app.app_context():
+        theCards = list_cards_for_athlete(105)
+        assert len(theCards) == 1
+        assert theCards[0]["acc1"] == "Sectional Finalist"
+        assert theCards[0]["acc2"] == "10th Place"
+        assert theCards[0]["result"] == "10:00.00"
+        assert theCards[0]["kind"] == "season"
+
+
+def test_a_season_with_an_accolade_gets_no_extra_season_card(app):
+    with app.app_context():
+        theCards = list_cards_for_athlete(111)
+        theKinds = [(c["year"], c["kind"]) for c in theCards]
+        assert theKinds == [(2024, "accolade"), (2024, "accolade")]
+
+
+def test_stored_cards_db_is_read_when_it_matches_the_results(app, tmp_path):
+    from app.jobs.precompute_cards import build_cards_db
+
+    with app.app_context():
+        thePath = str(tmp_path / "cards.db")
+        app.config["CARDS_DB_PATH"] = thePath
+        assert cards_status()["built"] is False
+        theTotal = build_cards_db(thePath)
+        assert theTotal > 0
+        theStatus = cards_status()
+        assert theStatus["built"] is True
+        assert theStatus["stale"] is False
+        assert theStatus["count"] == theTotal
+        list_cards_for_athlete.cache_clear()
+        theStored = list_cards_for_athlete(102)
+        assert [c["acc1"] for c in theStored] == ["Regional Runner-Up", "Sectional Runner-Up"]
+        assert theStored[0]["cardId"] == card_id(102, 5, "100 Meters", 2024, "Regional")
 
 
 def test_a_fourth_place_who_ran_the_next_round_is_a_qualifier(app):
@@ -102,9 +146,8 @@ def test_runner_up_gets_both_lines(app):
         assert theRegional["acc2"] == "State Qualifier"
 
 
-def test_low_places_and_prelims_earn_nothing(app):
+def test_prelims_and_unknown_athletes_earn_nothing(app):
     with app.app_context():
-        assert get_card_data(105, 1, "3200 Meters") is None
         assert get_card_data(101, 6, "100 Meters") is None
         assert list_cards_for_athlete(999999) == []
 
@@ -127,7 +170,7 @@ def test_card_page_renders_the_approved_markup(client):
 
 def test_card_page_rejects_unknown_designs_and_missing_cards(client):
     assert client.get("/card/102/4/100 Meters?design=Z").status_code == 400
-    assert client.get("/card/105/1/3200 Meters").status_code == 404
+    assert client.get("/card/101/6/100 Meters").status_code == 404
     assert client.get("/card/999/4/100 Meters").status_code == 404
 
 

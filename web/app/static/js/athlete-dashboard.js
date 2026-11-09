@@ -170,6 +170,12 @@ const shareStatus = document.getElementById('share-dashboard-status');
             return `${card.year} ${card.meet_type} ${card.event}: ${card.acc1}${second}`;
         }
 
+        function cardDetail(card) {
+            const second = card.acc2 ? ` \u00b7 ${card.acc2}` : '';
+            const meet = `${card.year} ${card.meet_type} \u00b7 ${card.event} \u00b7 ${card.result}`;
+            return `<strong>${escapeHtml(card.acc1)}</strong>${escapeHtml(second)}<br>${escapeHtml(meet)}`;
+        }
+
         function imageKey(index) {
             return `${index}-${design}`;
         }
@@ -229,7 +235,7 @@ const shareStatus = document.getElementById('share-dashboard-status');
                 button.setAttribute('aria-pressed', String(cardIndex === index));
             });
             position.textContent = `${index + 1} / ${cards.length}`;
-            detail.textContent = cardLabel(cards[index]);
+            detail.innerHTML = cardDetail(cards[index]);
             prepareCardImage(index);
             updateImageButtons();
         }

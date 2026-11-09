@@ -48,6 +48,8 @@ JOBS = [
     ('regional_predictions', 'app.jobs.precompute_regional_predictions'),
     ('state_predictions', 'app.jobs.precompute_state_predictions'),
     ('state_qualifiers', 'app.jobs.precompute_state_qualifiers'),
+    # Every athlete's cards, a few megabytes of rows in web/data/cards.db.
+    ('cards', 'app.jobs.precompute_cards'),
 ]
 
 
@@ -155,16 +157,19 @@ def check():
     from app.services import dashboard_v4 as svc
     from app.jobs.artifacts import check_artifacts
 
+    from app.queries.cards import cards_status
+
     app = create_app()
     with app.app_context():
         status = svc.cache_status()
         json_stale, json_problems = check_artifacts()
+        cards = cards_status()
 
     if not status['built']:
         print('precomputed data: NOT BUILT -- run python -m app.jobs.build_all')
         return 2
 
-    stale = status['stale'] or json_stale
+    stale = status['stale'] or json_stale or cards['stale']
     if not stale:
         print('precomputed data: current (built %s)' % status['generated_at'])
         return 0
@@ -175,6 +180,11 @@ def check():
               % status['generated_at'])
     for problem in json_problems:
         print('  %s' % problem)
+    if not cards['built']:
+        print('  cards.db: never built; the site is computing cards live')
+    elif cards['stale']:
+        print('  cards.db: built %s, but the results have changed since; the site is computing cards live'
+              % cards['generated_at'])
     print('  run: python -m app.jobs.build_all   (locally, then commit)')
     return 1
 

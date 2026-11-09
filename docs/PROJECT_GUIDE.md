@@ -250,9 +250,16 @@ even inside your own scoped block — this has caused two real bugs. Check
 
 Every postseason result that places well enough earns a shareable 1080 x 1350
 card: sectional and regional champions, runners-up and qualifiers, and state
-champions, runners-up and medalists (top nine). The athlete dashboard shows them
-in the deck at the bottom of the page, with a Left / Blackout design toggle, and
-the share buttons send the rendered PNG.
+champions, runners-up and medalists (top nine). An athlete who competed in a
+season without earning one of those gets a single season card for their best
+result, labelled Finalist with their place, so every athlete has a card. The
+dashboard shows them in the deck at the bottom of the page, with a School Color
+/ Blackout toggle, and the share buttons send the rendered PNG.
+
+The cards are precomputed into `web/data/cards.db` by `app.jobs.precompute_cards`
+(part of `build_all`) and committed beside Track.db. The file records the
+Track.db fingerprint it was built from; when the results change before a
+rebuild, the site computes the same cards live and `build_all --check` says so.
 
 | Piece | Where |
 |---|---|
@@ -260,7 +267,8 @@ the share buttons send the rendered PNG.
 | School colors and logos, the HTML, the PNG render and cache | `app/services/cards.py`, `app/services/school_colors.py` |
 | The two designs (approved markup, do not restyle) | `app/services/card_templates.py` |
 | Routes: `/card/<athlete>/<meet>/<event>` (HTML) and `.png`, `/api/athletes/<id>/cards` | `app/routes/` |
-| Render from the command line | `python -m app.jobs.render_cards <athlete_id>` |
+| Build the card rows | `python -m app.jobs.precompute_cards` (or `build_all`) |
+| Render PNGs from the command line | `python -m app.jobs.render_cards <athlete_id>`, or `--all --year 2026` |
 
 **School colors** live in `web/data/school_colors.json`, keyed by `school_id`,
 with `primary` and `accent` as hex. A school without an entry gets colors sampled

@@ -270,33 +270,85 @@ def png_path(card, design):
     return os.path.join(card_cache_dir(), theName)
 
 
-def render_png(card, design):
-    theTarget = png_path(card, design)
-    if os.path.isfile(theTarget) == True:
-        return theTarget
+def _screenshot(page, html, path):
+    page.set_content(html, wait_until="load", timeout=theRenderTimeout)
+    page.evaluate("document.fonts.ready")
+    page.screenshot(path=path, clip={"x": 0, "y": 0, "width": theCardWidth, "height": theCardHeight}, timeout=theRenderTimeout)
+
+
+def _finish(temp, target):
+    try:
+        os.replace(temp, target)
+    finally:
+        if os.path.exists(temp) == True:
+            os.remove(temp)
+
+
+def _temp_beside(target):
+    theHandle, theTemp = tempfile.mkstemp(dir=os.path.dirname(target), suffix=".png")
+    os.close(theHandle)
+    return theTemp
+
+
+def _playwright():
     try:
         from playwright.sync_api import sync_playwright
     except ImportError:
         raise CardRenderUnavailable("Playwright is not installed; run pip install -e '.[cards]' and playwright install chromium")
+    return sync_playwright
+
+
+def render_png(card, design):
+    theTarget = png_path(card, design)
+    if os.path.isfile(theTarget) == True:
+        return theTarget
+    theStart = _playwright()
     theHtml = card_html(card, design, embed=True)
     os.makedirs(os.path.dirname(theTarget), exist_ok=True)
     with theRenderGate:
         if os.path.isfile(theTarget) == True:
             return theTarget
-        theHandle, theTemp = tempfile.mkstemp(dir=os.path.dirname(theTarget), suffix=".png")
-        os.close(theHandle)
+        theTemp = _temp_beside(theTarget)
         try:
-            with sync_playwright() as thePlaywright:
+            with theStart() as thePlaywright:
                 theBrowser = thePlaywright.chromium.launch()
                 try:
                     thePage = theBrowser.new_page(viewport={"width": theCardWidth, "height": theCardHeight})
-                    thePage.set_content(theHtml, wait_until="load", timeout=theRenderTimeout)
-                    thePage.evaluate("document.fonts.ready")
-                    thePage.screenshot(path=theTemp, clip={"x": 0, "y": 0, "width": theCardWidth, "height": theCardHeight}, timeout=theRenderTimeout)
+                    _screenshot(thePage, theHtml, theTemp)
                 finally:
                     theBrowser.close()
-            os.replace(theTemp, theTarget)
+            _finish(theTemp, theTarget)
         finally:
             if os.path.exists(theTemp) == True:
                 os.remove(theTemp)
     return theTarget
+
+
+def render_many(cardList, designs, progress=None):
+    theStart = _playwright()
+    theDone = 0
+    theSkipped = 0
+    with theStart() as thePlaywright:
+        theBrowser = thePlaywright.chromium.launch()
+        try:
+            thePage = theBrowser.new_page(viewport={"width": theCardWidth, "height": theCardHeight})
+            for n in range(len(cardList)):
+                for i in range(len(designs)):
+                    theTarget = png_path(cardList[n], designs[i])
+                    if os.path.isfile(theTarget) == True:
+                        theSkipped = theSkipped + 1
+                        continue
+                    os.makedirs(os.path.dirname(theTarget), exist_ok=True)
+                    theTemp = _temp_beside(theTarget)
+                    try:
+                        _screenshot(thePage, card_html(cardList[n], designs[i], embed=True), theTemp)
+                        _finish(theTemp, theTarget)
+                    finally:
+                        if os.path.exists(theTemp) == True:
+                            os.remove(theTemp)
+                    theDone = theDone + 1
+                if progress is not None:
+                    progress(n + 1, len(cardList), theDone, theSkipped)
+        finally:
+            theBrowser.close()
+    return (theDone, theSkipped)

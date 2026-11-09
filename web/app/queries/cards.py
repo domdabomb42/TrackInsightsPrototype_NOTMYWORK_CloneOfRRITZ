@@ -4,7 +4,9 @@ Which postseason results earn an athlete card, and what the card says.
 """
 
 import hashlib
+import os
 import re
+import sqlite3
 from functools import lru_cache
 
 from sqlalchemy.orm import joinedload
@@ -14,6 +16,7 @@ from ..models import Athlete, AthleteResult, Event, Meet
 
 from common.const import CONST
 
+from .cache import _active_db_path, _db_fingerprint
 from .shared import (
     _AUTO_DEPTH,
     _CALLBACK_SLOTS,
@@ -42,6 +45,14 @@ theNextStage = {
 }
 
 theStateMedalDepth = 9
+
+theKindAccolade = "accolade"
+theKindSeason = "season"
+
+theCardColumns = (
+    "athlete_id", "meet_id", "event", "year", "meet_type", "tier", "place", "result",
+    "gender", "name", "first", "last", "school_id", "school_name", "acc1", "acc2", "cardId", "kind",
+)
 
 theFeetInches = re.compile(r"^\s*(\d+)'\s*([\d.]+)\"?\s*$")
 
@@ -193,8 +204,71 @@ def _stage_rank(meet_type):
     return -1
 
 
-@lru_cache(maxsize=1024)
-def list_cards_for_athlete(athlete_id):
+def _card_row(athlete, athlete_id, result, meet, kind, acc1, acc2):
+    theSchoolName = ""
+    theSchoolId = None
+    if athlete.school is not None:
+        theSchoolName = athlete.school.school_name or ""
+        theSchoolId = athlete.school.school_id
+    theFirst = (athlete.first or "").strip()
+    theLast = (athlete.last or "").strip()
+    return {
+        "athlete_id": athlete_id,
+        "meet_id": meet.meet_id,
+        "event": result.event,
+        "year": meet.year,
+        "meet_type": meet.meet_type,
+        "tier": theTierName[meet.meet_type],
+        "place": result.place,
+        "result": card_result(result.result),
+        "gender": athlete.gender,
+        "name": (theFirst + " " + theLast).strip(),
+        "first": theFirst,
+        "last": theLast,
+        "school_id": theSchoolId,
+        "school_name": theSchoolName,
+        "acc1": acc1,
+        "acc2": acc2,
+        "cardId": card_id(athlete_id, meet.meet_id, result.event, meet.year, meet.meet_type),
+        "kind": kind,
+    }
+
+
+def _season_card(athlete, athlete_id, rows, year):
+    theBest = None
+    theBestKey = None
+    for n in range(len(rows)):
+        theResult = rows[n][0]
+        theMeet = rows[n][1]
+        theType = rows[n][2] or CONST.EVENT_TYPE.TRACK
+        if theMeet.year != year:
+            continue
+        theIsFinal = theResult.result_type == CONST.RESULT_TYPE.FINAL
+        thePlaced = theResult.place is not None and theResult.place > 0
+        theValid = _is_valid_postseason_mark(theResult.result2, theType)
+        thePlace = theResult.place
+        if thePlaced == False:
+            thePlace = 10000
+        theKey = (
+            0 if theIsFinal == True else 1,
+            0 if theValid == True else 1,
+            -_stage_rank(theMeet.meet_type),
+            thePlace,
+            theResult.event,
+        )
+        if theBestKey is None or theKey < theBestKey:
+            theBest = rows[n]
+            theBestKey = theKey
+    if theBest is None:
+        return None
+    theResult = theBest[0]
+    theMeet = theBest[1]
+    if theResult.result_type == CONST.RESULT_TYPE.FINAL and theResult.place is not None and theResult.place > 0:
+        return _card_row(athlete, athlete_id, theResult, theMeet, theKindSeason, theMeet.meet_type + " Finalist", ordinal(theResult.place) + " Place")
+    return _card_row(athlete, athlete_id, theResult, theMeet, theKindSeason, theMeet.meet_type + " Competitor", "")
+
+
+def _compute_cards_for_athlete(athlete_id):
     theAthlete = (
         Athlete.query.options(joinedload(Athlete.school))
         .filter_by(athlete_id=athlete_id)
@@ -208,12 +282,9 @@ def list_cards_for_athlete(athlete_id):
         .join(Event, AthleteResult.event == Event.event)
         .filter(
             AthleteResult.athlete_id == athlete_id,
-            AthleteResult.result_type == CONST.RESULT_TYPE.FINAL,
             Meet.meet_type.in_(CONST.MEET_TYPE.ALL),
             Meet.year.isnot(None),
             Event.event_type != CONST.EVENT_TYPE.RELAY,
-            AthleteResult.place.isnot(None),
-            AthleteResult.place > 0,
         )
         .all()
     )
@@ -221,17 +292,18 @@ def list_cards_for_athlete(athlete_id):
         return []
     theAppeared = _athlete_appearances(athlete_id)
     theGender = theAthlete.gender
-    theSchoolName = ""
-    theSchoolId = None
-    if theAthlete.school is not None:
-        theSchoolName = theAthlete.school.school_name or ""
-        theSchoolId = theAthlete.school.school_id
-    theName = ((theAthlete.first or "").strip() + " " + (theAthlete.last or "").strip()).strip()
     theCards = []
+    theYearsCovered = set()
+    theYearsSeen = set()
     for n in range(len(theRows)):
         theResult = theRows[n][0]
         theMeet = theRows[n][1]
         theType = theRows[n][2] or CONST.EVENT_TYPE.TRACK
+        theYearsSeen.add(theMeet.year)
+        if theResult.result_type != CONST.RESULT_TYPE.FINAL:
+            continue
+        if theResult.place is None or theResult.place <= 0:
+            continue
         theAdvanced = _advanced(
             athlete_id,
             theMeet.meet_id,
@@ -248,27 +320,85 @@ def list_cards_for_athlete(athlete_id):
         theAccolade = accolade_for(theMeet.meet_type, theResult.place, theAdvanced)
         if theAccolade is None:
             continue
-        theCards.append({
-            "athlete_id": athlete_id,
-            "meet_id": theMeet.meet_id,
-            "event": theResult.event,
-            "year": theMeet.year,
-            "meet_type": theMeet.meet_type,
-            "tier": theTierName[theMeet.meet_type],
-            "place": theResult.place,
-            "result": card_result(theResult.result),
-            "gender": theGender,
-            "name": theName,
-            "first": (theAthlete.first or "").strip(),
-            "last": (theAthlete.last or "").strip(),
-            "school_id": theSchoolId,
-            "school_name": theSchoolName,
-            "acc1": theAccolade[0],
-            "acc2": theAccolade[1],
-            "cardId": card_id(athlete_id, theMeet.meet_id, theResult.event, theMeet.year, theMeet.meet_type),
-        })
+        theCards.append(_card_row(theAthlete, athlete_id, theResult, theMeet, theKindAccolade, theAccolade[0], theAccolade[1]))
+        theYearsCovered.add(theMeet.year)
+    theMissingYears = sorted(theYearsSeen - theYearsCovered)
+    for n in range(len(theMissingYears)):
+        theSeasonCard = _season_card(theAthlete, athlete_id, theRows, theMissingYears[n])
+        if theSeasonCard is not None:
+            theCards.append(theSeasonCard)
     theCards.sort(key=lambda item: (-item["year"], -_stage_rank(item["meet_type"]), item["event"]))
     return theCards
+
+
+def cards_db_path():
+    from flask import current_app
+
+    theConfigured = None
+    try:
+        theConfigured = current_app.config.get("CARDS_DB_PATH")
+    except RuntimeError:
+        theConfigured = None
+    if theConfigured:
+        return theConfigured
+    return os.path.join(os.path.dirname(_active_db_path()), "cards.db")
+
+
+def _open_cards_db(path):
+    theUri = "file:" + path.replace(os.sep, "/") + "?mode=ro"
+    return sqlite3.connect(theUri, uri=True)
+
+
+def cards_status():
+    thePath = cards_db_path()
+    if os.path.isfile(thePath) == False:
+        return {"built": False, "stale": True, "path": thePath, "generated_at": None, "count": 0}
+    try:
+        theConnection = _open_cards_db(thePath)
+        try:
+            theMeta = dict(theConnection.execute("select key, value from card_build").fetchall())
+            theCount = theConnection.execute("select count(*) from card").fetchone()[0]
+        finally:
+            theConnection.close()
+    except sqlite3.Error:
+        return {"built": False, "stale": True, "path": thePath, "generated_at": None, "count": 0}
+    theStale = theMeta.get("db_fingerprint") != _db_fingerprint()
+    return {
+        "built": True,
+        "stale": theStale,
+        "path": thePath,
+        "generated_at": theMeta.get("generated_at"),
+        "count": theCount,
+    }
+
+
+def _stored_cards_for_athlete(athlete_id):
+    theStatus = cards_status()
+    if theStatus["built"] == False or theStatus["stale"] == True:
+        return None
+    theConnection = _open_cards_db(theStatus["path"])
+    try:
+        theRows = theConnection.execute(
+            "select " + ", ".join(theCardColumns) + " from card where athlete_id = ? order by sort_order",
+            (athlete_id,),
+        ).fetchall()
+    finally:
+        theConnection.close()
+    theCards = []
+    for n in range(len(theRows)):
+        theCard = {}
+        for i in range(len(theCardColumns)):
+            theCard[theCardColumns[i]] = theRows[n][i]
+        theCards.append(theCard)
+    return theCards
+
+
+@lru_cache(maxsize=1024)
+def list_cards_for_athlete(athlete_id):
+    theStored = _stored_cards_for_athlete(athlete_id)
+    if theStored is not None:
+        return theStored
+    return _compute_cards_for_athlete(athlete_id)
 
 
 def get_card_data(athlete_id, meet_id, event):
