@@ -60,6 +60,24 @@ class _RelayRow:
         self.result_type = CONST.RESULT_TYPE.FINAL
         self.meet_id = relay.meet_id
 
+
+theLinkedRelaySql = (
+    "select rr.meet_id, rr.event, rr.result, rr.result2, rr.place "
+    "from relay_athlete ra join relay_result rr on rr.rowid = ra.relay_id "
+    "where ra.athlete_id = :athlete_id"
+)
+
+
+def _linked_relays(athlete_id):
+    theRows = db.session.execute(db.text(theLinkedRelaySql), {"athlete_id": athlete_id}).fetchall()
+    theOutput = []
+    for n in range(len(theRows)):
+        theMeet = db.session.get(Meet, theRows[n][0])
+        if theMeet is None or theMeet.meet_type not in CONST.MEET_TYPE.ALL:
+            continue
+        theOutput.append((theRows[n], theMeet))
+    return theOutput
+
 theCardColumns = (
     "athlete_id", "meet_id", "event", "year", "meet_type", "tier", "place", "result",
     "gender", "name", "first", "last", "school_id", "school_name", "acc1", "acc2", "cardId", "kind",
@@ -334,11 +352,21 @@ def _compute_cards_for_athlete(athlete_id):
         .all()
     )
     theRelays = _fetch_relay_rows_for_athlete(athlete_id, meet_types=CONST.MEET_TYPE.ALL)
+    theSeenRelays = set()
     for n in range(len(theRelays)):
         theRelay = theRelays[n][0]
         theRelayMeet = theRelays[n][1]
         if theRelayMeet.year is None:
             continue
+        theSeenRelays.add((theRelay.meet_id, theRelay.event))
+        theRows.append((_RelayRow(theRelay), theRelayMeet, CONST.EVENT_TYPE.RELAY))
+    theLinked = _linked_relays(athlete_id)
+    for n in range(len(theLinked)):
+        theRelay = theLinked[n][0]
+        theRelayMeet = theLinked[n][1]
+        if theRelayMeet.year is None or (theRelay.meet_id, theRelay.event) in theSeenRelays:
+            continue
+        theSeenRelays.add((theRelay.meet_id, theRelay.event))
         theRows.append((_RelayRow(theRelay), theRelayMeet, CONST.EVENT_TYPE.RELAY))
     if len(theRows) == 0:
         return []

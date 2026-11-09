@@ -353,3 +353,20 @@ def test_a_relay_only_athlete_gets_a_relay_card(app):
         theCards = list_cards_for_athlete(904)
         assert len(theCards) >= 1
         assert all("Relay" in c["event"] for c in theCards)
+
+
+def test_a_relay_leg_linked_by_id_counts_even_when_the_roster_misspells_the_name(app):
+    from app import db
+    from app.models import Athlete, RelayAthlete, RelayResult
+
+    with app.app_context():
+        theRelay = db.session.query(RelayResult).filter_by(school_id=1, meet_id=14, event="4 x 400 Relay").one()
+        theRowId = db.session.execute(db.text(
+            "select rowid from relay_result where school_id=1 and meet_id=14 and event='4 x 400 Relay'")).scalar()
+        db.session.add(Athlete(athlete_id=905, first="Misspelt", last="Runner", school_id=1, gender="Girls", graduation_year=2026))
+        db.session.add(RelayAthlete(relay_id=theRowId, athlete_id=905))
+        db.session.commit()
+        list_cards_for_athlete.cache_clear()
+        theCards = list_cards_for_athlete(905)
+        assert [(c["event"], c["acc1"]) for c in theCards] == [("4 x 400 Relay", "Sectional Champion")]
+        assert theCards[0]["result"] == theRelay.result
