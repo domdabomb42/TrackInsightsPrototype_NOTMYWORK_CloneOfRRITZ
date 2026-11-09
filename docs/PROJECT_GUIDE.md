@@ -256,7 +256,9 @@ season without earning one of those gets a single season card for their best
 result, labelled Finalist with their place, so every athlete has a card. The
 dashboard shows them in the deck at the bottom of the page, with a School Color
 / Blackout / Banner toggle (designs B, E and A), and the share buttons send the
-rendered PNG.
+rendered PNG. Blackout is the School Color layout on a near-black card: the rail,
+year tag and accolade take the school's color brightened to read on black
+(`glow_color` in `school_colors.py`), and the result stays white.
 
 The cards are precomputed into `web/data/cards.db` by `app.jobs.precompute_cards`
 (part of `build_all`) and committed beside Track.db. The file records the
@@ -298,7 +300,8 @@ Creative Kit for the web (`sdk.snapkit.com`, no registration needed): it deep
 links into Snapchat with the card attached as a sticker and the athlete's page
 as the link. Creative Kit reads the share page's `og:image` and
 `snapchat:sticker` tags, so it only works on the public site over https, never
-on localhost. On a desktop the buttons show a QR code to the card's share page
+on localhost. On a desktop, where neither app can be opened, Instagram and
+Snapchat open a small QR code to the card's share page
 (`/card/<athlete>/<meet>/<event>/share`), a one-screen phone page with the same
 buttons. The sticker is `/card/.../sticker.png`, a 400 x 400 transparent PNG.
 

@@ -122,29 +122,7 @@ const shareStatus = document.getElementById('share-dashboard-status');
             .replace(/(^|[\s'\-(])([a-z])/g, (match, lead, letter) => lead + letter.toUpperCase());
         const displayFirst = titleCase(athlete.first) || titleCase(name);
         document.getElementById('athlete-card-caption').textContent =
-            `Scan or share ${displayFirst}'s athlete cards.`;
-        const qrLink = document.getElementById('athlete-card-qr-link');
-        qrLink.href = url;
-        qrLink.setAttribute('aria-label', `Open ${name}'s athlete dashboard`);
-
-        try {
-            const code = qrcode(0, 'H');
-            code.addData(url);
-            code.make();
-            document.getElementById('athlete-card-qr-code').innerHTML = code.createSvgTag({
-                cellSize: 5, margin: 20, scalable: true,
-            });
-            const logo = document.getElementById('athlete-card-qr-logo');
-            if (athlete.logo_url) {
-                logo.onerror = () => { logo.hidden = true; };
-                logo.src = athlete.logo_url;
-                logo.alt = `${athlete.school || 'School'} logo`;
-                logo.hidden = false;
-            }
-        } catch (error) {
-            console.error('Unable to generate athlete QR code:', error);
-            setStatus('QR code unavailable. Use Copy Link to share this athlete.');
-        }
+            `Share ${displayFirst}'s athlete cards.`;
 
         document.getElementById('athlete-card-copy').addEventListener('click', async () => {
             const copied = await copyTextToClipboard(url);
@@ -419,12 +397,20 @@ const shareStatus = document.getElementById('share-dashboard-status');
 
         const shareToApp = async platform => {
             const card = cards[selectedCard];
-            const image = cardImages.get(imageKey(selectedCard));
             const shareUrl = card.share_url[design];
             if (sharingImage) return;
             sharingImage = true;
             updateImageButtons();
             try {
+                let image = cardImages.get(imageKey(selectedCard));
+                if (isMobile && platform === 'Instagram' && !image?.file) {
+                    // The image is usually prefetched; if a tap beats it, wait
+                    // for it rather than bouncing to another page. The share
+                    // sheet still opens inside the browser's activation window.
+                    setStatus('Getting the card ready...');
+                    await prepareCardImage(selectedCard);
+                    image = cardImages.get(imageKey(selectedCard));
+                }
                 const canShareFile = Boolean(isMobile && image?.file && navigator.share && navigator.canShare
                     && navigator.canShare({files: [image.file]}));
                 if (platform === 'Snapchat') {
@@ -457,7 +443,9 @@ const shareStatus = document.getElementById('share-dashboard-status');
                     return;
                 }
                 console.warn('Share failed', error);
-                setStatus(`Unable to hand the card to ${platform}. Use Download and share it from your photos.`);
+                setStatus(error.name === 'NotAllowedError'
+                    ? `Tap ${platform} again to open the share sheet.`
+                    : `Unable to hand the card to ${platform}. Use Download and share it from your photos.`);
             } finally {
                 sharingImage = false;
                 updateImageButtons();

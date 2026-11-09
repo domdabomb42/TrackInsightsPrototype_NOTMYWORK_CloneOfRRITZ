@@ -168,7 +168,8 @@ def test_card_page_renders_the_approved_markup(client):
     assert theBlackout.status_code == 200
     theBlackoutHtml = theBlackout.get_data(as_text=True)
     assert "background:#0b0b0f" in theBlackoutHtml
-    assert "Sectional Runner-Up" in theBlackoutHtml
+    assert "Sectional<br>Runner-Up" in theBlackoutHtml
+    assert "#ff4d6d" not in theBlackoutHtml
 
 
 def test_card_page_rejects_unknown_designs_and_missing_cards(client):
@@ -462,3 +463,14 @@ def test_centered_design_renders_the_slanted_band(client):
     assert set(theCards[0]["html_url"]) == {"A", "B", "E"}
     assert theCards[0]["download_name"]["A"].endswith("-a.png")
     assert client.get("/card/102/4/100 Meters?design=a").status_code == 200
+
+
+def test_glow_color_keeps_the_school_hue_on_black():
+    from app.services.school_colors import glow_color
+
+    assert glow_color("#1b2a57", "#f0d010") == "#f0d010"
+    theRed = glow_color("#9e0e0e", "#ffffff")
+    assert theRed.startswith("#ff")
+    assert theRed != "#ffffff"
+    assert glow_color("#111111", "#ffffff") == "#ffffff"
+    assert glow_color("#1b2a57", "#ffffff") != "#ffffff"

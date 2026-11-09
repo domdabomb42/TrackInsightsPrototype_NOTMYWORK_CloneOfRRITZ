@@ -46,7 +46,7 @@ theKnockoutNear = 30
 theKnockoutFar = 90
 theRenderGate = threading.BoundedSemaphore(2)
 theRenderTimeout = 20000
-theTemplateVersion = "4"
+theTemplateVersion = "5"
 theSilhouetteWidth = 1200
 theInkDark = 170
 theInkLight = 235
@@ -245,6 +245,7 @@ def _school_block(card, embed):
         "name": card["school_name"],
         "primary": theColors["primary"],
         "accent": theColors["accent"],
+        "glow": theColors["glow"],
         "logo": theLogo,
         "logoWhite": theWhite,
     }

@@ -38,6 +38,9 @@ theYellowHueHigh = 0.2
 theMinPrimaryShare = 0.025
 theTintedSaturation = 0.12
 theRichSaturation = 0.6
+theGlowMinChannel = 40
+theGlowSaturation = 0.85
+theGlowMinSaturation = 0.3
 theRichValueLow = 0.35
 theRichValueHigh = 0.62
 
@@ -314,8 +317,33 @@ def _colors_from_logo(path):
 def school_colors(school_id, logo_path):
     theConfigured = _configured_colors().get(str(school_id))
     if theConfigured is not None:
-        return dict(theConfigured)
-    return dict(_sampled_colors(logo_path, school_id))
+        theColors = dict(theConfigured)
+    else:
+        theColors = dict(_sampled_colors(logo_path, school_id))
+    theColors["glow"] = glow_color(theColors["primary"], theColors["accent"])
+    return theColors
+
+
+def _from_hex(color):
+    return (int(color[1:3], 16), int(color[3:5], 16), int(color[5:7], 16))
+
+
+def glow_color(primary, accent):
+    if accent != theWhite:
+        return accent
+    thePrimary = _from_hex(primary)
+    if max(thePrimary) < theGlowMinChannel or _saturation(thePrimary) < theTintedSaturation:
+        return theWhite
+    theHue, theSat, theValue = colorsys.rgb_to_hsv(thePrimary[0] / 255.0, thePrimary[1] / 255.0, thePrimary[2] / 255.0)
+    theBright = colorsys.hsv_to_rgb(theHue, max(theSat, theGlowSaturation), 1.0)
+    theBright = (int(round(theBright[0] * 255)), int(round(theBright[1] * 255)), int(round(theBright[2] * 255)))
+    for n in range(11):
+        theColor = _mix(theBright, (255, 255, 255), n / 10.0)
+        if _contrast(theColor, theCardBlack) >= theMinAccentOnBlack:
+            if _saturation(theColor) < theGlowMinSaturation:
+                return theWhite
+            return _to_hex(theColor)
+    return theWhite
 
 
 @lru_cache(maxsize=512)

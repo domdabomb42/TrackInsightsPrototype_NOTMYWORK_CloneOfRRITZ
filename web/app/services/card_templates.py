@@ -1,10 +1,10 @@
-"""The two athlete card designs, Poster B (left rail) and Poster E (blackout).
+"""The athlete card designs: School Color (left rail), Blackout (the same rail on black) and Banner.
 
 Ported from the approved prototype. The HTML is the design, so the markup and
 inline styles stay as they were; only the asset URLs come in from outside.
 
 Card dict keys:
-  name, school (name, primary, accent, logo, logoWhite), gender, event,
+  name, school (name, primary, accent, glow, logo, logoWhite), gender, event,
   result, tier, acc1, acc2, cardId, year
 Assets dict keys:
   tiLogo, fonts (oswald500, oswald700, mono400, mono700)
@@ -84,9 +84,13 @@ def tiBlock(assets, size=110):
 
 
 def yearTag(school, year, theId):
+    return tag(school["accent"], ink(school), year, theId)
+
+
+def tag(theColor, theInk, year, theId):
     return (
-        '<div style="display:flex;flex-direction:column;align-items:flex-end"><div style="background:' + school["accent"]
-        + ";color:" + ink(school) + ";" + mono(26, "font-weight:700;padding:14px 22px 10px;line-height:1") + '">' + str(year) + "</div>"
+        '<div style="display:flex;flex-direction:column;align-items:flex-end"><div style="background:' + theColor
+        + ";color:" + theInk + ";" + mono(26, "font-weight:700;padding:14px 22px 10px;line-height:1") + '">' + str(year) + "</div>"
         '<div style="' + mono(16, "margin-top:10px;text-align:right;color:rgba(255,255,255,0.75)") + '">' + escape(theId) + "</div></div>"
     )
 
@@ -127,17 +131,30 @@ def logoChip(school):
 
 def designRail(c, assets):
     s = c["school"]
-    theAccent = s["accent"]
+    return railCard(c, assets, s["primary"], s["accent"], ink(s), "linear-gradient(90deg,rgba(0,0,0,0.45) 0%,rgba(0,0,0,0) 55%),linear-gradient(180deg,rgba(0,0,0,0) 50%,rgba(0,0,0,0.5) 100%)", 0.15)
+
+
+def designBlackout(c, assets):
+    s = c["school"]
+    theGlow = s["glow"]
+    theInk = "#111111"
+    if theGlow == "#ffffff":
+        theInk = "#0b0b0f"
+    return railCard(c, assets, "#0b0b0f", theGlow, theInk, "radial-gradient(ellipse 90% 60% at 30% 20%,rgba(255,255,255,0.08) 0%,rgba(255,255,255,0) 70%),linear-gradient(180deg,rgba(0,0,0,0) 50%,rgba(0,0,0,0.5) 100%)", 0.1)
+
+
+def railCard(c, assets, theBackground, theAccent, theTagInk, theWash, theLogoOpacity):
+    s = c["school"]
     theAcc2 = ""
     if c["acc2"] != "":
         theAcc2 = '<div ' + fitAttrs(62, 36) + ' style="margin-top:16px;font-size:62px;font-weight:700;letter-spacing:0.04em;color:#ffffff;white-space:nowrap">' + escape(c["acc2"]) + "</div>"
     return (
-        '<div style="width:1080px;height:1350px;position:relative;overflow:hidden;background:' + s["primary"] + ";" + theFont + 'color:#ffffff;text-transform:uppercase">'
-        '<div style="position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,0.45) 0%,rgba(0,0,0,0) 55%),linear-gradient(180deg,rgba(0,0,0,0) 50%,rgba(0,0,0,0.5) 100%)"></div>'
-        + whiteLogo(s, "position:absolute;right:-380px;top:120px;width:1250px;height:auto;opacity:0.15;transform:rotate(-8deg);filter:blur(2px)")
+        '<div style="width:1080px;height:1350px;position:relative;overflow:hidden;background:' + theBackground + ";" + theFont + 'color:#ffffff;text-transform:uppercase">'
+        '<div style="position:absolute;inset:0;background:' + theWash + '"></div>'
+        + whiteLogo(s, "position:absolute;right:-380px;top:120px;width:1250px;height:auto;opacity:" + str(theLogoOpacity) + ";transform:rotate(-8deg);filter:blur(2px)")
         + theGrain
         + '<div style="position:absolute;left:0;top:0;bottom:0;width:30px;background:' + theAccent + '"></div>'
-        '<div style="position:absolute;top:56px;left:90px;right:60px;display:flex;align-items:flex-start;justify-content:space-between">' + tiBlock(assets) + yearTag(s, c["year"], c["cardId"]) + "</div>"
+        '<div style="position:absolute;top:56px;left:90px;right:60px;display:flex;align-items:flex-start;justify-content:space-between">' + tiBlock(assets) + tag(theAccent, theTagInk, c["year"], c["cardId"]) + "</div>"
         '<div style="position:absolute;left:90px;right:60px;top:280px">'
         '<div ' + fitAttrs(170, 90) + ' style="font-size:170px;font-weight:700;line-height:0.86;letter-spacing:-0.025em;text-shadow:0 10px 30px rgba(0,0,0,0.35);white-space:nowrap">' + nameLines(c) + "</div>"
         '<div style="display:flex;align-items:center;gap:20px;margin-top:26px"><div style="height:4px;width:70px;background:' + theAccent + ';flex-shrink:0"></div><div style="min-width:0;max-width:700px"><div ' + fitAttrs(28, 16) + ' style="' + mono(28, "font-weight:700;color:rgba(255,255,255,0.92);white-space:nowrap") + '">' + escape(s["name"]) + '</div></div><div style="height:4px;width:70px;background:' + theAccent + ';flex-shrink:0"></div></div></div>'
@@ -148,40 +165,6 @@ def designRail(c, assets):
         '<div style="min-width:0;flex:1"><div ' + fitAttrs(30, 18) + ' style="' + mono(30, "font-weight:700;color:rgba(255,255,255,0.9);white-space:nowrap") + '">' + escape(c["gender"]) + " " + escape(c["event"]) + "</div>"
         '<div ' + fitAttrs(200, 100) + ' style="font-size:200px;font-weight:700;line-height:0.86;letter-spacing:-0.035em;margin-top:8px;text-shadow:0 10px 30px rgba(0,0,0,0.4);white-space:nowrap">' + escape(c["result"]) + "</div></div>"
         + logoChip(s) + "</div>"
-        "</div>"
-    )
-
-
-def designBlackout(c, assets):
-    s = c["school"]
-    theBlock = s["primary"]
-    theBlockInk = "#ffffff"
-    theHot = s["accent"]
-    if s["primary"] == "#111111":
-        theBlock = s["accent"]
-        theBlockInk = "#111111"
-    if s["accent"] == "#ffffff":
-        theHot = "#ff4d6d"
-    theAcc2 = ""
-    if c["acc2"] != "":
-        theAcc2 = '<div style="position:absolute;left:60px;right:60px;top:860px;text-align:center"><div ' + fitAttrs(56, 32) + ' style="font-size:56px;font-weight:700;letter-spacing:0.06em;color:' + theHot + ';white-space:nowrap">' + escape(c["acc2"]) + "</div></div>"
-    return (
-        '<div style="width:1080px;height:1350px;position:relative;overflow:hidden;background:#0b0b0f;' + theFont + 'color:#ffffff;text-transform:uppercase">'
-        '<div style="position:absolute;inset:0;background:radial-gradient(ellipse 90% 60% at 50% 20%,rgba(255,255,255,0.10) 0%,rgba(255,255,255,0) 70%)"></div>'
-        + whiteLogo(s, "position:absolute;left:50%;top:52%;width:1100px;height:auto;transform:translate(-50%,-50%) rotate(-8deg);opacity:0.09;filter:blur(2px)")
-        + theGrain
-        + '<div style="position:absolute;left:0;right:0;top:0;height:26px;background:' + theBlock + '"></div>'
-        '<div style="position:absolute;left:0;right:0;top:26px;height:6px;background:' + theHot + '"></div>'
-        '<div style="position:absolute;top:80px;left:60px;right:60px;display:flex;align-items:flex-start;justify-content:space-between">' + tiBlock(assets) + yearTag(s, c["year"], c["cardId"]) + "</div>"
-        '<div style="position:absolute;left:60px;right:60px;top:290px;text-align:center">'
-        '<div ' + fitAttrs(156, 84) + ' style="font-size:156px;font-weight:700;line-height:0.88;letter-spacing:-0.02em;white-space:nowrap">' + nameLines(c) + "</div>"
-        '<div ' + fitAttrs(28, 16) + ' style="' + mono(28, "font-weight:700;margin-top:26px;color:rgba(255,255,255,0.8);white-space:nowrap") + '">' + escape(s["name"]) + "</div></div>"
-        '<div style="position:absolute;left:60px;right:60px;top:650px;background:' + theBlock + ";color:" + theBlockInk + ';padding:34px 30px 30px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,0.6)">'
-        '<div ' + fitAttrs(oneLineSize(c["acc1"], 110, 92), 56) + ' style="font-size:' + str(oneLineSize(c["acc1"], 110, 92)) + 'px;font-weight:700;line-height:0.9;letter-spacing:-0.01em;white-space:nowrap">' + escape(c["acc1"]) + "</div></div>"
-        + theAcc2
-        + '<div style="position:absolute;left:60px;right:60px;bottom:70px;text-align:center">'
-        '<div ' + fitAttrs(30, 18) + ' style="' + mono(30, "font-weight:700;color:rgba(255,255,255,0.8);white-space:nowrap") + '">' + escape(c["gender"]) + " " + escape(c["event"]) + "</div>"
-        '<div ' + fitAttrs(200, 100) + ' style="font-size:200px;font-weight:700;line-height:0.9;letter-spacing:-0.03em;margin-top:6px;color:' + theHot + ';white-space:nowrap">' + escape(c["result"]) + "</div></div>"
         "</div>"
     )
 
