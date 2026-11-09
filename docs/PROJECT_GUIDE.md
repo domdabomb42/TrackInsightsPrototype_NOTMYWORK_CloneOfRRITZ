@@ -270,7 +270,7 @@ rebuild, the site computes the same cards live and `build_all --check` says so.
 | The two designs (approved markup, do not restyle) | `app/services/card_templates.py` |
 | Routes: `/card/<athlete>/<meet>/<event>` (HTML) and `.png`, `/api/athletes/<id>/cards` | `app/routes/` |
 | Build the card rows | `python -m app.jobs.precompute_cards` (or `build_all`) |
-| Render PNGs from the command line | `python -m app.jobs.render_cards <athlete_id>`, or `--all --year 2026` |
+| Export PNG files | `python -m app.jobs.render_cards <athlete_id> --out <folder>`, or `--all --year 2026 --out <folder>` |
 
 **During the season.** Cards are rows, not pictures, so keeping them current is
 the same routine as every other precomputed artifact:
@@ -285,11 +285,10 @@ cd .. && git add web/data/cards.db && git commit -m "Rebuild cards after section
 `build_all` runs the cards job too, so a full rebuild after loading results
 already covers it. Until the rebuild is committed the site computes cards live
 from Track.db, so nothing breaks in between; the rebuild is what makes it fast.
-Pictures need no step at all: the server renders each card the first time it is
-asked for and keeps it. To warm a whole season ahead of time on a machine with
-Chromium, `python -m app.jobs.render_cards --all --year 2026 --workers 5` does
-about fifteen cards a second; it skips cards that are already rendered, so it
-can be stopped and restarted.
+Pictures need no step at all: the server renders each card in memory when it
+is asked for. To export a season's images as files for posting,
+`python -m app.jobs.render_cards --all --year 2026 --out <folder> --workers 5`
+does about fifteen cards a second.
 
 **Sharing.** Neither Instagram nor Snapchat lets a web page post a story on
 someone's behalf, so the buttons take the most direct route each platform
@@ -315,8 +314,11 @@ of a card can be traced back to one `athlete_result` row.
 **Rendering needs two extra packages**: `pip install -e ".[cards]"`, then
 `playwright install chromium` once. Without them the card HTML still works and
 the `.png` route answers 503, which the dashboard reports as the image being
-unavailable. Rendered PNGs and the white logo silhouettes are cached under
-`static/cards/` (ignored by git); delete a file there to re-render it.
+unavailable. Images are rendered in memory when a visitor asks for one and
+streamed back; nothing is written to disk. A small in-memory buffer holds the
+most recent images so a repeat click is instant, and it empties when the
+process restarts. `render_cards --out <folder>` exports files when you want
+them for a post.
 
 **On PythonAnywhere** a normal `playwright install` does not work, but paid
 accounts can use the system Chromium: `pip install playwright` and set
@@ -328,8 +330,7 @@ explicit choice because it removes Chromium's process isolation. It is
 acceptable here because the browser only ever loads HTML this app builds from
 card rows, with every string escaped and every asset embedded, never a page from
 the internet. Images are rendered from the card rows the first time anyone asks
-for them and cached on the server; nothing has to be built or uploaded from a
-developer machine.
+for them in memory; nothing has to be built, uploaded or stored anywhere.
 
 ---
 

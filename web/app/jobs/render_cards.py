@@ -1,21 +1,18 @@
-"""Render athlete cards to PNG from the command line.
+"""Export athlete cards as PNG files from the command line.
 
     cd web
-    python -m app.jobs.render_cards 306292            # one athlete, both designs
-    python -m app.jobs.render_cards 306292 --design E # one design
-    python -m app.jobs.render_cards --all --year 2026 # every card of a season
-    python -m app.jobs.render_cards --all --year 2026 --workers 5   # in parallel
+    python -m app.jobs.render_cards 306292 --out ~/Desktop/cards        # one athlete
+    python -m app.jobs.render_cards --all --year 2026 --out /tmp/cards   # a season
+    python -m app.jobs.render_cards --all --year 2026 --out /tmp/cards --workers 5
 
-Writes into the card cache (static/cards/) unless --out is given, so the site
-serves the same files afterwards. A season is a few thousand cards; with one
-browser kept open it runs at several cards a second. Cards already in the cache
-are skipped, so the job can be stopped and restarted.
+The site itself renders cards in memory when someone asks for one and keeps
+nothing on disk. This job is for pulling a batch of files to post or print:
+it renders the same images and writes them to the folder you name.
 """
 
 import argparse
 import multiprocessing
 import os
-import shutil
 import sys
 import time
 
@@ -40,38 +37,32 @@ def _season_cards(year):
     return theCards
 
 
-def _worker(num, cardList, designs, started):
+def _write_all(theRendered, out):
+    os.makedirs(out, exist_ok=True)
+    for n in range(len(theRendered)):
+        theCard, theDesign, theData = theRendered[n]
+        with open(os.path.join(out, cards.download_name(theCard, theDesign)), "wb") as theHandle:
+            theHandle.write(theData)
+
+
+def _worker(num, cardList, designs, out, started):
     theApp = create_app()
     with theApp.test_request_context():
-        def progress(count, total, done, skipped):
+        def progress(count, total, done):
             if count % 200 == 0 or count == total:
-                print("worker " + str(num) + " is at card " + str(count) + " of " + str(total) + ", rendered " + str(done) + ", already had " + str(skipped) + ", " + str(int(time.time() - started)) + "s in", flush=True)
-        return cards.render_many(cardList, designs, progress)
-
-
-def _render_parallel(cardList, designs, workers, started):
-    theSlices = []
-    for n in range(workers):
-        theSlices.append(cardList[n::workers])
-    theContext = multiprocessing.get_context("spawn")
-    with theContext.Pool(workers) as thePool:
-        theResults = thePool.starmap(_worker, [(n, theSlices[n], designs, started) for n in range(workers)])
-    theDone = 0
-    theSkipped = 0
-    for n in range(len(theResults)):
-        theDone = theDone + theResults[n][0]
-        theSkipped = theSkipped + theResults[n][1]
-    return (theDone, theSkipped)
+                print("worker " + str(num) + " is at card " + str(count) + " of " + str(total) + ", " + str(int(time.time() - started)) + "s in", flush=True)
+        theRendered = cards.render_many(cardList, designs, progress)
+        _write_all(theRendered, out)
+        return len(theRendered)
 
 
 def main(argv):
-    theParser = argparse.ArgumentParser(description="Render athlete cards to PNG.")
+    theParser = argparse.ArgumentParser(description="Export athlete cards as PNG files.")
     theParser.add_argument("athlete_id", type=int, nargs="?", default=None)
     theParser.add_argument("--all", action="store_true", help="every card of one season (needs --year)")
     theParser.add_argument("--year", type=int, default=None)
     theParser.add_argument("--design", choices=list(cards.theDesignCodes), default=None)
-    theParser.add_argument("--out", default=None, help="copy the PNGs here as well (single athlete only)")
-    theParser.add_argument("--force", action="store_true", help="render again even when a PNG is cached")
+    theParser.add_argument("--out", required=True, help="folder to write the PNG files into")
     theParser.add_argument("--workers", type=int, default=1, help="browsers to run side by side for --all")
     theArgs = theParser.parse_args(argv)
 
@@ -81,24 +72,24 @@ def main(argv):
 
     theApp = create_app()
     with theApp.test_request_context():
+        theStart = time.time()
         if theArgs.all == True:
             if theArgs.year is None:
                 print("we need --year with --all")
                 return 2
-            theStart = time.time()
             theCards = _season_cards(theArgs.year)
-            print("we found " + str(len(theCards)) + " cards for " + str(theArgs.year) + " and we will render " + str(len(theCards) * len(theDesigns)) + " PNGs")
-
-            def progress(num, total, done, skipped):
-                if num % 100 == 0 or num == total:
-                    theElapsed = time.time() - theStart
-                    print("we are at card " + str(num) + " of " + str(total) + ", rendered " + str(done) + ", already had " + str(skipped) + ", " + str(int(theElapsed)) + "s in", flush=True)
-
+            print("we found " + str(len(theCards)) + " cards for " + str(theArgs.year) + " and we will write " + str(len(theCards) * len(theDesigns)) + " PNGs to " + theArgs.out)
             if theArgs.workers > 1:
-                theDone, theSkipped = _render_parallel(theCards, theDesigns, theArgs.workers, theStart)
+                theSlices = [theCards[n::theArgs.workers] for n in range(theArgs.workers)]
+                theContext = multiprocessing.get_context("spawn")
+                with theContext.Pool(theArgs.workers) as thePool:
+                    theCounts = thePool.starmap(_worker, [(n, theSlices[n], theDesigns, theArgs.out, theStart) for n in range(theArgs.workers)])
+                theDone = sum(theCounts)
             else:
-                theDone, theSkipped = cards.render_many(theCards, theDesigns, progress)
-            print("we rendered " + str(theDone) + " PNGs and skipped " + str(theSkipped) + " cached ones in " + str(int(time.time() - theStart)) + "s")
+                theRendered = cards.render_many(theCards, theDesigns)
+                _write_all(theRendered, theArgs.out)
+                theDone = len(theRendered)
+            print("we wrote " + str(theDone) + " PNGs in " + str(int(time.time() - theStart)) + "s")
             return 0
 
         if theArgs.athlete_id is None:
@@ -108,21 +99,11 @@ def main(argv):
         if len(theCards) == 0:
             print("we found no cards for athlete " + str(theArgs.athlete_id))
             return 1
-        theCount = 0
-        for n in range(len(theCards)):
-            theCard = theCards[n]
-            for i in range(len(theDesigns)):
-                theDesign = theDesigns[i]
-                theTarget = cards.png_path(theCard, theDesign)
-                if theArgs.force == True and os.path.isfile(theTarget) == True:
-                    os.remove(theTarget)
-                thePath = cards.render_png(theCard, theDesign)
-                if theArgs.out is not None:
-                    os.makedirs(theArgs.out, exist_ok=True)
-                    shutil.copyfile(thePath, os.path.join(theArgs.out, cards.download_name(theCard, theDesign)))
-                theCount = theCount + 1
-                print("we rendered " + theCard["cardId"] + " " + theDesign + " (" + theCard["acc1"] + ") -> " + thePath)
-        print("we rendered " + str(theCount) + " cards for " + theCards[0]["name"] + " and we were expecting " + str(len(theCards) * len(theDesigns)))
+        theRendered = cards.render_many(theCards, theDesigns)
+        _write_all(theRendered, theArgs.out)
+        for n in range(len(theRendered)):
+            print("we wrote " + cards.download_name(theRendered[n][0], theRendered[n][1]) + " (" + theRendered[n][0]["acc1"] + ")")
+        print("we wrote " + str(len(theRendered)) + " cards for " + theCards[0]["name"] + " to " + theArgs.out)
     return 0
 
 

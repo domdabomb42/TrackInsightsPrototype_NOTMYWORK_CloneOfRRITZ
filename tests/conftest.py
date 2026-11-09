@@ -29,9 +29,6 @@ class TestConfig:
     # The fixture builds its own database from the models, so unlike a deployed
     # site it does want the file created and the schema laid down at start-up.
     AUTO_CREATE_SCHEMA = True
-    # Rendered card PNGs go here rather than into web/app/static/cards/, so a
-    # test run leaves nothing behind in the app's own static folder.
-    CARD_CACHE_DIR = str(REPO_ROOT / "tests" / "card_cache")
 
 
 def _clear_query_caches():

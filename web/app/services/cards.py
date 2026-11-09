@@ -2,16 +2,19 @@
 
 The queries layer decides which results earn a card and what the card says.
 This layer adds the school's colors and logos, builds the HTML from the approved
-templates, and renders the PNG with headless Chromium, cached on disk so each
-card is rendered once.
+templates, and renders the PNG with headless Chromium when someone asks for it.
+Nothing is written to disk: the image is produced in memory and streamed to
+the browser, with a small in-memory buffer so a repeat click is instant.
 """
 
 import base64
 import hashlib
+import io
 import os
 import re
-import tempfile
 import threading
+from collections import OrderedDict
+from functools import lru_cache
 
 from flask import current_app, url_for
 
@@ -44,14 +47,16 @@ theKnockoutFar = 90
 theRenderGate = threading.BoundedSemaphore(2)
 theRenderTimeout = 20000
 theTemplateVersion = "3"
-theSilhouetteVersion = "2"
-theStickerSize = 400
 theSilhouetteWidth = 1200
 theInkDark = 170
 theInkLight = 235
 theMinInkCoverage = 0.015
+theStickerSize = 400
 theChromiumArgs = ["--disable-gpu", "--headless"]
 theChromiumNoSandbox = "--no-sandbox"
+theRecentImages = 48
+theRecentLock = threading.Lock()
+theRecent = OrderedDict()
 
 
 class CardRenderUnavailable(Exception):
@@ -74,17 +79,6 @@ def _static_path(filename):
     return os.path.join(_static_folder(), filename)
 
 
-def card_cache_dir():
-    theConfigured = current_app.config.get("CARD_CACHE_DIR")
-    if theConfigured:
-        return theConfigured
-    return os.path.join(_static_folder(), "cards")
-
-
-def _white_logo_dir():
-    return os.path.join(_static_folder(), "cards", "logos")
-
-
 def school_logo_path(school_id):
     if school_id is None:
         return None
@@ -92,36 +86,6 @@ def school_logo_path(school_id):
     if os.path.isfile(thePath) == True:
         return thePath
     return None
-
-
-def white_logo_path(school_id):
-    theSource = school_logo_path(school_id)
-    if theSource is None:
-        return None
-    theTarget = os.path.join(_white_logo_dir(), str(school_id) + "_white_v" + theSilhouetteVersion + ".png")
-    if os.path.isfile(theTarget) == True:
-        return theTarget
-    try:
-        from PIL import Image
-    except ImportError:
-        current_app.logger.warning("Pillow is not installed, so card %s has no white logo silhouette", school_id)
-        return None
-    try:
-        theImage = Image.open(theSource).convert("RGBA")
-        theAlpha = _silhouette_alpha(theImage)
-        if theAlpha is None:
-            return None
-        theWhite = Image.new("RGBA", theAlpha.size, (255, 255, 255, 255))
-        theWhite.putalpha(theAlpha)
-        os.makedirs(_white_logo_dir(), exist_ok=True)
-        theHandle, theTemp = tempfile.mkstemp(dir=_white_logo_dir(), suffix=".png")
-        os.close(theHandle)
-        theWhite.save(theTemp, format="PNG")
-        os.replace(theTemp, theTarget)
-    except OSError as theError:
-        current_app.logger.warning("could not build the white logo for school %s: %s", school_id, theError)
-        return None
-    return theTarget
 
 
 def _ink_mask(image):
@@ -182,6 +146,35 @@ def _silhouette_alpha(image):
     return theMask
 
 
+@lru_cache(maxsize=512)
+def _white_logo_bytes(logo_path):
+    try:
+        from PIL import Image
+    except ImportError:
+        current_app.logger.warning("Pillow is not installed, so cards have no white logo silhouette")
+        return None
+    try:
+        theImage = Image.open(logo_path).convert("RGBA")
+        theAlpha = _silhouette_alpha(theImage)
+        if theAlpha is None:
+            return None
+        theWhite = Image.new("RGBA", theAlpha.size, (255, 255, 255, 255))
+        theWhite.putalpha(theAlpha)
+        theBuffer = io.BytesIO()
+        theWhite.save(theBuffer, format="PNG")
+        return theBuffer.getvalue()
+    except OSError as theError:
+        current_app.logger.warning("could not build the white logo from %s: %s", logo_path, theError)
+        return None
+
+
+def white_logo_png(school_id):
+    theSource = school_logo_path(school_id)
+    if theSource is None:
+        return None
+    return _white_logo_bytes(theSource)
+
+
 def _static_url(path):
     theRelative = os.path.relpath(path, _static_folder()).replace(os.sep, "/")
     return url_for("static", filename=theRelative)
@@ -193,6 +186,10 @@ def _data_uri(path):
     with open(path, "rb") as theHandle:
         theBytes = theHandle.read()
     return "data:" + theMime + ";base64," + base64.b64encode(theBytes).decode("ascii")
+
+
+def _bytes_uri(data, mime):
+    return "data:" + mime + ";base64," + base64.b64encode(data).decode("ascii")
 
 
 def _assets(embed):
@@ -213,20 +210,20 @@ def _assets(embed):
 
 def _school_block(card, embed):
     theLogoPath = school_logo_path(card["school_id"])
-    theWhitePath = white_logo_path(card["school_id"])
+    theWhite = None
+    theWhiteBytes = white_logo_png(card["school_id"])
     theColors = school_colors(card["school_id"], theLogoPath)
     theLogo = None
-    theWhite = None
     if theLogoPath is not None:
         if embed == True:
             theLogo = _data_uri(theLogoPath)
         else:
             theLogo = _static_url(theLogoPath)
-    if theWhitePath is not None:
+    if theWhiteBytes is not None:
         if embed == True:
-            theWhite = _data_uri(theWhitePath)
+            theWhite = _bytes_uri(theWhiteBytes, "image/png")
         else:
-            theWhite = _static_url(theWhitePath)
+            theWhite = url_for("main.school_logo_white", school_id=card["school_id"], v=theTemplateVersion)
     return {
         "name": card["school_name"],
         "primary": theColors["primary"],
@@ -259,29 +256,6 @@ def _urls(card):
         theShare[theDesign] = url_for("main.card_share_page", athlete_id=card["athlete_id"], meet_id=card["meet_id"], event_name=card["event"], design=theDesign, _external=True)
         theNames[theDesign] = download_name(card, theDesign)
     return {"html_url": theHtml, "png_url": thePng, "share_url": theShare, "download_name": theNames}
-
-
-def sticker_path(card, design):
-    theTarget = os.path.join(card_cache_dir(), card["cardId"] + "-" + _render_key(card, design) + "-" + design + "-sticker.png")
-    if os.path.isfile(theTarget) == True:
-        return theTarget
-    from PIL import Image
-
-    theSource = render_png(card, design)
-    theCard = Image.open(theSource).convert("RGBA")
-    theScale = theStickerSize / float(theCard.height)
-    theWidth = int(round(theCard.width * theScale))
-    theCard = theCard.resize((theWidth, theStickerSize), Image.LANCZOS)
-    theSticker = Image.new("RGBA", (theStickerSize, theStickerSize), (0, 0, 0, 0))
-    theSticker.paste(theCard, ((theStickerSize - theWidth) // 2, 0))
-    theTemp = _temp_beside(theTarget)
-    try:
-        theSticker.save(theTemp, format="PNG", optimize=True)
-        _finish(theTemp, theTarget)
-    finally:
-        if os.path.exists(theTemp) == True:
-            os.remove(theTemp)
-    return theTarget
 
 
 def card_summary(card):
@@ -319,7 +293,7 @@ def card_html(card, design, embed=False):
     return card_templates.cardHtml(design, theFull, _assets(embed))
 
 
-def _render_key(card, design):
+def render_key(card, design):
     theParts = [
         str(card["athlete_id"]),
         str(card["meet_id"]),
@@ -335,30 +309,25 @@ def _render_key(card, design):
     return hashlib.sha1("|".join(theParts).encode("utf-8")).hexdigest()[:16]
 
 
-def png_path(card, design):
-    theName = card["cardId"] + "-" + _render_key(card, design) + "-" + design + ".png"
-    return os.path.join(card_cache_dir(), theName)
+def _remember(key, data):
+    with theRecentLock:
+        theRecent[key] = data
+        theRecent.move_to_end(key)
+        while len(theRecent) > theRecentImages:
+            theRecent.popitem(last=False)
 
 
-def _screenshot(page, html, path):
-    page.set_content(html, wait_until="load", timeout=theRenderTimeout)
-    page.evaluate("document.fonts.ready")
-    page.evaluate("window.fitCardText && window.fitCardText()")
-    page.screenshot(path=path, clip={"x": 0, "y": 0, "width": theCardWidth, "height": theCardHeight}, timeout=theRenderTimeout)
+def _recall(key):
+    with theRecentLock:
+        theData = theRecent.get(key)
+        if theData is not None:
+            theRecent.move_to_end(key)
+        return theData
 
 
-def _finish(temp, target):
-    try:
-        os.replace(temp, target)
-    finally:
-        if os.path.exists(temp) == True:
-            os.remove(temp)
-
-
-def _temp_beside(target):
-    theHandle, theTemp = tempfile.mkstemp(dir=os.path.dirname(target), suffix=".png")
-    os.close(theHandle)
-    return theTemp
+def forget_rendered_images():
+    with theRecentLock:
+        theRecent.clear()
 
 
 def _launch(playwright):
@@ -379,57 +348,70 @@ def _playwright():
     return sync_playwright
 
 
+def _screenshot(page, html):
+    page.set_content(html, wait_until="load", timeout=theRenderTimeout)
+    page.evaluate("document.fonts.ready")
+    page.evaluate("window.fitCardText && window.fitCardText()")
+    return page.screenshot(type="png", clip={"x": 0, "y": 0, "width": theCardWidth, "height": theCardHeight}, timeout=theRenderTimeout)
+
+
 def render_png(card, design):
-    theTarget = png_path(card, design)
-    if os.path.isfile(theTarget) == True:
-        return theTarget
+    theKey = render_key(card, design)
+    theData = _recall(theKey)
+    if theData is not None:
+        return theData
     theStart = _playwright()
     theHtml = card_html(card, design, embed=True)
-    os.makedirs(os.path.dirname(theTarget), exist_ok=True)
     with theRenderGate:
-        if os.path.isfile(theTarget) == True:
-            return theTarget
-        theTemp = _temp_beside(theTarget)
-        try:
-            with theStart() as thePlaywright:
-                theBrowser = _launch(thePlaywright)
-                try:
-                    thePage = theBrowser.new_page(viewport={"width": theCardWidth, "height": theCardHeight})
-                    _screenshot(thePage, theHtml, theTemp)
-                finally:
-                    theBrowser.close()
-            _finish(theTemp, theTarget)
-        finally:
-            if os.path.exists(theTemp) == True:
-                os.remove(theTemp)
-    return theTarget
+        theData = _recall(theKey)
+        if theData is not None:
+            return theData
+        with theStart() as thePlaywright:
+            theBrowser = _launch(thePlaywright)
+            try:
+                thePage = theBrowser.new_page(viewport={"width": theCardWidth, "height": theCardHeight})
+                theData = _screenshot(thePage, theHtml)
+            finally:
+                theBrowser.close()
+    _remember(theKey, theData)
+    return theData
+
+
+def render_sticker(card, design):
+    from PIL import Image
+
+    theKey = render_key(card, design) + "-sticker"
+    theData = _recall(theKey)
+    if theData is not None:
+        return theData
+    theCard = Image.open(io.BytesIO(render_png(card, design))).convert("RGBA")
+    theScale = theStickerSize / float(theCard.height)
+    theWidth = int(round(theCard.width * theScale))
+    theCard = theCard.resize((theWidth, theStickerSize), Image.LANCZOS)
+    theSticker = Image.new("RGBA", (theStickerSize, theStickerSize), (0, 0, 0, 0))
+    theSticker.paste(theCard, ((theStickerSize - theWidth) // 2, 0))
+    theBuffer = io.BytesIO()
+    theSticker.save(theBuffer, format="PNG", optimize=True)
+    theData = theBuffer.getvalue()
+    _remember(theKey, theData)
+    return theData
 
 
 def render_many(cardList, designs, progress=None):
     theStart = _playwright()
     theDone = 0
-    theSkipped = 0
+    theOutput = []
     with theStart() as thePlaywright:
         theBrowser = _launch(thePlaywright)
         try:
             thePage = theBrowser.new_page(viewport={"width": theCardWidth, "height": theCardHeight})
             for n in range(len(cardList)):
                 for i in range(len(designs)):
-                    theTarget = png_path(cardList[n], designs[i])
-                    if os.path.isfile(theTarget) == True:
-                        theSkipped = theSkipped + 1
-                        continue
-                    os.makedirs(os.path.dirname(theTarget), exist_ok=True)
-                    theTemp = _temp_beside(theTarget)
-                    try:
-                        _screenshot(thePage, card_html(cardList[n], designs[i], embed=True), theTemp)
-                        _finish(theTemp, theTarget)
-                    finally:
-                        if os.path.exists(theTemp) == True:
-                            os.remove(theTemp)
+                    theData = _screenshot(thePage, card_html(cardList[n], designs[i], embed=True))
+                    theOutput.append((cardList[n], designs[i], theData))
                     theDone = theDone + 1
                 if progress is not None:
-                    progress(n + 1, len(cardList), theDone, theSkipped)
+                    progress(n + 1, len(cardList), theDone)
         finally:
             theBrowser.close()
-    return (theDone, theSkipped)
+    return theOutput

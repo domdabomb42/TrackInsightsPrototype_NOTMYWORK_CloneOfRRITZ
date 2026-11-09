@@ -4,7 +4,7 @@ import json
 import os
 import time
 
-from flask import abort, render_template, request, send_file, url_for, Response, current_app
+from flask import abort, render_template, request, url_for, Response, current_app
 from . import main_bp
 from ..queries import get_athletes
 from ..models import Athlete, School
@@ -386,35 +386,46 @@ def _card_or_404(athlete_id, meet_id, event_name):
     return theCard
 
 
+def _card_image_response(theRender, theCard, theDesign, theDownloadName):
+    try:
+        theData = theRender(theCard, theDesign)
+    except cards.CardRenderUnavailable as theError:
+        current_app.logger.warning('card image unavailable: %s', theError)
+        return Response('Card images are not available on this server yet.', status=503, mimetype='text/plain')
+    except Exception:
+        current_app.logger.exception('card image failed for %s', theCard['cardId'])
+        return Response('The card image could not be rendered. Try again in a moment.', status=503, mimetype='text/plain')
+    theResponse = Response(theData, mimetype='image/png')
+    theResponse.headers['Cache-Control'] = 'public, max-age=86400'
+    if request.args.get('download') == '1':
+        theResponse.headers['Content-Disposition'] = 'attachment; filename="' + theDownloadName + '"'
+    else:
+        theResponse.headers['Content-Disposition'] = 'inline; filename="' + theDownloadName + '"'
+    return theResponse
+
+
 @main_bp.route('/card/<int:athlete_id>/<int:meet_id>/<path:event_name>.png')
 def card_png(athlete_id, meet_id, event_name):
     theDesign = _card_design()
     theCard = _card_or_404(athlete_id, meet_id, event_name)
-    try:
-        thePath = cards.render_png(theCard, theDesign)
-    except cards.CardRenderUnavailable as theError:
-        current_app.logger.warning('card PNG unavailable: %s', theError)
-        return Response('Card images are not available on this server yet.', status=503, mimetype='text/plain')
-    except Exception:
-        current_app.logger.exception('card PNG render failed for %s', theCard['cardId'])
-        return Response('The card image could not be rendered. Try again in a moment.', status=503, mimetype='text/plain')
-    return send_file(thePath, mimetype='image/png', download_name=cards.download_name(theCard, theDesign),
-                     as_attachment=request.args.get('download') == '1', max_age=86400)
+    return _card_image_response(cards.render_png, theCard, theDesign, cards.download_name(theCard, theDesign))
 
 
 @main_bp.route('/card/<int:athlete_id>/<int:meet_id>/<path:event_name>/sticker.png')
 def card_sticker(athlete_id, meet_id, event_name):
     theDesign = _card_design()
     theCard = _card_or_404(athlete_id, meet_id, event_name)
-    try:
-        thePath = cards.sticker_path(theCard, theDesign)
-    except cards.CardRenderUnavailable as theError:
-        current_app.logger.warning('card sticker unavailable: %s', theError)
-        return Response('Card images are not available on this server yet.', status=503, mimetype='text/plain')
-    except Exception:
-        current_app.logger.exception('card sticker failed for %s', theCard['cardId'])
-        return Response('The card image could not be rendered. Try again in a moment.', status=503, mimetype='text/plain')
-    return send_file(thePath, mimetype='image/png', max_age=86400)
+    return _card_image_response(cards.render_sticker, theCard, theDesign, 'sticker-' + cards.download_name(theCard, theDesign))
+
+
+@main_bp.route('/card-logo/<int:school_id>/white.png')
+def school_logo_white(school_id):
+    theData = cards.white_logo_png(school_id)
+    if theData is None:
+        abort(404)
+    theResponse = Response(theData, mimetype='image/png')
+    theResponse.headers['Cache-Control'] = 'public, max-age=604800'
+    return theResponse
 
 
 @main_bp.route('/card/<int:athlete_id>/<int:meet_id>/<path:event_name>/share')

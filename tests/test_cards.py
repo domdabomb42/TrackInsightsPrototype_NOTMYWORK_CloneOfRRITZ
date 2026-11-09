@@ -190,7 +190,7 @@ def test_cards_api_lists_urls_per_design(client):
     assert client.get("/api/athletes/999/cards").status_code == 404
 
 
-def test_card_png_renders_once_and_is_cached(app, client):
+def test_card_png_is_rendered_in_memory_and_served(app, client):
     pytest.importorskip("playwright")
     theResponse = client.get("/card/102/4/100 Meters.png?design=B")
     if theResponse.status_code == 503:
@@ -198,13 +198,13 @@ def test_card_png_renders_once_and_is_cached(app, client):
     assert theResponse.status_code == 200
     assert theResponse.content_type == "image/png"
     assert theResponse.data[:8] == b"\x89PNG\r\n\x1a\n"
-    theCacheDir = app.config["CARD_CACHE_DIR"]
-    theFiles = [name for name in os.listdir(theCacheDir) if name.startswith("TI24-SEC-") and name.endswith("-B.png")]
-    assert len(theFiles) >= 1
-    assert not [name for name in os.listdir(theCacheDir) if name.startswith("tmp")]
-    theAgain = client.get("/card/102/4/100 Meters.png?design=B")
+    assert "inline" in theResponse.headers["Content-Disposition"]
+    theStatic = os.path.join(app.static_folder, "cards")
+    assert not os.path.exists(theStatic)
+    theAgain = client.get("/card/102/4/100 Meters.png?design=B&download=1")
     assert theAgain.status_code == 200
     assert theAgain.data == theResponse.data
+    assert theAgain.headers["Content-Disposition"].startswith("attachment;")
 
 
 def test_long_names_split_on_first_and_last_not_the_first_space(app):
