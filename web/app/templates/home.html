@@ -397,10 +397,7 @@
           It is designed, built and maintained by Computer Science students at Park Tudor School in Indianapolis, for
           the athletes, coaches and fans who follow the sport.
         </p>
-        <div class="about-links">
-          <a href="mailto:trackinsights@yahoo.com">trackinsights@yahoo.com</a>
-          <a href="https://www.instagram.com/trackinsights/" target="_blank" rel="noopener noreferrer">@trackinsights</a>
-        </div>
+</div>
       </div>
     </div>
 
@@ -422,20 +419,6 @@
         <li><span class="font-impact text-primary">02</span><b>School dashboards</b><p>How a program&rsquo;s entries did round by round, and how it stacks up against schools its own size.</p></li>
         <li><span class="font-impact text-primary">03</span><b>Rankings &amp; percentiles</b><p>Where a performance sits by grade level, school size and across the whole state.</p></li>
         <li><span class="font-impact text-primary">04</span><b>Qualifiers &amp; predictions</b><p>Unofficial Regional and State qualifier lists during the postseason, plus projections built from past seasons.</p></li>
-      </ul>
-    </div>
-
-    <div class="about-team">
-      <div class="about-heading">
-        <h3 class="font-impact italic text-primary">The team</h3>
-        <span>2026 &ndash; 2027 &middot; Park Tudor School</span>
-      </div>
-      <ul class="about-people">
-        <li><img src="{{ url_for('static', filename='images/developer_portraits/derek.webp') }}" alt="Derek A." width="320" height="320" loading="lazy" /><span class="font-impact text-primary">Derek A.</span><small>Homepage &amp; Navigation</small></li>
-        <li><img src="{{ url_for('static', filename='images/developer_portraits/navraj.webp') }}" alt="Navraj B." width="320" height="320" loading="lazy" /><span class="font-impact text-primary">Navraj B.</span><small>Insights &amp; Social</small></li>
-        <li><img src="{{ url_for('static', filename='images/developer_portraits/aryav.webp') }}" alt="Aryav D." width="320" height="320" loading="lazy" /><span class="font-impact text-primary">Aryav D.</span><small>Design, Predictions &amp; Data</small></li>
-        <li><img src="{{ url_for('static', filename='images/developer_portraits/dominic.webp') }}" alt="Dominic G." width="320" height="320" loading="lazy" /><span class="font-impact text-primary">Dominic G.</span><small>Dashboards &amp; User Experience</small></li>
-        <li><img src="{{ url_for('static', filename='images/developer_portraits/sameer.webp') }}" alt="Sameer Z." width="320" height="320" loading="lazy" /><span class="font-impact text-primary">Sameer Z.</span><small>Event Pages &amp; Data Visualization</small></li>
       </ul>
     </div>
 
@@ -463,6 +446,30 @@
       </ol>
     </div>
 
+    <div class="about-team">
+      <div class="about-heading">
+        <h3 class="font-impact italic text-primary">The team</h3>
+      </div>
+      <ul class="about-people">
+        <li><img src="{{ url_for('static', filename='images/developer_portraits/derek.webp') }}" alt="Derek A." width="320" height="320" loading="lazy" /><span class="font-impact text-primary">Derek A.</span><small>Homepage &amp; Navigation</small></li>
+        <li><img src="{{ url_for('static', filename='images/developer_portraits/navraj.webp') }}" alt="Navraj B." width="320" height="320" loading="lazy" /><span class="font-impact text-primary">Navraj B.</span><small>Insights &amp; Social</small></li>
+        <li><img src="{{ url_for('static', filename='images/developer_portraits/aryav.webp') }}" alt="Aryav D." width="320" height="320" loading="lazy" /><span class="font-impact text-primary">Aryav D.</span><small>Design, Predictions &amp; Data</small></li>
+        <li><img src="{{ url_for('static', filename='images/developer_portraits/dominic.webp') }}" alt="Dominic G." width="320" height="320" loading="lazy" /><span class="font-impact text-primary">Dominic G.</span><small>Dashboards &amp; User Experience</small></li>
+        <li><img src="{{ url_for('static', filename='images/developer_portraits/sameer.webp') }}" alt="Sameer Z." width="320" height="320" loading="lazy" /><span class="font-impact text-primary">Sameer Z.</span><small>Event Pages &amp; Data Visualization</small></li>
+      </ul>
+    </div>
+
+    <div class="about-contact">
+      <div>
+        <h3 class="font-impact italic">Get in touch</h3>
+        <p>Questions, corrections or ideas for the site? We read everything.</p>
+      </div>
+      <div class="about-links">
+        <a href="mailto:trackinsights@yahoo.com">trackinsights@yahoo.com</a>
+        <a href="https://www.instagram.com/trackinsights/" target="_blank" rel="noopener noreferrer">@trackinsights on Instagram</a>
+      </div>
+    </div>
+
   </div>
 
   <style>
@@ -474,9 +481,12 @@
     .about-intro h2 { font-size: clamp(2.6rem, 4.8vw, 4.4rem); line-height: 1; margin: 0; }
     .about-intro-text { font-size: clamp(1.05rem, 1.3vw, 1.2rem); line-height: 1.65; padding-top: .25rem; }
     .about-intro-text p { margin: 0 0 1rem; }
-    .about-links { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: 1.25rem; }
-    .about-links a { display: inline-flex; align-items: center; min-height: 2.6rem; padding: .4rem 1.15rem; border: 1.5px solid var(--color-primary); border-radius: 999px; color: var(--color-primary); font-weight: 600; font-size: .95rem; transition: background-color 150ms ease, color 150ms ease; }
-    .about-links a:hover, .about-links a:focus-visible { background: var(--color-primary); color: #fff; outline: none; }
+    .about-links { display: flex; flex-wrap: wrap; gap: .6rem; }
+    .about-links a { display: inline-flex; align-items: center; min-height: 2.75rem; padding: .45rem 1.25rem; border: 1.5px solid rgba(255, 255, 255, .6); border-radius: 999px; color: #fff; font-weight: 600; font-size: .95rem; transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease; }
+    .about-links a:hover, .about-links a:focus-visible { background: #fff; border-color: #fff; color: var(--color-primary); outline: none; }
+    .about-contact { margin-top: clamp(3rem, 5vw, 4.5rem); padding: clamp(1.75rem, 3vw, 2.5rem) clamp(1.5rem, 3vw, 2.75rem); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1.25rem 2rem; background: var(--color-primary); color: #fff; border-radius: 1rem; }
+    .about-contact h3 { font-size: clamp(1.8rem, 2.8vw, 2.5rem); line-height: 1.1; margin: 0 0 .35rem; }
+    .about-contact p { margin: 0; color: rgba(255, 255, 255, .85); font-size: 1.02rem; }
 
     .about-numbers { list-style: none; margin: 3rem 0 0; padding: 1.75rem 2rem; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)) minmax(0, 1.3fr); gap: 1rem 1.5rem; align-items: center; background: #f6f7fa; border: 1px solid #e5e7eb; border-radius: 1rem; }
     .about-numbers li { display: flex; flex-direction: column; gap: .15rem; }
@@ -489,6 +499,7 @@
     .about-heading span { color: #6b7280; font-size: .95rem; }
 
     .about-features, .about-team, .about-history { margin-top: clamp(3rem, 5vw, 4.5rem); }
+    .about-intro-text p:last-child { margin-bottom: 0; }
     .about-feature-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1.25rem; }
     .about-feature-grid li { padding: 1.4rem 1.4rem 1.5rem; border: 1px solid #e5e7eb; border-radius: 1rem; line-height: 1.55; }
     .about-feature-grid span { display: block; font-size: 1.5rem; line-height: 1; margin-bottom: .9rem; }
