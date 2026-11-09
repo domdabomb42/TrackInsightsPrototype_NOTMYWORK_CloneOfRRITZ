@@ -27,6 +27,7 @@
         class="absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-500 ease-in-out"
         style="opacity: 0; object-position: top;" />
     </div>
+    <div class="hero-photo-dim" aria-hidden="true"></div>
 
     <script src="{{ url_for('static', filename='js/home.js') }}?v={{ asset_version('js/home.js') }}" defer></script>
 
@@ -72,6 +73,17 @@
     .homepage-font select,
     .homepage-font textarea {
       font-family: inherit;
+    }
+    .hero-photo-dim {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      background: radial-gradient(ellipse at center,
+        rgba(13, 11, 11, .36) 0%,
+        rgba(13, 11, 11, .28) 38%,
+        rgba(13, 11, 11, .19) 72%,
+        rgba(13, 11, 11, .13) 100%);
     }
     .no-select {
       -webkit-user-select: none;
@@ -238,20 +250,6 @@
       text-align: center;
       color: #fff;
       text-shadow: 0 2px 16px rgba(0, 0, 0, .65);
-    }
-    .home-search-hero::before {
-      content: '';
-      position: absolute;
-      z-index: -1;
-      inset: -14rem -25vw;
-      background: radial-gradient(ellipse at center,
-        rgba(13, 11, 11, .42) 0%,
-        rgba(13, 11, 11, .36) 18%,
-        rgba(13, 11, 11, .27) 38%,
-        rgba(13, 11, 11, .16) 60%,
-        rgba(13, 11, 11, .07) 80%,
-        rgba(13, 11, 11, 0) 100%);
-      pointer-events: none;
     }
     .home-search-hero h1 {
       max-width: 39rem;
