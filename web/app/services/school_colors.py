@@ -4,6 +4,7 @@ Hand-maintained colors live in web/data/school_colors.json, keyed by school_id.
 A school without an entry gets colors sampled from its logo, or the defaults.
 """
 
+import colorsys
 import json
 import logging
 import os
@@ -25,6 +26,12 @@ theOpaqueAlpha = 200
 theDarkEnough = 0.55
 theDistinctDistance = 120
 theSaturated = 0.35
+theCardBlack = (11, 11, 15)
+theMinAccentOnPrimary = 3.0
+theMinAccentOnBlack = 4.5
+theMinWhiteOnPrimary = 3.0
+theSameHue = 0.08
+theVividAccent = 0.3
 
 
 def _colors_file_stamp():
@@ -86,6 +93,63 @@ def _distance(rgb1, rgb2):
 
 def _to_hex(rgb):
     return "#%02x%02x%02x" % (rgb[0], rgb[1], rgb[2])
+
+
+def _linear(channel):
+    theValue = channel / 255.0
+    if theValue <= 0.03928:
+        return theValue / 12.92
+    return ((theValue + 0.055) / 1.055) ** 2.4
+
+
+def _relative_luminance(rgb):
+    return 0.2126 * _linear(rgb[0]) + 0.7152 * _linear(rgb[1]) + 0.0722 * _linear(rgb[2])
+
+
+def _contrast(rgb1, rgb2):
+    theFirst = _relative_luminance(rgb1)
+    theSecond = _relative_luminance(rgb2)
+    if theFirst < theSecond:
+        theFirst, theSecond = theSecond, theFirst
+    return (theFirst + 0.05) / (theSecond + 0.05)
+
+
+def _mix(rgb, target, amount):
+    return (
+        int(round(rgb[0] + (target[0] - rgb[0]) * amount)),
+        int(round(rgb[1] + (target[1] - rgb[1]) * amount)),
+        int(round(rgb[2] + (target[2] - rgb[2]) * amount)),
+    )
+
+
+def _fit_primary(rgb):
+    theColor = rgb
+    for n in range(10):
+        if _contrast((255, 255, 255), theColor) >= theMinWhiteOnPrimary:
+            return theColor
+        theColor = _mix(theColor, (0, 0, 0), 0.15)
+    return theColor
+
+
+def _same_hue(rgb1, rgb2):
+    if _saturation(rgb1) < theSaturated or _saturation(rgb2) < theSaturated:
+        return False
+    theFirst = colorsys.rgb_to_hsv(rgb1[0] / 255.0, rgb1[1] / 255.0, rgb1[2] / 255.0)[0]
+    theSecond = colorsys.rgb_to_hsv(rgb2[0] / 255.0, rgb2[1] / 255.0, rgb2[2] / 255.0)[0]
+    theGap = abs(theFirst - theSecond)
+    return min(theGap, 1.0 - theGap) < theSameHue
+
+
+def _fit_accent(rgb, primary):
+    if _same_hue(rgb, primary) == True:
+        return (255, 255, 255)
+    for n in range(11):
+        theColor = _mix(rgb, (255, 255, 255), n / 10.0)
+        if _contrast(theColor, primary) >= theMinAccentOnPrimary and _contrast(theColor, theCardBlack) >= theMinAccentOnBlack:
+            if _saturation(theColor) < theVividAccent:
+                return (255, 255, 255)
+            return theColor
+    return (255, 255, 255)
 
 
 def _snap_edges(color):
@@ -181,16 +245,15 @@ def _colors_from_logo(path):
             thePrimary = min(theRanked, key=_luminance)
     else:
         thePrimary = theSaturatedDark[0]
+    thePrimary = _fit_primary(thePrimary)
     theAccent = _pick_accent(theRanked, thePrimary)
     thePrimaryHex = _snap_edges(_to_hex(thePrimary))
     if theAccent is None:
         theAccentHex = theWhite
     else:
-        theAccentHex = _snap_edges(_to_hex(theAccent))
+        theAccentHex = _snap_edges(_to_hex(_fit_accent(theAccent, thePrimary)))
     if theAccentHex == theNearBlack:
         theAccentHex = theWhite
-    if _luminance(thePrimary) > 0.65:
-        thePrimaryHex = theNearBlack
     return {"primary": thePrimaryHex, "accent": theAccentHex}
 
 
