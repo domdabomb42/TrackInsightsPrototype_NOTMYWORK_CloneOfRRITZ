@@ -16,6 +16,7 @@ from ..models import Athlete, AthleteResult, Event, Meet
 
 from common.const import CONST
 
+from .athletes import _fetch_relay_rows_for_athlete
 from .cache import _active_db_path, _db_fingerprint
 from .shared import (
     _AUTO_DEPTH,
@@ -48,6 +49,16 @@ theStateMedalDepth = 9
 
 theKindAccolade = "accolade"
 theKindSeason = "season"
+
+
+class _RelayRow:
+    def __init__(self, relay):
+        self.event = relay.event
+        self.place = relay.place
+        self.result = relay.result
+        self.result2 = relay.result2
+        self.result_type = CONST.RESULT_TYPE.FINAL
+        self.meet_id = relay.meet_id
 
 theCardColumns = (
     "athlete_id", "meet_id", "event", "year", "meet_type", "tier", "place", "result",
@@ -185,6 +196,17 @@ def _advanced(athlete_id, meet_id, meet_num, event, year, gender, meet_type, pla
     return _callback_advanced(athlete_id, meet_id, meet_num, event, year, gender, meet_type, mark, event_type)
 
 
+def _relay_advanced(meet_type, year, event, place, appeared):
+    if meet_type == CONST.MEET_TYPE.STATE:
+        return False
+    if place <= _AUTO_DEPTH:
+        return True
+    theNext = theNextStage.get(meet_type)
+    if (theNext, year, event) in appeared:
+        return True
+    return False
+
+
 def _athlete_appearances(athlete_id):
     theRows = (
         db.session.query(Meet.meet_type, Meet.year, AthleteResult.event)
@@ -311,9 +333,19 @@ def _compute_cards_for_athlete(athlete_id):
         )
         .all()
     )
+    theRelays = _fetch_relay_rows_for_athlete(athlete_id, meet_types=CONST.MEET_TYPE.ALL)
+    for n in range(len(theRelays)):
+        theRelay = theRelays[n][0]
+        theRelayMeet = theRelays[n][1]
+        if theRelayMeet.year is None:
+            continue
+        theRows.append((_RelayRow(theRelay), theRelayMeet, CONST.EVENT_TYPE.RELAY))
     if len(theRows) == 0:
         return []
     theAppeared = _athlete_appearances(athlete_id)
+    for n in range(len(theRows)):
+        if theRows[n][2] == CONST.EVENT_TYPE.RELAY:
+            theAppeared.add((theRows[n][1].meet_type, theRows[n][1].year, theRows[n][0].event))
     thePrelims = _prelim_marks(theRows)
     theGender = theAthlete.gender
     theCards = []
@@ -328,19 +360,22 @@ def _compute_cards_for_athlete(athlete_id):
             continue
         if theResult.place is None or theResult.place <= 0:
             continue
-        theAdvanced = _advanced(
-            athlete_id,
-            theMeet.meet_id,
-            theMeet.meet_num,
-            theResult.event,
-            theMeet.year,
-            theGender,
-            theMeet.meet_type,
-            theResult.place,
-            theResult.result2,
-            theType,
-            theAppeared,
-        )
+        if theType == CONST.EVENT_TYPE.RELAY:
+            theAdvanced = _relay_advanced(theMeet.meet_type, theMeet.year, theResult.event, theResult.place, theAppeared)
+        else:
+            theAdvanced = _advanced(
+                athlete_id,
+                theMeet.meet_id,
+                theMeet.meet_num,
+                theResult.event,
+                theMeet.year,
+                theGender,
+                theMeet.meet_type,
+                theResult.place,
+                theResult.result2,
+                theType,
+                theAppeared,
+            )
         theAccolade = accolade_for(theMeet.meet_type, theResult.place, theAdvanced)
         if theAccolade is None:
             continue

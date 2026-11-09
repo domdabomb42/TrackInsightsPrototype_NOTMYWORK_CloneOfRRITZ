@@ -250,7 +250,8 @@ even inside your own scoped block — this has caused two real bugs. Check
 
 Every postseason result that places well enough earns a shareable 1080 x 1350
 card: sectional and regional champions, runners-up and qualifiers, and state
-champions, runners-up and medalists (top nine). An athlete who competed in a
+champions, runners-up and medalists (top nine). Relay legs count too: an athlete
+named on a school relay gets that relay's card. An athlete who competed in a
 season without earning one of those gets a single season card for their best
 result, labelled Finalist with their place, so every athlete has a card. The
 dashboard shows them in the deck at the bottom of the page, with a School Color
@@ -272,7 +273,10 @@ rebuild, the site computes the same cards live and `build_all --check` says so.
 
 **School colors** live in `web/data/school_colors.json`, keyed by `school_id`,
 with `primary` and `accent` as hex. A school without an entry gets colors sampled
-from its logo, so add an entry whenever the sampled pair looks wrong. The card
+from its logo: the most common saturated color becomes the primary, darkened
+until white text reads on it, and the accent is the next distinct color or white.
+A logo with no real color gets a black card with the logo's accent. Add an entry
+whenever the sampled pair looks wrong; the next render uses it. The card
 ID (`TI26-SEC-D699`) hashes `athlete_id`, `meet_id` and event, so a screenshot
 of a card can be traced back to one `athlete_result` row.
 

@@ -62,7 +62,7 @@ create table card_build (key text primary key, value text);
 
 def build_cards_db(path):
     theStart = time.time()
-    theIds = [row[0] for row in db.session.execute(db.text("select distinct athlete_id from athlete_result order by athlete_id")).fetchall()]
+    theIds = [row[0] for row in db.session.execute(db.text("select athlete_id from athlete order by athlete_id")).fetchall()]
     print("we are building cards for " + str(len(theIds)) + " athletes")
     theTemp = path + ".building"
     if os.path.exists(theTemp) == True:

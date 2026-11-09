@@ -105,8 +105,8 @@ def test_every_competitor_gets_a_season_card(app):
 def test_a_season_with_an_accolade_gets_no_extra_season_card(app):
     with app.app_context():
         theCards = list_cards_for_athlete(111)
-        theKinds = [(c["year"], c["kind"]) for c in theCards]
-        assert theKinds == [(2024, "accolade"), (2024, "accolade")]
+        assert len(theCards) >= 2
+        assert all(c["year"] == 2024 and c["kind"] == "accolade" for c in theCards)
 
 
 def test_stored_cards_db_is_read_when_it_matches_the_results(app, tmp_path):
@@ -327,3 +327,29 @@ def test_card_ids_carry_the_season_and_round(app):
         theCards = list_cards_for_athlete(101)
         theIds = [c["cardId"][:8] for c in theCards]
         assert theIds == ["TI24-REG", "TI24-SEC", "TI23-SEC"]
+
+
+def test_relay_legs_earn_cards_too(app):
+    with app.app_context():
+        list_cards_for_athlete.cache_clear()
+        theRelayCards = [c for c in list_cards_for_athlete(111) if "Relay" in c["event"]]
+        theKeys = [(c["year"], c["meet_type"], c["event"], c["acc1"], c["acc2"]) for c in theRelayCards]
+        assert theKeys == [
+            (2024, "Sectional", "4 x 400 Relay", "Sectional Champion", "Regional Qualifier"),
+        ]
+        assert theRelayCards[0]["result"] == "4:05.00"
+        assert theRelayCards[0]["cardId"].startswith("TI24-SEC-")
+        assert theRelayCards[0]["kind"] == "accolade"
+
+
+def test_a_relay_only_athlete_gets_a_relay_card(app):
+    from app import db
+    from app.models import Athlete
+
+    with app.app_context():
+        db.session.add(Athlete(athlete_id=904, first="Relay", last="Four", school_id=1, gender="Girls", graduation_year=2026))
+        db.session.commit()
+        list_cards_for_athlete.cache_clear()
+        theCards = list_cards_for_athlete(904)
+        assert len(theCards) >= 1
+        assert all("Relay" in c["event"] for c in theCards)

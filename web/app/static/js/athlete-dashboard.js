@@ -319,51 +319,62 @@ const shareStatus = document.getElementById('share-dashboard-status');
             Snapchat: 'snapchat://camera',
         };
 
+        const copyImageToClipboard = async blob => {
+            if (!navigator.clipboard?.write || typeof ClipboardItem !== 'function') return false;
+            try {
+                await navigator.clipboard.write([new ClipboardItem({'image/png': blob})]);
+                return true;
+            } catch (error) {
+                console.warn('Clipboard image copy failed', error);
+                return false;
+            }
+        };
+
         const shareToApp = async platform => {
             const image = cardImages.get(imageKey(selectedCard));
-            const filename = cards[selectedCard].download_name[design];
             if (!image?.blob || sharingImage) return;
             sharingImage = true;
             updateImageButtons();
-            const canShareFile = Boolean(isMobile && image.file && navigator.share && navigator.canShare
+            const canShareFile = Boolean(image.file && navigator.share && navigator.canShare
                 && navigator.canShare({files: [image.file]}));
-            // On a desktop there is no share sheet: save the card, then open the
-            // app's site in a new tab. Opening it here, inside the tap, is what
-            // keeps the browser from treating the new tab as a popup.
+            // A desktop has no share sheet and Instagram's web site cannot post
+            // stories, so open the app's site now, inside the tap, and put the
+            // card on the clipboard for the post composer.
             const appWindow = (canShareFile || isMobile) ? null : window.open(appSites[platform], '_blank', 'noopener');
             try {
-                // Call share directly in the tap handler, with the prepared PNG.
-                // File support must be checked separately from text/link support.
                 if (canShareFile) {
+                    // The share sheet hands the image straight to the app; the
+                    // story composer is the next tap. This is the most direct
+                    // route a web page is allowed to take.
                     await navigator.share({files: [image.file], title: `${name} - Track Insights`});
-                    setStatus(`Shared. In ${platform}, choose Story to post it.`);
+                    setStatus(`Pick ${platform} in the share sheet, then ${platform === 'Instagram' ? 'Your Story' : 'Story'} to post it.`);
                     return;
+                }
+                if (isMobile) {
+                    // No file sharing on this phone: open the app's story camera.
+                    // The card must already be in the camera roll, so save it.
+                    downloadCardImage(image, cards[selectedCard].download_name[design]);
+                    setStatus(`Card saved to your photos. Opening ${platform}: pick it from your camera roll to post your story.`);
+                    setTimeout(() => { window.location.href = appStoryLinks[platform]; }, 600);
+                    return;
+                }
+                const copied = await copyImageToClipboard(image.blob);
+                const opened = appWindow ? ` ${platform} is open in a new tab.` : '';
+                if (copied) {
+                    setStatus(`Card copied to your clipboard.${opened} For a story, scan the QR code on your phone and tap ${platform} there.`);
+                } else {
+                    setStatus(`${platform} is open in a new tab. For a story, scan the QR code on your phone and tap ${platform} there, or use Download here.`);
                 }
             } catch (error) {
                 if (error.name === 'AbortError') {
                     setStatus('Sharing canceled.');
                     return;
                 }
-                // Unsupported or blocked image sharing falls back to the same PNG.
+                console.warn('Share failed', error);
+                setStatus(`Unable to hand the card to ${platform}. Use Download and share it from your photos.`);
             } finally {
                 sharingImage = false;
                 updateImageButtons();
-            }
-            try {
-                downloadCardImage(image, filename);
-                if (isMobile) {
-                    // No share sheet on this phone: the card is in the camera
-                    // roll now, so open the app on its story camera.
-                    setStatus(`Card saved to your photos. Opening ${platform}: pick it from your camera roll to post your story.`);
-                    setTimeout(() => { window.location.href = appStoryLinks[platform]; }, 600);
-                    return;
-                }
-                const opened = appWindow ? ` ${platform} is open in a new tab.` : '';
-                setStatus(platform === 'Instagram'
-                    ? `Card saved to your downloads. Upload it as a post or story.${opened}`
-                    : `Card saved to your downloads. Add it to a Snap or Memories.${opened}`);
-            } catch {
-                setStatus('Unable to download the card. Please try again.');
             }
         };
         document.getElementById('athlete-card-instagram').addEventListener('click', () => shareToApp('Instagram'));

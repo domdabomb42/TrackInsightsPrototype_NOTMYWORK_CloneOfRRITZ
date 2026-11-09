@@ -32,6 +32,7 @@ theMinAccentOnBlack = 4.5
 theMinWhiteOnPrimary = 3.0
 theSameHue = 0.08
 theVividAccent = 0.3
+theMinPrimaryShare = 0.025
 
 
 def _colors_file_stamp():
@@ -186,6 +187,15 @@ def _background_of(image):
 
 
 def _ranked_colors(path):
+    theCounts = _color_counts(path)
+    theRanked = sorted(theCounts.items(), key=lambda item: -item[1])
+    theOutput = []
+    for n in range(len(theRanked)):
+        theOutput.append(theRanked[n][0])
+    return theOutput
+
+
+def _color_counts(path):
     from PIL import Image
 
     theImage = Image.open(path).convert("RGBA")
@@ -199,20 +209,15 @@ def _ranked_colors(path):
             continue
         if theBackground is not None and _distance(thePixel[:3], theBackground) < 60:
             continue
+        if min(thePixel[:3]) > 235:
+            continue
         theKey = (
             thePixel[0] // theBucket * theBucket + theBucket // 2,
             thePixel[1] // theBucket * theBucket + theBucket // 2,
             thePixel[2] // theBucket * theBucket + theBucket // 2,
         )
         theCounts[theKey] = theCounts.get(theKey, 0) + 1
-    theRanked = sorted(theCounts.items(), key=lambda item: -item[1])
-    theOutput = []
-    for n in range(len(theRanked)):
-        theRgb = theRanked[n][0]
-        if min(theRgb) > 235:
-            continue
-        theOutput.append(theRgb)
-    return theOutput
+    return theCounts
 
 
 def _pick_accent(ranked, primary):
@@ -229,24 +234,28 @@ def _pick_accent(ranked, primary):
 
 
 def _colors_from_logo(path):
-    theRanked = _ranked_colors(path)
-    if len(theRanked) == 0:
+    theCounts = _color_counts(path)
+    if len(theCounts) == 0:
         return {"primary": theDefaultPrimary, "accent": theDefaultAccent}
-    theSaturatedDark = []
+    theTotal = float(sum(theCounts.values()))
+    theRanked = sorted(theCounts.items(), key=lambda item: -item[1])
+    theColors = []
     for n in range(len(theRanked)):
-        theCandidate = theRanked[n]
-        if _saturation(theCandidate) >= theSaturated and max(theCandidate) >= 60 and _luminance(theCandidate) < theDarkEnough:
-            theSaturatedDark.append(theCandidate)
-    theTop = theRanked[0]
-    theTopIsInk = _luminance(theTop) < 0.2 and _saturation(theTop) < theSaturated
-    if theTopIsInk == True or len(theSaturatedDark) == 0:
+        theColors.append(theRanked[n][0])
+    theSaturatedShare = []
+    for n in range(len(theRanked)):
+        theCandidate = theRanked[n][0]
+        if _saturation(theCandidate) >= theSaturated and max(theCandidate) >= 60:
+            theSaturatedShare.append((theCandidate, theRanked[n][1] / theTotal))
+    thePrimary = None
+    for n in range(len(theSaturatedShare)):
+        if theSaturatedShare[n][1] >= theMinPrimaryShare:
+            thePrimary = theSaturatedShare[n][0]
+            break
+    if thePrimary is None:
         thePrimary = (17, 17, 17)
-        if theTopIsInk == False:
-            thePrimary = min(theRanked, key=_luminance)
-    else:
-        thePrimary = theSaturatedDark[0]
     thePrimary = _fit_primary(thePrimary)
-    theAccent = _pick_accent(theRanked, thePrimary)
+    theAccent = _pick_accent(theColors, thePrimary)
     thePrimaryHex = _snap_edges(_to_hex(thePrimary))
     if theAccent is None:
         theAccentHex = theWhite
