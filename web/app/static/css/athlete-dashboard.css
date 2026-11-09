@@ -11,7 +11,7 @@
 .athlete-section { margin-bottom: 26px; }
 .athlete-section-title { color: var(--athlete-accent); font-size: 30px; line-height: 1.25; margin-bottom: 10px; }
 .athlete-section-title span { display: inline-block; font-size: 12px; }
-.personal-bests-grid { display: grid; grid-template-columns: repeat(var(--personal-best-count, 1), minmax(0, 1fr)); gap: 10px; width: 100%; }
+.personal-bests-grid { display: grid; grid-template-columns: repeat(var(--personal-best-count, 3), minmax(0, 1fr)); gap: 10px; width: 100%; }
 .personal-best { display: flex; flex-direction: column; justify-content: center; border: 1px solid #e0e5ee; border-radius: 10px; padding: 12px 18px; background: linear-gradient(120deg, #fafbfd, #f6f8fb); }
 .personal-best-label { font-size: 13px; color: #52617a; overflow-wrap: anywhere; }
 .personal-best-value { color: var(--athlete-accent); font-size: 27px; font-weight: 800; line-height: 1.2; }
@@ -21,13 +21,17 @@
 .medal-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px 8px; }
 .medal-button { position: relative; display: flex; justify-content: center; border: 0; background: transparent; padding: 0; cursor: pointer; border-radius: 50%; text-decoration: none; }
 .medal-button:focus-visible { outline: 2px solid var(--athlete-accent); outline-offset: 4px; }
-.medal-circle { width: 100%; max-width: 48px; aspect-ratio: 1; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Oswald', sans-serif; font-size: 14px; font-weight: 600; box-shadow: 0 3px 5px #26354a15; transition: transform 150ms ease, filter 150ms ease; }
+.medal-circle { width: 100%; max-width: 48px; aspect-ratio: 4 / 5; display: block; filter: drop-shadow(0 2px 2px #26354a15); transition: transform 150ms ease, filter 150ms ease; }
+.medal-circle svg { display: block; width: 100%; height: 100%; }
+.medal-outer { fill: var(--medal-outer); }
+.medal-inner { fill: var(--medal-inner); }
+.medal-label { fill: #fff; font-family: 'Oswald', sans-serif; font-size: 14px; font-weight: 600; }
 .medal-button:hover .medal-circle, .medal-button:focus-visible .medal-circle { transform: scale(1.1); filter: brightness(.9); }
-.medal-gold { background: linear-gradient(135deg, #ffe94c, #ffd414); color: #624700; }
-.medal-silver { background: linear-gradient(135deg, #e9edf2, #d9dfe7); color: #44505c; }
-.medal-bronze { background: linear-gradient(135deg, #e99a0b, #c56a00); color: white; }
-.medal-blue { background: #d5f0ff; color: #347598; }
-.medal-qualified { background: #eef1f5; color: #52617a; }
+.medal-gold { --medal-outer: #ffca00; --medal-inner: #f2a900; }
+.medal-silver { --medal-outer: #89919b; --medal-inner: #b8bec6; }
+.medal-silver .medal-label { fill: #1e293b; }
+.medal-bronze { --medal-outer: #dc9453; --medal-inner: #ad5d23; }
+.medal-dark { --medal-outer: #455c6d; --medal-inner: #61798a; }
 .medal-details { position: absolute; top: calc(100% + 10px); left: 50%; transform: translateX(-50%); width: 175px; background: white; border: 1px solid #ead4dc; border-radius: 10px; padding: 12px; box-shadow: 0 8px 24px #17203320; font-size: 12px; text-align: left; opacity: 0; visibility: hidden; pointer-events: none; z-index: 20; }
 .medal-details strong { display: block; margin-bottom: 5px; }
 .medal-button:hover .medal-details, .medal-button:focus .medal-details { opacity: 1; visibility: visible; }
@@ -37,8 +41,9 @@
 .event-tab { position: relative; flex: 1 0 130px; padding: 14px 16px 12px; border: 1px solid transparent; border-bottom: none; border-radius: 13px 18px 0 0; background: #f2e6eb; color: #607086; font-family: 'Oswald', sans-serif; font-size: 15px; cursor: pointer; white-space: nowrap; margin-right: 3px; }
 .event-tab[aria-selected="true"] { background: linear-gradient(#f5dce5, #fff); color: var(--athlete-accent); border-color: #c94777; font-size: 19px; font-style: italic; font-weight: 600; z-index: 1; }
 .event-tab { transition: color 150ms ease, background-color 150ms ease; }
-.event-tab[aria-selected="false"]:hover, .event-tab[aria-selected="false"]:focus-visible { color: #283247; background-color: #dcc0cc; }
-.event-tab[aria-selected="true"]:hover { color: #820732; background: linear-gradient(#e9c1d0, #f9edf2); }
+.event-tab:enabled[aria-selected="false"]:hover, .event-tab:enabled[aria-selected="false"]:focus-visible { color: #283247; background-color: #dcc0cc; }
+.event-tab:enabled[aria-selected="true"]:hover { color: #820732; background: linear-gradient(#e9c1d0, #f9edf2); }
+.event-tab:disabled { cursor: default; opacity: 1; }
 .event-tab:focus-visible { outline: 2px solid var(--athlete-accent); outline-offset: -4px; }
 .event-panel { position: relative; margin-top: -1px; border: 1px solid #edbdce; border-radius: 0 13px 13px 13px; padding: 22px; background: white; box-shadow: 0 4px 12px #74243f0d; }
 .event-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
@@ -60,6 +65,16 @@
 .dashboard-empty, .history-note { color: #69758a; font-size: 13px; }
 .history-note { margin-top: 10px; font-size: 11px; }
 .dashboard-empty { padding: 12px 0; }
+.athlete-interviews { display: grid; gap: 20px; }
+.athlete-interview-panel { display: grid; grid-template-columns: .9fr 1.1fr; align-items: center; gap: clamp(20px, 3vw, 36px); padding: clamp(20px, 3vw, 30px); border: 1px solid #e8e7ed; border-radius: 24px; background: repeating-linear-gradient(65deg, transparent 0 28px, #a6094203 29px 30px), #fff; box-shadow: 0 5px 12px #9b33571a; }
+.athlete-interview-copy { min-width: 0; }
+.athlete-interview-title { color: var(--athlete-accent); font-size: clamp(36px, 4.5vw, 54px); line-height: 1.15; margin-bottom: 12px; }
+.athlete-interview-caption { color: #52617a; font-size: clamp(15px, 1.7vw, 18px); line-height: 1.6; }
+.athlete-interview-player { min-width: 0; aspect-ratio: 16 / 9; border-radius: 14px; overflow: hidden; background: #111; }
+.athlete-interview-player iframe { display: block; width: 100%; height: 100%; border: 0; }
+@media (max-width: 640px) {
+  .athlete-interview-panel { grid-template-columns: minmax(0, 1fr); }
+}
 .athlete-card-share { display: flex; align-items: flex-start; gap: clamp(20px, 3.5vw, 40px); padding: clamp(18px, 3vw, 28px); border: 1px solid #dce2eb; border-radius: 24px; box-shadow: 0 2px 5px #17203312; background: repeating-radial-gradient(circle at 108% -16%, transparent 0 15px, #a6094206 16px 18px, transparent 19px 30px), linear-gradient(115deg, #fff, #fafbfd); }
 .athlete-card-deck { --athlete-card-width: clamp(120px, 24vw, 250px); flex: 0 0 auto; width: calc(var(--athlete-card-width) + 36px); position: relative; }
 .athlete-card-deck:focus-within, .athlete-card-deck:hover { z-index: 5; }

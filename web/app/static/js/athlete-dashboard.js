@@ -274,49 +274,10 @@ const shareStatus = document.getElementById('share-dashboard-status');
     }
 
     const stageConfigs = {
-        sectional: {
-            title: 'Sectionals',
-            accent: 'text-rose-700',
-            encouragements: [
-                'A finals appearance is within reach. Keep pushing!',
-                'Your next PR will land you in the sectional finals.',
-                'Stay focused and keep training hard!'
-            ],
-        },
-        regional: {
-            title: 'Regionals',
-            accent: 'text-rose-700',
-            encouragements: [
-                'Regional history gets written by grinders like you.',
-                'You’re one race away from owning the regional stage.',
-                'Stay patient; the regional badge is saving you a spot.',
-            ],
-        },
-        state: {
-            title: 'State',
-            accent: 'text-rose-700',
-            encouragements: [
-                'State is calling. Answer with your next PR.',
-                'Can\'t wait to see you on the big stage.',
-                'The state heat sheets have room for your name. Keep pushing.',
-            ],
-        },
+        sectional: {title: 'Sectionals'},
+        regional: {title: 'Regionals'},
+        state: {title: 'State'},
     };
-
-    const fallbackEncouragement = 'Keep grinding—your next milestone is closer than you think.';
-
-    function getStageEncouragement(stageKey) {
-        if (stageKey === 'state' && Math.random() < 0.01) {
-            return 'John Pork wants you here...!';
-        }
-
-        const options = stageConfigs[stageKey]?.encouragements;
-        if (Array.isArray(options) && options.length > 0) {
-            const randomIndex = Math.floor(Math.random() * options.length);
-            return options[randomIndex];
-        }
-        return fallbackEncouragement;
-    }
 
     const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, character => ({
         '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
@@ -340,8 +301,17 @@ const shareStatus = document.getElementById('share-dashboard-status');
         button.className = 'medal-button';
         const label = entry.place_label || 'Q';
         button.setAttribute('aria-label', `${entry.year || ''} ${entry.event || 'Event'}, ${label}, ${entry.result || 'Qualified'}`);
-        const tone = entry.place === 1 ? 'gold' : entry.place === 2 ? 'silver' : entry.place === 3 ? 'bronze' : entry.place > 3 ? 'blue' : 'qualified';
-        button.innerHTML = `<span class="medal-circle medal-${tone}">${escapeHtml(label)}</span>
+        const tone = entry.place === 1 ? 'gold' : entry.place === 2 ? 'silver' : entry.place === 3 ? 'bronze' : 'dark';
+        button.innerHTML = `<span class="medal-circle medal-${tone}">
+            <svg viewBox="0 0 64 80" aria-hidden="true" focusable="false">
+                <path d="M6 1h52a4 4 0 0 1 4 4v19L43 43H21L2 24V5a4 4 0 0 1 4-4Z" fill="#ff3344"/>
+                <path d="M42 1h16a4 4 0 0 1 4 4v19L43 43h-1Z" fill="#df0027"/>
+                <path d="M22 1h20v42H22Z" fill="#ffc4c8"/>
+                <circle cx="32" cy="54" r="25" class="medal-outer"/>
+                <path d="M32 29a25 25 0 0 1 0 50Z" fill="#000" opacity=".06"/>
+                <circle cx="32" cy="54" r="17.5" class="medal-inner"/>
+                <text x="32" y="55" dominant-baseline="middle" text-anchor="middle" class="medal-label">${escapeHtml(label)}</text>
+            </svg></span>
             <span class="medal-details" role="tooltip"><strong>${escapeHtml(entry.event || 'Event')}</strong>
             ${escapeHtml(entry.year || '')}${entry.is_relay ? ' &middot; Relay' : ''}<br>
             Result: ${escapeHtml(entry.result || 'Qualified')}<br>Place: ${escapeHtml(label)}</span>`;
@@ -354,7 +324,7 @@ const shareStatus = document.getElementById('share-dashboard-status');
 
     function renderPersonalBests(bests) {
         const container = document.getElementById('personal-bests-container');
-        container.style.setProperty('--personal-best-count', Math.max(bests.length, 1));
+        container.style.setProperty('--personal-best-count', Math.max(bests.length, 3));
         container.innerHTML = bests.map(best => `<div class="personal-best">
             <span class="personal-best-label">${escapeHtml(best.event)}</span>
             <span class="personal-best-value">${escapeHtml(best.result)}</span>
@@ -422,7 +392,7 @@ const shareStatus = document.getElementById('share-dashboard-status');
         const activate = index => {
             [...tabs.children].forEach((tab, tabIndex) => {
                 tab.setAttribute('aria-selected', String(index === tabIndex));
-                tab.tabIndex = index === tabIndex ? 0 : -1;
+                tab.tabIndex = names.length > 1 && index === tabIndex ? 0 : -1;
             });
             const name = names[index];
             panel.setAttribute('aria-labelledby', `event-tab-${index}`);
@@ -440,6 +410,7 @@ const shareStatus = document.getElementById('share-dashboard-status');
         names.forEach((name, index) => {
             const tab = document.createElement('button');
             tab.type = 'button';
+            tab.disabled = names.length === 1;
             tab.id = `event-tab-${index}`;
             tab.className = 'event-tab';
             tab.setAttribute('role', 'tab');
@@ -541,20 +512,14 @@ const shareStatus = document.getElementById('share-dashboard-status');
             const badgeCard = document.createElement('div');
             badgeCard.className = 'achievement-card';
 
-            const headingLabel = stageData?.label || `${stageKey.charAt(0).toUpperCase()}${stageKey.slice(1)} Stage`;
-            const emptyStateText = getStageEncouragement(stageKey);
 
             badgeCard.innerHTML = `
                     <div class="flex flex-wrap items-center gap-3 justify-between">
                         <div>
                             <h3>${config.title}</h3>
-                            <p class="hidden text-sm text-gray-600">${headingLabel}</p>
                         </div>
                     </div>
                     <div class="medal-grid" data-stage-medals="${stageKey}"></div>
-                    ${(!stageData || !stageData.entries || stageData.entries.length === 0)
-                    ? `<p class="text-sm text-gray-500 italic">${emptyStateText}</p>`
-                    : ''}
                 `;
 
             const medalWrap = badgeCard.querySelector(`[data-stage-medals="${stageKey}"]`);
