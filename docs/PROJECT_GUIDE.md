@@ -271,6 +271,25 @@ rebuild, the site computes the same cards live and `build_all --check` says so.
 | Build the card rows | `python -m app.jobs.precompute_cards` (or `build_all`) |
 | Render PNGs from the command line | `python -m app.jobs.render_cards <athlete_id>`, or `--all --year 2026` |
 
+**During the season.** Cards are rows, not pictures, so keeping them current is
+the same routine as every other precomputed artifact:
+
+```bash
+cd web
+python -m app.jobs.precompute_cards          # ~50s for the whole roster
+python -m app.jobs.precompute_cards --check  # 0 current, 1 stale, 2 never built
+cd .. && git add web/data/cards.db && git commit -m "Rebuild cards after sectionals" && git push
+```
+
+`build_all` runs the cards job too, so a full rebuild after loading results
+already covers it. Until the rebuild is committed the site computes cards live
+from Track.db, so nothing breaks in between; the rebuild is what makes it fast.
+Pictures need no step at all: the server renders each card the first time it is
+asked for and keeps it. To warm a whole season ahead of time on a machine with
+Chromium, `python -m app.jobs.render_cards --all --year 2026 --workers 5` does
+about fifteen cards a second; it skips cards that are already rendered, so it
+can be stopped and restarted.
+
 **School colors** live in `web/data/school_colors.json`, keyed by `school_id`,
 with `primary` and `accent` as hex. A school without an entry gets colors sampled
 from its logo: the most common saturated color becomes the primary, darkened
