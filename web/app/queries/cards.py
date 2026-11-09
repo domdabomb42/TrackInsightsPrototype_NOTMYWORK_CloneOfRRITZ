@@ -68,12 +68,14 @@ theLinkedRelaySql = (
 )
 
 
-def _linked_relays(athlete_id):
+def _linked_relays(athlete_id, gender):
     theRows = db.session.execute(db.text(theLinkedRelaySql), {"athlete_id": athlete_id}).fetchall()
     theOutput = []
     for n in range(len(theRows)):
         theMeet = db.session.get(Meet, theRows[n][0])
         if theMeet is None or theMeet.meet_type not in CONST.MEET_TYPE.ALL:
+            continue
+        if gender and theMeet.gender and theMeet.gender != gender:
             continue
         theOutput.append((theRows[n], theMeet))
     return theOutput
@@ -360,7 +362,7 @@ def _compute_cards_for_athlete(athlete_id):
             continue
         theSeenRelays.add((theRelay.meet_id, theRelay.event))
         theRows.append((_RelayRow(theRelay), theRelayMeet, CONST.EVENT_TYPE.RELAY))
-    theLinked = _linked_relays(athlete_id)
+    theLinked = _linked_relays(athlete_id, theAthlete.gender)
     for n in range(len(theLinked)):
         theRelay = theLinked[n][0]
         theRelayMeet = theLinked[n][1]

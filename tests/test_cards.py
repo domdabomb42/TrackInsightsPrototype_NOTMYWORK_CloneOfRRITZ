@@ -85,11 +85,12 @@ def test_athlete_cards_follow_the_fixture_results(app):
         theKeys = [(c["year"], c["meet_type"], c["event"], c["acc1"], c["acc2"], c["kind"]) for c in theCards]
         assert theKeys == [
             (2024, "Regional", "100 Meters", "State Qualifier", "", "accolade"),
+            (2024, "Regional", "4 x 100 Relay", "Regional Champion", "State Qualifier", "accolade"),
             (2024, "Sectional", "100 Meters", "Regional Qualifier", "", "accolade"),
             (2023, "Sectional", "100 Meters", "Sectional Finalist", "10th Place", "season"),
         ]
         assert theCards[0]["cardId"].startswith("TI24-REG-")
-        assert theCards[1]["school_name"] == "Alpha High"
+        assert theCards[2]["school_name"] == "Alpha High"
 
 
 def test_every_competitor_gets_a_season_card(app):
@@ -124,7 +125,7 @@ def test_stored_cards_db_is_read_when_it_matches_the_results(app, tmp_path):
         assert theStatus["count"] == theTotal
         list_cards_for_athlete.cache_clear()
         theStored = list_cards_for_athlete(102)
-        assert [c["acc1"] for c in theStored] == ["Regional Runner-Up", "Sectional Runner-Up"]
+        assert [c["acc1"] for c in theStored] == ["Regional Runner-Up", "Regional Champion", "Sectional Runner-Up"]
         assert theStored[0]["cardId"] == card_id(102, 5, "100 Meters", 2024, "Regional")
 
 
@@ -180,8 +181,8 @@ def test_cards_api_lists_urls_per_design(client):
     theResponse = client.get("/api/athletes/102/cards")
     assert theResponse.status_code == 200
     theCards = theResponse.get_json()["cards"]
-    assert len(theCards) == 2
-    theCard = theCards[1]
+    assert len(theCards) == 3
+    theCard = theCards[2]
     assert theCard["meet_type"] == "Sectional"
     assert theCard["html_url"]["B"].endswith("?design=B")
     assert theCard["png_url"]["E"].endswith(".png?design=E")
@@ -272,7 +273,7 @@ def test_a_prelims_only_sprinter_gets_a_competitor_card(app):
         assert theCards[0]["kind"] == "season"
 
 
-def test_a_relay_only_athlete_has_no_cards_and_the_api_says_so(app, client):
+def test_a_relay_only_athlete_gets_the_relay_card_through_the_link_table(app, client):
     from app import db
     from app.models import Athlete, RelayAthlete
 
@@ -281,10 +282,23 @@ def test_a_relay_only_athlete_has_no_cards_and_the_api_says_so(app, client):
         db.session.add(RelayAthlete(relay_id=2, athlete_id=903))
         db.session.commit()
         list_cards_for_athlete.cache_clear()
-        assert list_cards_for_athlete(903) == []
+        theCards = list_cards_for_athlete(903)
+        assert [(c["event"], c["acc1"]) for c in theCards] == [("4 x 100 Relay", "Regional Champion")]
     theResponse = client.get("/api/athletes/903/cards")
     assert theResponse.status_code == 200
-    assert theResponse.get_json() == {"cards": []}
+    assert len(theResponse.get_json()["cards"]) == 1
+
+
+def test_an_athlete_with_no_results_or_relays_has_no_cards(app, client):
+    from app import db
+    from app.models import Athlete
+
+    with app.app_context():
+        db.session.add(Athlete(athlete_id=906, first="Never", last="Raced", school_id=1, gender="Boys", graduation_year=2026))
+        db.session.commit()
+        list_cards_for_athlete.cache_clear()
+        assert list_cards_for_athlete(906) == []
+    assert client.get("/api/athletes/906/cards").get_json() == {"cards": []}
 
 
 def test_design_parameter_is_case_insensitive(client):
@@ -297,7 +311,7 @@ def test_cards_come_newest_season_and_latest_round_first(app):
     with app.app_context():
         theCards = list_cards_for_athlete(101)
         theOrder = [(c["year"], c["meet_type"]) for c in theCards]
-        assert theOrder == [(2024, "Regional"), (2024, "Sectional"), (2023, "Sectional")]
+        assert theOrder == [(2024, "Regional"), (2024, "Regional"), (2024, "Sectional"), (2023, "Sectional")]
 
 
 def test_a_stale_cards_db_is_ignored_in_favour_of_live_results(app, tmp_path):
@@ -326,7 +340,7 @@ def test_card_ids_carry_the_season_and_round(app):
     with app.app_context():
         theCards = list_cards_for_athlete(101)
         theIds = [c["cardId"][:8] for c in theCards]
-        assert theIds == ["TI24-REG", "TI24-SEC", "TI23-SEC"]
+        assert theIds == ["TI24-REG", "TI24-REG", "TI24-SEC", "TI23-SEC"]
 
 
 def test_relay_legs_earn_cards_too(app):
@@ -370,3 +384,10 @@ def test_a_relay_leg_linked_by_id_counts_even_when_the_roster_misspells_the_name
         theCards = list_cards_for_athlete(905)
         assert [(c["event"], c["acc1"]) for c in theCards] == [("4 x 400 Relay", "Sectional Champion")]
         assert theCards[0]["result"] == theRelay.result
+
+
+def test_a_linked_relay_from_the_other_gender_is_ignored(app):
+    with app.app_context():
+        list_cards_for_athlete.cache_clear()
+        theCards = list_cards_for_athlete(112)
+        assert all("4 x 100" not in c["event"] for c in theCards)
