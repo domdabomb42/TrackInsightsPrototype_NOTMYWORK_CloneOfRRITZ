@@ -286,10 +286,14 @@ unavailable. Rendered PNGs and the white logo silhouettes are cached under
 accounts can use the system Chromium: `pip install playwright` and set
 `CARD_CHROMIUM_PATH` to that binary (see PythonAnywhere's Playwright help page
 for the path on your system image) in the WSGI file's environment. The renderer
-then launches it with the `--no-sandbox --disable-gpu --headless` flags that
-environment needs. Images are rendered from the card rows the first time anyone
-asks for them and cached on the server; nothing has to be built or uploaded from
-a developer machine.
+then launches it headless without a GPU. PythonAnywhere's Chromium also needs
+`--no-sandbox`; set `CARD_CHROMIUM_NO_SANDBOX=1` to add it. That flag is an
+explicit choice because it removes Chromium's process isolation. It is
+acceptable here because the browser only ever loads HTML this app builds from
+card rows, with every string escaped and every asset embedded, never a page from
+the internet. Images are rendered from the card rows the first time anyone asks
+for them and cached on the server; nothing has to be built or uploaded from a
+developer machine.
 
 ---
 

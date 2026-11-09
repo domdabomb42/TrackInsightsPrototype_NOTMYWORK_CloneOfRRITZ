@@ -43,7 +43,8 @@ theKnockoutNear = 30
 theKnockoutFar = 90
 theRenderGate = threading.BoundedSemaphore(2)
 theRenderTimeout = 20000
-theChromiumArgs = ["--disable-gpu", "--no-sandbox", "--headless"]
+theChromiumArgs = ["--disable-gpu", "--headless"]
+theChromiumNoSandbox = "--no-sandbox"
 
 
 class CardRenderUnavailable(Exception):
@@ -295,7 +296,10 @@ def _launch(playwright):
     theExecutable = os.environ.get("CARD_CHROMIUM_PATH") or None
     if theExecutable is None:
         return playwright.chromium.launch()
-    return playwright.chromium.launch(executable_path=theExecutable, args=theChromiumArgs)
+    theArgs = list(theChromiumArgs)
+    if os.environ.get("CARD_CHROMIUM_NO_SANDBOX") == "1":
+        theArgs.append(theChromiumNoSandbox)
+    return playwright.chromium.launch(executable_path=theExecutable, args=theArgs)
 
 
 def _playwright():
