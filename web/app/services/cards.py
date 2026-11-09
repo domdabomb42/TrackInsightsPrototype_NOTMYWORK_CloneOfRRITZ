@@ -43,6 +43,7 @@ theKnockoutNear = 30
 theKnockoutFar = 90
 theRenderGate = threading.BoundedSemaphore(2)
 theRenderTimeout = 20000
+theChromiumArgs = ["--disable-gpu", "--no-sandbox", "--headless"]
 
 
 class CardRenderUnavailable(Exception):
@@ -290,6 +291,13 @@ def _temp_beside(target):
     return theTemp
 
 
+def _launch(playwright):
+    theExecutable = os.environ.get("CARD_CHROMIUM_PATH") or None
+    if theExecutable is None:
+        return playwright.chromium.launch()
+    return playwright.chromium.launch(executable_path=theExecutable, args=theChromiumArgs)
+
+
 def _playwright():
     try:
         from playwright.sync_api import sync_playwright
@@ -311,7 +319,7 @@ def render_png(card, design):
         theTemp = _temp_beside(theTarget)
         try:
             with theStart() as thePlaywright:
-                theBrowser = thePlaywright.chromium.launch()
+                theBrowser = _launch(thePlaywright)
                 try:
                     thePage = theBrowser.new_page(viewport={"width": theCardWidth, "height": theCardHeight})
                     _screenshot(thePage, theHtml, theTemp)
@@ -329,7 +337,7 @@ def render_many(cardList, designs, progress=None):
     theDone = 0
     theSkipped = 0
     with theStart() as thePlaywright:
-        theBrowser = thePlaywright.chromium.launch()
+        theBrowser = _launch(thePlaywright)
         try:
             thePage = theBrowser.new_page(viewport={"width": theCardWidth, "height": theCardHeight})
             for n in range(len(cardList)):

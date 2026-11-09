@@ -282,6 +282,15 @@ the `.png` route answers 503, which the dashboard reports as the image being
 unavailable. Rendered PNGs and the white logo silhouettes are cached under
 `static/cards/` (ignored by git); delete a file there to re-render it.
 
+**On PythonAnywhere** a normal `playwright install` does not work, but paid
+accounts can use the system Chromium: `pip install playwright` and set
+`CARD_CHROMIUM_PATH` to that binary (see PythonAnywhere's Playwright help page
+for the path on your system image) in the WSGI file's environment. The renderer
+then launches it with the `--no-sandbox --disable-gpu --headless` flags that
+environment needs. Images are rendered from the card rows the first time anyone
+asks for them and cached on the server; nothing has to be built or uploaded from
+a developer machine.
+
 ---
 
 ## 8. Things to be careful with
