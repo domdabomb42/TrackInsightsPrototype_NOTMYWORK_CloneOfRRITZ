@@ -4,6 +4,7 @@
     python -m app.jobs.render_cards 306292            # one athlete, both designs
     python -m app.jobs.render_cards 306292 --design E # one design
     python -m app.jobs.render_cards --all --year 2026 # every card of a season
+    python -m app.jobs.render_cards --all --year 2026 --workers 5   # in parallel
 
 Writes into the card cache (static/cards/) unless --out is given, so the site
 serves the same files afterwards. A season is a few thousand cards; with one
@@ -12,6 +13,7 @@ are skipped, so the job can be stopped and restarted.
 """
 
 import argparse
+import multiprocessing
 import os
 import shutil
 import sys
@@ -25,7 +27,7 @@ from app.services import cards
 def _season_cards(year):
     theRows = db.session.execute(db.text(
         "select distinct ar.athlete_id from athlete_result ar join meet m on m.meet_id = ar.meet_id "
-        "where ar.result_type = 'Final' and ar.place between 1 and 9 and m.year = :year"
+        "where m.year = :year"
     ), {"year": year}).fetchall()
     theCards = []
     for n in range(len(theRows)):
@@ -38,6 +40,30 @@ def _season_cards(year):
     return theCards
 
 
+def _worker(num, cardList, designs, started):
+    theApp = create_app()
+    with theApp.test_request_context():
+        def progress(count, total, done, skipped):
+            if count % 200 == 0 or count == total:
+                print("worker " + str(num) + " is at card " + str(count) + " of " + str(total) + ", rendered " + str(done) + ", already had " + str(skipped) + ", " + str(int(time.time() - started)) + "s in", flush=True)
+        return cards.render_many(cardList, designs, progress)
+
+
+def _render_parallel(cardList, designs, workers, started):
+    theSlices = []
+    for n in range(workers):
+        theSlices.append(cardList[n::workers])
+    theContext = multiprocessing.get_context("spawn")
+    with theContext.Pool(workers) as thePool:
+        theResults = thePool.starmap(_worker, [(n, theSlices[n], designs, started) for n in range(workers)])
+    theDone = 0
+    theSkipped = 0
+    for n in range(len(theResults)):
+        theDone = theDone + theResults[n][0]
+        theSkipped = theSkipped + theResults[n][1]
+    return (theDone, theSkipped)
+
+
 def main(argv):
     theParser = argparse.ArgumentParser(description="Render athlete cards to PNG.")
     theParser.add_argument("athlete_id", type=int, nargs="?", default=None)
@@ -46,6 +72,7 @@ def main(argv):
     theParser.add_argument("--design", choices=list(cards.theDesignCodes), default=None)
     theParser.add_argument("--out", default=None, help="copy the PNGs here as well (single athlete only)")
     theParser.add_argument("--force", action="store_true", help="render again even when a PNG is cached")
+    theParser.add_argument("--workers", type=int, default=1, help="browsers to run side by side for --all")
     theArgs = theParser.parse_args(argv)
 
     theDesigns = list(cards.theDesignCodes)
@@ -67,7 +94,10 @@ def main(argv):
                     theElapsed = time.time() - theStart
                     print("we are at card " + str(num) + " of " + str(total) + ", rendered " + str(done) + ", already had " + str(skipped) + ", " + str(int(theElapsed)) + "s in", flush=True)
 
-            theDone, theSkipped = cards.render_many(theCards, theDesigns, progress)
+            if theArgs.workers > 1:
+                theDone, theSkipped = _render_parallel(theCards, theDesigns, theArgs.workers, theStart)
+            else:
+                theDone, theSkipped = cards.render_many(theCards, theDesigns, progress)
             print("we rendered " + str(theDone) + " PNGs and skipped " + str(theSkipped) + " cached ones in " + str(int(time.time() - theStart)) + "s")
             return 0
 
