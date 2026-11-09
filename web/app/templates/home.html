@@ -378,162 +378,95 @@
 
 </div>
 
-<!-- About: white like the other pages, photo-led like the hero. -->
+<!-- About: a second photo panel in the hero's style, then a short white block for the team and history. -->
 <section id="about" class="about-section">
 
-  <header class="about-header">
-    <p class="about-kicker">About</p>
-    <h2 class="font-impact italic text-primary">Track Insights</h2>
-    <p class="about-sub">Indiana high school track and field postseason results, built by students for the athletes, coaches and fans who follow them.</p>
-  </header>
-
-  <div class="about-wrap about-story">
-    <figure class="about-story-photo">
-      <img src="{{ url_for('static', filename='images/background_images_licensed/bg_6.webp') }}" alt="Two Indiana high school athletes celebrating with state medals" loading="lazy" />
-    </figure>
-    <div class="about-story-text">
-      <p class="about-label">Our story</p>
-      <h3 class="font-impact italic text-primary">It started with one question</h3>
-      <blockquote>&ldquo;I wonder how our 4x800 time would place in other Sectionals?&rdquo;</blockquote>
+  <div class="about-photo">
+    <img src="{{ url_for('static', filename='images/background_images_licensed/bg_12.webp') }}" alt="" aria-hidden="true" loading="lazy" />
+    <div class="about-photo-text">
+      <h2>About Track Insights</h2>
       <p>
-        An athlete asked it after a meet, and nobody could answer without digging through every Sectional result in the
-        state by hand. So a few Park Tudor Computer Science students wrote a program to do it.
+        Track Insights is a student-built site for Indiana high school track and field. It collects every IHSAA
+        Sectional, Regional and State result since 2023 and turns it into something useful: a dashboard for every
+        athlete and school, rankings by grade and school size, unofficial qualifier lists during the postseason, and
+        shareable cards for the results worth remembering. Built by Computer Science students at Park Tudor School
+        for the athletes, coaches and fans who follow the sport.
       </p>
-      <p>
-        That program became Track Insights. Today the site covers every IHSAA Sectional, Regional and State result since
-        2023, with a dashboard for every athlete and every school, rankings by grade and school size, and the unofficial
-        qualifier lists people check during the postseason. The goal has not changed: promote Indiana high school track
-        and field, celebrate what athletes accomplish, and give athletes, coaches and fans something useful.
-      </p>
+      <nav class="about-photo-links" aria-label="Contact">
+        <a href="mailto:trackinsights@yahoo.com">trackinsights@yahoo.com</a>
+        <a href="https://www.instagram.com/trackinsights/" target="_blank" rel="noopener noreferrer">@trackinsights</a>
+      </nav>
     </div>
+    <p class="about-photo-credit">Images licensed from IndyStar</p>
   </div>
 
-  <div class="about-band">
-    <img src="{{ url_for('static', filename='images/background_images_licensed/bg_3.webp') }}" alt="" aria-hidden="true" loading="lazy" />
-    <ul class="about-band-stats" aria-label="What the database covers">
-      <li><span>23,000+</span><small>Athletes</small></li>
-      <li><span>62,500+</span><small>Individual results</small></li>
-      <li><span>8,150+</span><small>Relay results</small></li>
-      <li><span>400+</span><small>Schools</small></li>
-      <li><span>246</span><small>Meets</small></li>
-    </ul>
-    <p class="about-band-note">IHSAA Sectional, Regional and State &middot; 2023 to present</p>
-    <p class="about-band-credit">Images licensed from IndyStar</p>
-  </div>
+  <div class="about-body">
+    <div class="about-team">
+      <h3 class="font-impact italic text-primary">2026 &ndash; 2027 Team</h3>
+      <ul class="about-people">
+        <li><img src="{{ url_for('static', filename='images/developer_portraits/derek.webp') }}" alt="Derek A." width="320" height="320" loading="lazy" /><span class="font-impact italic text-primary">Derek A.</span><small>Homepage &amp; Navigation</small></li>
+        <li><img src="{{ url_for('static', filename='images/developer_portraits/navraj.webp') }}" alt="Navraj B." width="320" height="320" loading="lazy" /><span class="font-impact italic text-primary">Navraj B.</span><small>Insights &amp; Social</small></li>
+        <li><img src="{{ url_for('static', filename='images/developer_portraits/aryav.webp') }}" alt="Aryav D." width="320" height="320" loading="lazy" /><span class="font-impact italic text-primary">Aryav D.</span><small>Design, Predictions &amp; Data</small></li>
+        <li><img src="{{ url_for('static', filename='images/developer_portraits/dominic.webp') }}" alt="Dominic G." width="320" height="320" loading="lazy" /><span class="font-impact italic text-primary">Dominic G.</span><small>Dashboards &amp; User Experience</small></li>
+        <li><img src="{{ url_for('static', filename='images/developer_portraits/sameer.webp') }}" alt="Sameer Z." width="320" height="320" loading="lazy" /><span class="font-impact italic text-primary">Sameer Z.</span><small>Event Pages &amp; Data Visualization</small></li>
+      </ul>
+    </div>
 
-  <div class="about-wrap about-history">
-    <p class="about-label">History</p>
-    <h3 class="font-impact italic text-primary">Four seasons in</h3>
-    <ol class="about-years">
-      <li>
-        <span class="font-impact italic text-primary">2023 &ndash; 24</span>
-        <p>Created our first program, which shows how athlete results would place in other Sectionals across the state. Shortly after, we built a tool to generate result percentiles, which Park Tudor used to set fair Varsity Letter standards for each event.</p>
-      </li>
-      <li>
-        <span class="font-impact italic text-primary">2024 &ndash; 25</span>
-        <p>Cal B, Malcolm H, Aashiv J, Justin L, Daniel L, Emily W, Owen W, Allison X designed and created the database and developed multiple data analysis tools. Results were posted on Instagram at <a href="https://www.instagram.com/trackinsights/" target="_blank" rel="noopener noreferrer">@trackinsights</a>.</p>
-      </li>
-      <li>
-        <span class="font-impact italic text-primary">2025 &ndash; 26</span>
-        <p>Arnay G, Justin L, Owen Z designed and created the web application, enhanced existing analysis tools, and developed new tools.</p>
-      </li>
-      <li>
-        <span class="font-impact italic text-primary">2026 &ndash; 27</span>
-        <p>Derek A, Navraj B, Aryav D, Dominic G, Sameer Z are redesigning the website and adding new ways to explore and share results.</p>
-      </li>
-    </ol>
-  </div>
-
-  <div class="about-wrap about-team">
-    <p class="about-label">The team</p>
-    <h3 class="font-impact italic text-primary">2026 &ndash; 2027</h3>
-    <ul class="about-people">
-      <li><img src="{{ url_for('static', filename='images/developer_portraits/derek.webp') }}" alt="Derek A." width="320" height="320" loading="lazy" /><span class="font-impact italic text-primary">Derek A.</span><small>Homepage &amp; Navigation</small></li>
-      <li><img src="{{ url_for('static', filename='images/developer_portraits/navraj.webp') }}" alt="Navraj B." width="320" height="320" loading="lazy" /><span class="font-impact italic text-primary">Navraj B.</span><small>Insights &amp; Social</small></li>
-      <li><img src="{{ url_for('static', filename='images/developer_portraits/aryav.webp') }}" alt="Aryav D." width="320" height="320" loading="lazy" /><span class="font-impact italic text-primary">Aryav D.</span><small>Design, Predictions &amp; Data</small></li>
-      <li><img src="{{ url_for('static', filename='images/developer_portraits/dominic.webp') }}" alt="Dominic G." width="320" height="320" loading="lazy" /><span class="font-impact italic text-primary">Dominic G.</span><small>Dashboards &amp; User Experience</small></li>
-      <li><img src="{{ url_for('static', filename='images/developer_portraits/sameer.webp') }}" alt="Sameer Z." width="320" height="320" loading="lazy" /><span class="font-impact italic text-primary">Sameer Z.</span><small>Event Pages &amp; Data Visualization</small></li>
-    </ul>
-    <p class="about-team-note">Park Tudor School &middot; Indianapolis</p>
-  </div>
-
-  <div class="about-contact">
-    <h3 class="font-impact italic">Questions, corrections or ideas?</h3>
-    <div class="about-contact-links">
-      <a href="mailto:trackinsights@yahoo.com">trackinsights@yahoo.com</a>
-      <a href="https://www.instagram.com/trackinsights/" target="_blank" rel="noopener noreferrer">@trackinsights on Instagram</a>
+    <div class="about-history">
+      <h3 class="font-impact italic text-primary">History</h3>
+      <dl>
+        <dt>2023 &ndash; 24</dt>
+        <dd>Our first program showed how a result would place in every other Sectional in the state. A percentile tool followed, which Park Tudor used to set its Varsity Letter standards.</dd>
+        <dt>2024 &ndash; 25</dt>
+        <dd>Cal B, Malcolm H, Aashiv J, Justin L, Daniel L, Emily W, Owen W and Allison X built the database and the first data analysis tools, posting results on Instagram.</dd>
+        <dt>2025 &ndash; 26</dt>
+        <dd>Arnay G, Justin L and Owen Z built this web application and expanded the analysis tools.</dd>
+        <dt>2026 &ndash; 27</dt>
+        <dd>Derek A, Navraj B, Aryav D, Dominic G and Sameer Z are redesigning the site and adding new ways to explore and share results.</dd>
+      </dl>
     </div>
   </div>
 
   <style>
-    .about-section { position: relative; z-index: 10; background: #fff; color: #374151; padding-top: 5rem; overflow-x: clip; }
-    .about-wrap { max-width: 72rem; margin: 0 auto; padding: 0 1.25rem; }
-    .about-header { text-align: center; max-width: 44rem; margin: 0 auto; padding: 0 1.25rem; }
-    .about-kicker, .about-label { margin: 0 0 .5rem; font-size: .8rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--color-primary); }
-    .about-header h2 { font-size: clamp(2.5rem, 5vw, 3.75rem); line-height: 1.05; margin: 0 0 .9rem; }
-    .about-sub { margin: 0; font-size: 1.05rem; line-height: 1.6; color: #6b7280; }
-    .about-section h3 { font-size: clamp(1.75rem, 3vw, 2.4rem); line-height: 1.1; margin: 0 0 1.2rem; }
+    .about-section { position: relative; z-index: 10; background: #fff; color: #374151; }
+    .about-photo { position: relative; min-height: 78vh; display: flex; align-items: center; justify-content: center; padding: 6rem 1.5rem; background: #0d0b0b; overflow: hidden; color: #fff; text-align: center; }
+    .about-photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 40%; }
+    .about-photo::after { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 60% 70% at center, rgba(13, 11, 11, .72) 0%, rgba(13, 11, 11, .55) 55%, rgba(13, 11, 11, .4) 100%); }
+    .about-photo-text { position: relative; z-index: 1; max-width: 46rem; text-shadow: 0 2px 16px rgba(0, 0, 0, .65); }
+    .about-photo-text h2 { font-family: 'Oswald', 'Arial Narrow', sans-serif; font-weight: 500; font-size: clamp(2rem, 4vw, 3rem); line-height: 1.15; letter-spacing: .02em; margin: 0 0 1.25rem; }
+    .about-photo-text p { margin: 0 auto; font-size: clamp(1rem, 1.4vw, 1.2rem); line-height: 1.7; color: rgba(255, 255, 255, .92); }
+    .about-photo-links { display: flex; flex-wrap: wrap; justify-content: center; gap: .6rem; margin-top: 1.75rem; text-shadow: none; }
+    .about-photo-links a { display: inline-flex; align-items: center; justify-content: center; min-height: 2.5rem; padding: .45rem 1rem; border: 1px solid rgba(255,255,255,.36); border-radius: 999px; background: rgba(24,20,20,.55); color: #fff; font-size: .9rem; font-weight: 500; text-shadow: 0 1px 5px rgba(0,0,0,.4); box-shadow: 0 4px 14px rgba(0,0,0,.16); transition: background-color 150ms ease, border-color 150ms ease; }
+    .about-photo-links a:hover, .about-photo-links a:focus-visible { background: rgba(24,20,20,.78); border-color: rgba(255,255,255,.7); outline: none; }
+    .about-photo-credit { position: absolute; z-index: 1; right: 1rem; bottom: .75rem; margin: 0; font-size: .65rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: rgba(255, 255, 255, .8); text-shadow: 0 1px 6px rgba(0, 0, 0, .6); }
 
-    .about-story { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(2rem, 5vw, 4.5rem); align-items: center; margin-top: 4.5rem; }
-    .about-story-photo { margin: 0; border-radius: 1rem; overflow: hidden; box-shadow: 0 10px 15px -3px rgb(0 0 0 / .1), 0 4px 6px -4px rgb(0 0 0 / .1); aspect-ratio: 4 / 5; }
-    .about-story-photo img { display: block; width: 100%; height: 100%; object-fit: cover; }
-    .about-story-text { font-size: 1.05rem; line-height: 1.7; }
-    .about-story-text p { margin: 0 0 1.1rem; }
-    .about-story-text p:last-child { margin-bottom: 0; }
-    .about-story-text blockquote { margin: 0 0 1.4rem; padding: .3rem 0 .3rem 1.25rem; border-left: 4px solid var(--color-primary); font-size: 1.35rem; line-height: 1.35; font-style: italic; color: #111827; }
+    .about-body { max-width: 68rem; margin: 0 auto; padding: 4.5rem 1.5rem 5rem; }
+    .about-body h3 { font-size: 1.75rem; line-height: 1.1; margin: 0 0 1.5rem; }
+    .about-team { text-align: center; }
+    .about-people { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 1.75rem 1.25rem; }
+    .about-people li { display: flex; flex-direction: column; align-items: center; gap: .2rem; width: 10.5rem; }
+    .about-people img { width: 7rem; height: 7rem; border-radius: 50%; object-fit: cover; margin-bottom: .5rem; }
+    .about-people span { font-size: 1.3rem; line-height: 1.1; }
+    .about-people small { font-size: .72rem; letter-spacing: .06em; text-transform: uppercase; color: #6b7280; line-height: 1.4; }
 
-    .about-band { position: relative; margin-top: 5rem; min-height: 22rem; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4rem 1.25rem; color: #fff; text-align: center; background: #0d0b0b; overflow: hidden; }
-    .about-band img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 35%; opacity: .55; }
-    .about-band::after { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at center, rgba(13, 11, 11, .25) 0%, rgba(13, 11, 11, .55) 100%); }
-    .about-band-stats, .about-band-note, .about-band-credit { position: relative; z-index: 1; }
-    .about-band-stats { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 2rem clamp(2rem, 6vw, 5rem); text-shadow: 0 2px 16px rgba(0, 0, 0, .65); }
-    .about-band-stats li { display: flex; flex-direction: column; align-items: center; gap: .3rem; }
-    .about-band-stats span { font-family: 'Oswald', 'Arial Narrow', sans-serif; font-weight: 600; font-size: clamp(2.6rem, 5vw, 4rem); line-height: 1; letter-spacing: .01em; }
-    .about-band-stats small { font-size: .82rem; letter-spacing: .14em; text-transform: uppercase; color: rgba(255, 255, 255, .85); }
-    .about-band-note { margin: 2rem 0 0; font-size: .95rem; color: rgba(255, 255, 255, .85); text-shadow: 0 1px 8px rgba(0, 0, 0, .6); }
-    .about-band-credit { position: absolute; right: 1rem; bottom: .75rem; margin: 0; font-size: .65rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: rgba(255, 255, 255, .8); text-shadow: 0 1px 6px rgba(0, 0, 0, .6); }
+    .about-history { max-width: 46rem; margin: 4rem auto 0; }
+    .about-history h3 { text-align: center; }
+    .about-history dl { margin: 0; display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 1.5rem; row-gap: 0; }
+    .about-history dt { font-family: 'Oswald', 'Arial Narrow', sans-serif; font-weight: 600; font-size: 1.05rem; letter-spacing: .02em; color: var(--color-primary); padding: .9rem 0; border-top: 1px solid #e5e7eb; white-space: nowrap; }
+    .about-history dd { margin: 0; padding: .9rem 0; border-top: 1px solid #e5e7eb; line-height: 1.6; font-size: .98rem; }
+    .about-history dt:last-of-type, .about-history dd:last-of-type { border-bottom: 1px solid #e5e7eb; }
 
-    .about-history { margin-top: 5rem; }
-    .about-years { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2rem; }
-    .about-years li { padding-top: 1.1rem; border-top: 3px solid var(--color-primary); line-height: 1.6; font-size: .98rem; }
-    .about-years span { display: block; font-size: 1.9rem; line-height: 1; margin-bottom: .7rem; }
-    .about-years p { margin: 0; }
-    .about-years a, .about-contact a { font-weight: 600; }
-    .about-years a { color: var(--color-primary); }
-    .about-years a:hover { text-decoration: underline; }
-
-    .about-team { margin-top: 5rem; text-align: center; }
-    .about-people { list-style: none; margin: 2rem 0 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 1.5rem; }
-    .about-people li { display: flex; flex-direction: column; align-items: center; gap: .25rem; }
-    .about-people img { width: 100%; max-width: 13rem; aspect-ratio: 1; height: auto; border-radius: 1rem; object-fit: cover; margin-bottom: .6rem; box-shadow: 0 10px 15px -3px rgb(0 0 0 / .1), 0 4px 6px -4px rgb(0 0 0 / .1); }
-    .about-people span { font-size: 1.4rem; line-height: 1.1; }
-    .about-people small { font-size: .74rem; letter-spacing: .06em; text-transform: uppercase; color: #6b7280; line-height: 1.4; max-width: 12rem; }
-    .about-team-note { margin: 2rem 0 0; font-size: .9rem; color: #6b7280; }
-
-    .about-contact { margin-top: 5rem; padding: 3.5rem 1.25rem 4rem; background: var(--color-primary); color: #fff; text-align: center; }
-    .about-contact h3 { color: #fff; margin-bottom: 1.4rem; }
-    .about-contact-links { display: flex; flex-wrap: wrap; justify-content: center; gap: .7rem; }
-    .about-contact-links a { display: inline-flex; align-items: center; justify-content: center; min-height: 2.75rem; padding: .5rem 1.25rem; border: 1px solid rgba(255, 255, 255, .5); border-radius: 999px; background: rgba(255, 255, 255, .1); color: #fff; font-size: .95rem; transition: background-color 150ms ease; }
-    .about-contact-links a:hover, .about-contact-links a:focus-visible { background: #fff; color: var(--color-primary); outline: none; }
-
-    @media (max-width: 1024px) {
-      .about-years { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .about-people { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-    }
-    @media (max-width: 768px) {
-      .about-section { padding-top: 3.5rem; }
-      .about-story { grid-template-columns: 1fr; gap: 1.75rem; margin-top: 3rem; }
-      .about-story-photo { aspect-ratio: 4 / 3; }
-      .about-band { margin-top: 3.5rem; min-height: 0; padding: 3rem 1.25rem 3.5rem; }
-      .about-band-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.6rem 1rem; width: 100%; }
-      .about-band-stats li:last-child:nth-child(odd) { grid-column: 1 / -1; }
-      .about-history, .about-team, .about-contact { margin-top: 3.5rem; }
-      .about-people { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem 1rem; }
-      .about-people li:last-child:nth-child(odd) { grid-column: 1 / -1; }
-      .about-people img { max-width: 10rem; }
-    }
-    @media (max-width: 480px) {
-      .about-years { grid-template-columns: 1fr; gap: 1.5rem; }
+    @media (max-width: 640px) {
+      .about-photo { min-height: 0; padding: 4.5rem 1.25rem 4rem; }
+      .about-body { padding: 3.5rem 1.25rem 4rem; }
+      .about-people { gap: 1.5rem .5rem; }
+      .about-people li { width: calc(50% - .5rem); }
+      .about-people img { width: 6rem; height: 6rem; }
+      .about-history { margin-top: 3rem; }
+      .about-history dl { grid-template-columns: 1fr; }
+      .about-history dt { border-top: 1px solid #e5e7eb; padding-bottom: 0; }
+      .about-history dd { border-top: 0; padding-top: .35rem; }
+      .about-history dt:last-of-type { border-bottom: 0; }
     }
   </style>
 </section>
