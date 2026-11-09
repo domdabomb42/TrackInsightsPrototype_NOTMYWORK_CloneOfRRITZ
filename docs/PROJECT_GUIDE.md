@@ -246,6 +246,36 @@ even inside your own scoped block — this has caused two real bugs. Check
 
 ---
 
+## 7a. Athlete cards
+
+Every postseason result that places well enough earns a shareable 1080 x 1350
+card: sectional and regional champions, runners-up and qualifiers, and state
+champions, runners-up and medalists (top nine). The athlete dashboard shows them
+in the deck at the bottom of the page, with a Left / Blackout design toggle, and
+the share buttons send the rendered PNG.
+
+| Piece | Where |
+|---|---|
+| Which results earn a card, and the accolade text | `app/queries/cards.py` |
+| School colors and logos, the HTML, the PNG render and cache | `app/services/cards.py`, `app/services/school_colors.py` |
+| The two designs (approved markup, do not restyle) | `app/services/card_templates.py` |
+| Routes: `/card/<athlete>/<meet>/<event>` (HTML) and `.png`, `/api/athletes/<id>/cards` | `app/routes/` |
+| Render from the command line | `python -m app.jobs.render_cards <athlete_id>` |
+
+**School colors** live in `web/data/school_colors.json`, keyed by `school_id`,
+with `primary` and `accent` as hex. A school without an entry gets colors sampled
+from its logo, so add an entry whenever the sampled pair looks wrong. The card
+ID (`TI26-SEC-D699`) hashes `athlete_id`, `meet_id` and event, so a screenshot
+of a card can be traced back to one `athlete_result` row.
+
+**Rendering needs two extra packages**: `pip install -e ".[cards]"`, then
+`playwright install chromium` once. Without them the card HTML still works and
+the `.png` route answers 503, which the dashboard reports as the image being
+unavailable. Rendered PNGs and the white logo silhouettes are cached under
+`static/cards/` (ignored by git); delete a file there to re-render it.
+
+---
+
 ## 8. Things to be careful with
 
 - **`Track.db` is the real data.** It is tracked in git, so a bad write is

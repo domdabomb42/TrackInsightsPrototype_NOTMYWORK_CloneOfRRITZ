@@ -4,12 +4,12 @@ import json
 import os
 import time
 
-from flask import render_template, request, url_for, Response, current_app
+from flask import abort, render_template, request, send_file, url_for, Response, current_app
 from . import main_bp
 from ..queries import get_athletes
 from ..models import Athlete, School
 from ..videos import INTERVIEW_VIDEOS
-from ..services import dashboard_v4
+from ..services import cards, dashboard_v4
 from common.const import CONST
 from common.regional_hosts import get_configured_regional_hosts
 from sqlalchemy.orm import joinedload
@@ -355,6 +355,43 @@ def athlete_dashboard(athlete_id):
         school_name=athlete.school.school_name if athlete and athlete.school else None,
         athlete_videos=athlete_videos,
     )
+
+
+def _card_design():
+    theDesign = request.args.get('design', 'B').upper()
+    if cards.is_design(theDesign) == False:
+        abort(400, 'design must be B or E')
+    return theDesign
+
+
+def _card_or_404(athlete_id, meet_id, event_name):
+    theCard = cards.get_card(athlete_id, meet_id, event_name)
+    if theCard is None:
+        abort(404)
+    return theCard
+
+
+@main_bp.route('/card/<int:athlete_id>/<int:meet_id>/<path:event_name>.png')
+def card_png(athlete_id, meet_id, event_name):
+    theDesign = _card_design()
+    theCard = _card_or_404(athlete_id, meet_id, event_name)
+    try:
+        thePath = cards.render_png(theCard, theDesign)
+    except cards.CardRenderUnavailable as theError:
+        current_app.logger.warning('card PNG unavailable: %s', theError)
+        return Response('Card images are not available on this server yet.', status=503, mimetype='text/plain')
+    except Exception:
+        current_app.logger.exception('card PNG render failed for %s', theCard['cardId'])
+        return Response('The card image could not be rendered. Try again in a moment.', status=503, mimetype='text/plain')
+    return send_file(thePath, mimetype='image/png', download_name=cards.download_name(theCard, theDesign),
+                     as_attachment=request.args.get('download') == '1', max_age=86400)
+
+
+@main_bp.route('/card/<int:athlete_id>/<int:meet_id>/<path:event_name>')
+def card_page(athlete_id, meet_id, event_name):
+    theDesign = _card_design()
+    theCard = _card_or_404(athlete_id, meet_id, event_name)
+    return Response(cards.card_html(theCard, theDesign), mimetype='text/html')
 
 
 @main_bp.route('/athlete-dashboard/<int:athlete_id>/result/<int:meet_id>/<path:event_name>')

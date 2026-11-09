@@ -30,6 +30,10 @@ standalone = [
     "reportlab",
     "rlPyCairo",
 ]
+cards = [
+    "Pillow",      # white logo silhouettes and fallback school colors for athlete cards
+    "playwright",  # renders the card HTML to PNG; run `playwright install chromium` once
+]
 dev = [
     "pytest",
     "markdown",  # docs/make_pdf.py -- turns a guide into a PDF to hand out

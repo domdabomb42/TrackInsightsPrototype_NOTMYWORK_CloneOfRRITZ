@@ -119,13 +119,18 @@
                 <div id="athlete-card-stack" class="athlete-card-stack"></div>
                 <div class="athlete-card-deck-controls">
                     <button type="button" id="athlete-card-previous" aria-label="Previous athlete card">&#8592;</button>
-                    <span id="athlete-card-position" aria-live="polite" aria-atomic="true">1 / 4</span>
+                    <span id="athlete-card-position" aria-live="polite" aria-atomic="true">0 / 0</span>
                     <button type="button" id="athlete-card-next" aria-label="Next athlete card">&#8594;</button>
+                </div>
+                <div class="athlete-card-designs" role="group" aria-label="Card design">
+                    <button type="button" class="athlete-card-design" data-design="B" aria-pressed="true">Left</button>
+                    <button type="button" class="athlete-card-design" data-design="E" aria-pressed="false">Blackout</button>
                 </div>
             </div>
             <div class="athlete-card-share-info">
-                <h2 id="athlete-card-share-title" class="athlete-card-share-title font-impact">Share Athlete Card</h2>
-                <p id="athlete-card-caption" class="athlete-card-caption">Scan or share this athlete's card.</p>
+                <h2 id="athlete-card-share-title" class="athlete-card-share-title font-impact">Share Athlete Cards</h2>
+                <p id="athlete-card-caption" class="athlete-card-caption">Scan or share this athlete's cards.</p>
+                <p id="athlete-card-detail" class="athlete-card-detail" aria-live="polite"></p>
                 <div class="athlete-card-share-tools">
                     <a id="athlete-card-qr-link" class="athlete-card-qr" aria-label="Open athlete dashboard">
                         <span id="athlete-card-qr-code"></span>

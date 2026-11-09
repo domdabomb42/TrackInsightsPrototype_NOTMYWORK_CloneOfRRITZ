@@ -63,14 +63,24 @@
 .athlete-card-share { display: flex; align-items: flex-start; gap: clamp(20px, 3.5vw, 40px); padding: clamp(18px, 3vw, 28px); border: 1px solid #dce2eb; border-radius: 24px; box-shadow: 0 2px 5px #17203312; background: repeating-radial-gradient(circle at 108% -16%, transparent 0 15px, #a6094206 16px 18px, transparent 19px 30px), linear-gradient(115deg, #fff, #fafbfd); }
 .athlete-card-deck { --athlete-card-width: clamp(120px, 24vw, 250px); flex: 0 0 auto; width: calc(var(--athlete-card-width) + 36px); position: relative; }
 .athlete-card-deck:focus-within, .athlete-card-deck:hover { z-index: 5; }
-.athlete-card-stack { position: relative; width: var(--athlete-card-width); aspect-ratio: 2.5 / 3.5; isolation: isolate; }
+.athlete-card-stack { position: relative; width: var(--athlete-card-width); aspect-ratio: 4 / 5; isolation: isolate; }
 .athlete-card-option { position: absolute; top: 0; left: calc(var(--stack-index) * 12px); width: 100%; height: 100%; z-index: calc(4 - var(--stack-index)); padding: 0; border: 0; background: transparent; cursor: pointer; border-radius: 18px; transition: left 200ms ease; }
-.athlete-card-face { display: block; width: 100%; height: 100%; background: var(--card-color); border: 3px solid white; border-radius: 18px; box-shadow: 0 3px 10px #501e3233; transition: transform 220ms ease, box-shadow 220ms ease; transform-origin: center bottom; }
+.athlete-card-face { display: block; width: 100%; height: 100%; background: var(--card-color, #16161c); border: 3px solid white; border-radius: 18px; box-shadow: 0 3px 10px #501e3233; transition: transform 220ms ease, box-shadow 220ms ease; transform-origin: center bottom; overflow: hidden; box-sizing: border-box; }
+.athlete-card-face iframe { display: block; width: 1080px; height: 1350px; border: 0; transform-origin: top left; transform: scale(var(--athlete-card-scale, 0.2)); pointer-events: none; background: #16161c; }
+.athlete-card-empty { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; padding: 14px; text-align: center; font-size: 13px; line-height: 1.4; color: #52617a; border: 1px dashed #d4dae4; border-radius: 18px; background: #f7f8fb; }
+.athlete-card-designs { display: flex; justify-content: center; gap: 6px; width: var(--athlete-card-width); margin-top: 10px; }
+.athlete-card-design { border: 1px solid #e0e4eb; border-radius: 999px; padding: 4px 12px; font-size: 12px; font-weight: 600; color: #52617a; background: white; cursor: pointer; }
+.athlete-card-design[aria-pressed="true"] { background: var(--athlete-accent); border-color: var(--athlete-accent); color: white; }
+.athlete-card-design:focus-visible { outline: 2px solid var(--athlete-accent); outline-offset: 2px; }
+.athlete-card-design:disabled { opacity: 0.5; cursor: default; }
+.athlete-card-detail { font-size: 13px; color: #52617a; margin: -10px 0 16px; min-height: 18px; }
 .athlete-card-option:not([aria-pressed="true"]):hover .athlete-card-face, .athlete-card-option:not([aria-pressed="true"]):focus-visible .athlete-card-face { transform: translateX(70%) translateY(-8px) rotate(3deg); box-shadow: 0 10px 24px #501e3240; }
 .athlete-card-option:not([aria-pressed="true"]):hover::after { content: ''; position: absolute; inset: -12px -78% 0 0; }
 .athlete-card-option:focus-visible { outline: 2px solid var(--athlete-accent); outline-offset: 4px; }
+.athlete-card-option-deep { visibility: hidden; pointer-events: none; }
 .athlete-card-deck-controls { display: flex; align-items: center; justify-content: center; gap: 18px; width: var(--athlete-card-width); margin-top: 14px; font-size: 13px; color: #52617a; }
 .athlete-card-deck-controls button { border: 1px solid #e0e4eb; border-radius: 50%; width: 30px; height: 30px; background: white; color: #a60942; cursor: pointer; }
+.athlete-card-deck-controls button:disabled { opacity: 0.4; cursor: default; }
 .athlete-card-deck-controls button:hover { background: #f3e3e9; }
 .athlete-card-deck-controls button:focus-visible { outline: 2px solid var(--athlete-accent); outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) {

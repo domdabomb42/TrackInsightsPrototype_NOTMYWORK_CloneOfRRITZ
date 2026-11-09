@@ -96,64 +96,30 @@ const shareStatus = document.getElementById('share-dashboard-status');
         shareButton.addEventListener('click', handleShareButtonClick);
     }
 
-    function initializeAthleteCard(athlete) {
+    function initializeAthleteCard(athlete, cards) {
         // Share the public dashboard so scanned codes work away from this computer.
         const url = `https://www.trackinsights.org/athlete-dashboard/${athleteId}`;
         const name = athlete.full_name || 'Athlete';
         const status = document.getElementById('athlete-card-share-status');
         const setStatus = message => { status.textContent = message; };
-        const designs = [
-            {name: 'Black', color: '#000000'},
-            {name: 'Burgundy', color: '#a60942'},
-            {name: 'Navy', color: '#173b67'},
-            {name: 'Green', color: '#17664e'},
-        ];
-        const filename = `${name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || `athlete-${athleteId}`}-athlete-card.png`;
-        const cardImages = designs.map(() => ({blob: null, file: null, pending: null}));
+        const detail = document.getElementById('athlete-card-detail');
+        const stack = document.getElementById('athlete-card-stack');
+        const position = document.getElementById('athlete-card-position');
+        const previousButton = document.getElementById('athlete-card-previous');
+        const nextButton = document.getElementById('athlete-card-next');
+        const designButtons = [...document.querySelectorAll('.athlete-card-design')];
         const imageButtons = ['athlete-card-instagram', 'athlete-card-snapchat', 'athlete-card-download']
             .map(id => document.getElementById(id));
         const isMobile = Boolean(navigator.userAgentData?.mobile || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
             || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
-        let sharingImage = false;
-        const stack = document.getElementById('athlete-card-stack');
+        // Each card comes in two designs; the server renders the PNG once and caches it.
+        const cardImages = new Map();
+        let design = 'B';
         let selectedCard = 0;
-        const cardButtons = designs.map((design, index) => {
-            const button = document.createElement('button');
-            button.type = 'button';
-            button.className = 'athlete-card-option';
-            button.setAttribute('aria-label', `${design.name} athlete card`);
-            button.style.setProperty('--card-color', design.color);
-            button.innerHTML = '<span class="athlete-card-face" aria-hidden="true"></span>';
-            button.addEventListener('click', () => selectCard(index));
-            button.addEventListener('keydown', event => {
-                let next;
-                if (event.key === 'ArrowRight') next = (selectedCard + 1) % designs.length;
-                if (event.key === 'ArrowLeft') next = (selectedCard - 1 + designs.length) % designs.length;
-                if (event.key === 'Home') next = 0;
-                if (event.key === 'End') next = designs.length - 1;
-                if (next === undefined) return;
-                event.preventDefault();
-                selectCard(next);
-                cardButtons[next].focus();
-            });
-            stack.appendChild(button);
-            return button;
-        });
-        function selectCard(index) {
-            selectedCard = index;
-            cardButtons.forEach((button, cardIndex) => {
-                button.style.setProperty('--stack-index', (cardIndex - index + designs.length) % designs.length);
-                button.setAttribute('aria-pressed', String(cardIndex === index));
-            });
-            document.getElementById('athlete-card-position').textContent = `${index + 1} / ${designs.length}`;
-            prepareCardImage(index);
-            updateImageButtons();
-        }
-        selectCard(0);
-        document.getElementById('athlete-card-previous').addEventListener('click', () => selectCard((selectedCard - 1 + designs.length) % designs.length));
-        document.getElementById('athlete-card-next').addEventListener('click', () => selectCard((selectedCard + 1) % designs.length));
+        let sharingImage = false;
+
         document.getElementById('athlete-card-caption').textContent =
-            `Scan or share ${athlete.first || name}'s athlete card.`;
+            `Scan or share ${athlete.first || name}'s athlete cards.`;
         const qrLink = document.getElementById('athlete-card-qr-link');
         qrLink.href = url;
         qrLink.setAttribute('aria-label', `Open ${name}'s athlete dashboard`);
@@ -183,34 +149,139 @@ const shareStatus = document.getElementById('share-dashboard-status');
         });
 
         function updateImageButtons() {
-            const disabled = !cardImages[selectedCard].blob || sharingImage;
+            const image = cardImages.get(imageKey(selectedCard));
+            const disabled = !cards.length || !image?.blob || sharingImage;
             imageButtons.forEach(button => { button.disabled = disabled; });
         }
 
+        if (!cards.length) {
+            stack.innerHTML = '<div class="athlete-card-empty">No postseason cards yet. Place at a sectional, regional, or state meet to earn one.</div>';
+            position.textContent = '0 / 0';
+            previousButton.disabled = true;
+            nextButton.disabled = true;
+            designButtons.forEach(button => { button.disabled = true; });
+            detail.textContent = '';
+            updateImageButtons();
+            return;
+        }
+
+        function cardLabel(card) {
+            const second = card.acc2 ? `, ${card.acc2}` : '';
+            return `${card.year} ${card.meet_type} ${card.event}: ${card.acc1}${second}`;
+        }
+
+        function imageKey(index) {
+            return `${index}-${design}`;
+        }
+
+        // The card HTML is 1080px wide; scale it down to whatever width the deck has.
+        function scaleFaces() {
+            const width = stack.getBoundingClientRect().width;
+            if (width > 0) stack.style.setProperty('--athlete-card-scale', (width - 6) / 1080);
+        }
+        if (typeof ResizeObserver === 'function') {
+            new ResizeObserver(scaleFaces).observe(stack);
+        } else {
+            window.addEventListener('resize', scaleFaces);
+        }
+
+        const cardButtons = cards.map((card, index) => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'athlete-card-option';
+            button.setAttribute('aria-label', cardLabel(card));
+            const face = document.createElement('span');
+            face.className = 'athlete-card-face';
+            face.setAttribute('aria-hidden', 'true');
+            const frame = document.createElement('iframe');
+            frame.src = card.html_url[design];
+            frame.title = cardLabel(card);
+            frame.loading = 'lazy';
+            frame.tabIndex = -1;
+            frame.setAttribute('scrolling', 'no');
+            face.appendChild(frame);
+            button.appendChild(face);
+            button.addEventListener('click', () => selectCard(index));
+            button.addEventListener('keydown', event => {
+                let next;
+                if (event.key === 'ArrowRight') next = (selectedCard + 1) % cards.length;
+                if (event.key === 'ArrowLeft') next = (selectedCard - 1 + cards.length) % cards.length;
+                if (event.key === 'Home') next = 0;
+                if (event.key === 'End') next = cards.length - 1;
+                if (next === undefined) return;
+                event.preventDefault();
+                selectCard(next);
+                cardButtons[next].focus();
+            });
+            stack.appendChild(button);
+            return button;
+        });
+        scaleFaces();
+
+        function selectCard(index) {
+            selectedCard = index;
+            cardButtons.forEach((button, cardIndex) => {
+                const depth = (cardIndex - index + cards.length) % cards.length;
+                // Only the top few cards fan out; the rest wait behind them so a
+                // long season does not push the deck across the page.
+                button.style.setProperty('--stack-index', Math.min(depth, 3));
+                button.classList.toggle('athlete-card-option-deep', depth > 3);
+                button.setAttribute('aria-pressed', String(cardIndex === index));
+            });
+            position.textContent = `${index + 1} / ${cards.length}`;
+            detail.textContent = cardLabel(cards[index]);
+            prepareCardImage(index);
+            updateImageButtons();
+        }
+
+        function setDesign(next) {
+            if (next === design) return;
+            design = next;
+            designButtons.forEach(button => {
+                button.setAttribute('aria-pressed', String(button.dataset.design === design));
+            });
+            cardButtons.forEach((button, index) => {
+                button.querySelector('iframe').src = cards[index].html_url[design];
+            });
+            prepareCardImage(selectedCard);
+            updateImageButtons();
+        }
+        designButtons.forEach(button => {
+            button.addEventListener('click', () => setDesign(button.dataset.design));
+        });
+
+        selectCard(0);
+        previousButton.addEventListener('click', () => selectCard((selectedCard - 1 + cards.length) % cards.length));
+        nextButton.addEventListener('click', () => selectCard((selectedCard + 1) % cards.length));
+
         function prepareCardImage(index) {
-            const image = cardImages[index];
-            if (image.pending) return image.pending;
-            // Render before a tap: awaiting canvas.toBlob inside the click handler
+            const key = imageKey(index);
+            const thisDesign = design;
+            let image = cardImages.get(key);
+            if (image) return image.pending;
+            image = {blob: null, file: null, pending: null};
+            cardImages.set(key, image);
+            const card = cards[index];
+            const filename = card.download_name[thisDesign];
+            // Fetch before a tap: awaiting the download inside the click handler
             // can lose the transient activation required by iOS Safari's share sheet.
-            image.pending = new Promise((resolve, reject) => {
-                const canvas = document.createElement('canvas');
-                canvas.width = 750;
-                canvas.height = 1050;
-                const context = canvas.getContext('2d');
-                if (!context) throw new Error('Card rendering is unavailable.');
-                context.fillStyle = designs[index].color;
-                context.fillRect(0, 0, canvas.width, canvas.height);
-                canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('PNG generation failed.')), 'image/png');
+            image.pending = fetch(card.png_url[thisDesign]).then(response => {
+                if (!response.ok) throw new Error(`Card image request failed (${response.status}).`);
+                return response.blob();
             }).then(blob => {
                 image.blob = blob;
                 image.file = typeof File === 'function' ? new File([blob], filename, {type: 'image/png'}) : null;
-            }).catch(() => {
-                if (selectedCard === index) setStatus('Unable to prepare the card image. Reload to try again.');
+            }).catch(error => {
+                console.warn('Card image unavailable:', error);
+                cardImages.delete(key);
+                if (selectedCard === index && design === thisDesign) {
+                    setStatus('The card image is not available right now. Try again in a moment.');
+                }
             }).finally(updateImageButtons);
             return image.pending;
         }
 
-        function downloadCardImage(image) {
+        function downloadCardImage(image, filename) {
             const objectUrl = URL.createObjectURL(image.blob);
             const link = document.createElement('a');
             link.href = objectUrl;
@@ -223,8 +294,9 @@ const shareStatus = document.getElementById('share-dashboard-status');
         }
 
         const shareToApp = async platform => {
-            const image = cardImages[selectedCard];
-            if (!image.blob || sharingImage) return;
+            const image = cardImages.get(imageKey(selectedCard));
+            const filename = cards[selectedCard].download_name[design];
+            if (!image?.blob || sharingImage) return;
             sharingImage = true;
             updateImageButtons();
             try {
@@ -247,7 +319,7 @@ const shareStatus = document.getElementById('share-dashboard-status');
                 updateImageButtons();
             }
             try {
-                downloadCardImage(image);
+                downloadCardImage(image, filename);
                 setStatus(platform === 'Instagram'
                     ? 'Card downloaded. Save it to your photos, then add it to an Instagram Story.'
                     : 'Card downloaded. Save it to your photos, then choose it in Snapchat Memories.');
@@ -259,18 +331,16 @@ const shareStatus = document.getElementById('share-dashboard-status');
         document.getElementById('athlete-card-snapchat').addEventListener('click', () => shareToApp('Snapchat'));
 
         document.getElementById('athlete-card-download').addEventListener('click', () => {
-            const image = cardImages[selectedCard];
-            if (image.blob) {
+            const image = cardImages.get(imageKey(selectedCard));
+            if (image?.blob) {
                 try {
-                    downloadCardImage(image);
+                    downloadCardImage(image, cards[selectedCard].download_name[design]);
                     setStatus('Athlete card downloaded.');
                 } catch {
                     setStatus('Unable to download the card. Please try again.');
                 }
             }
         });
-        // There are only four designs; warming each once also covers rapid changes.
-        designs.forEach((_, index) => prepareCardImage(index));
     }
 
     const stageConfigs = {
@@ -569,7 +639,19 @@ const shareStatus = document.getElementById('share-dashboard-status');
 
         renderPersonalBests(data.personal_bests || []);
         renderEventFolders(data.playoff_history || [], data.personal_bests || []);
-        initializeAthleteCard(data.athlete);
+
+        // The cards come last and from their own request, so a slow card query
+        // or a rendering problem never holds up or hides the rest of the page.
+        let athleteCards = [];
+        try {
+            const cardsResponse = await fetch(`/api/athletes/${athleteId}/cards`);
+            if (cardsResponse.ok) {
+                athleteCards = (await cardsResponse.json()).cards || [];
+            }
+        } catch (error) {
+            console.warn('Unable to load athlete cards:', error);
+        }
+        initializeAthleteCard(data.athlete, athleteCards);
 
     } catch (error) {
         console.error('Error loading athlete data:', error);

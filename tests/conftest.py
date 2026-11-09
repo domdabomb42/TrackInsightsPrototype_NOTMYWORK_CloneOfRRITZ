@@ -13,6 +13,7 @@ if str(WEB_ROOT) not in sys.path:
 
 from app import create_app, db  # noqa: E402
 from app import queries  # noqa: E402
+from app.queries import cards as cards_queries  # noqa: E402
 from app.models import (  # noqa: E402
     Athlete, AthleteResult, Event, Meet, RelayAthlete, RelayResult, School, SchoolEnrollment,
 )
@@ -28,6 +29,9 @@ class TestConfig:
     # The fixture builds its own database from the models, so unlike a deployed
     # site it does want the file created and the schema laid down at start-up.
     AUTO_CREATE_SCHEMA = True
+    # Rendered card PNGs go here rather than into web/app/static/cards/, so a
+    # test run leaves nothing behind in the app's own static folder.
+    CARD_CACHE_DIR = str(REPO_ROOT / "tests" / "card_cache")
 
 
 def _clear_query_caches():
@@ -37,6 +41,8 @@ def _clear_query_caches():
         queries.get_school_qualifiers,
         queries.get_regional_qualifiers,
         queries._schools_with_logos,
+        cards_queries._pool_rows,
+        cards_queries.list_cards_for_athlete,
     ):
         if hasattr(func, "cache_clear"):
             func.cache_clear()

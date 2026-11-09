@@ -1,6 +1,7 @@
 import os
 from flask import jsonify, request, current_app
 from . import api_bp
+from ..services import cards
 from ..queries import (
     get_athletes,
     get_athlete_by_id,
@@ -108,6 +109,13 @@ def api_get_athlete_dashboard(aid):
     if not data:
         return jsonify({'error': 'not found'}), 404
     return jsonify(data)
+
+
+@api_bp.route('/athletes/<int:aid>/cards')
+def api_get_athlete_cards(aid):
+    if get_athlete_by_id(aid) is None:
+        return jsonify({'error': 'not found'}), 404
+    return jsonify({'cards': cards.list_cards(aid)})
 
 
 @api_bp.route('/athletes/<int:aid>/result-rankings')
