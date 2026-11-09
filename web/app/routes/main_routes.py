@@ -4,7 +4,7 @@ import json
 import os
 import time
 
-from flask import abort, render_template, request, url_for, Response, current_app
+from flask import abort, redirect, render_template, request, url_for, Response, current_app
 from . import main_bp
 from ..queries import get_athletes
 from ..models import Athlete, School
@@ -471,7 +471,7 @@ def athlete_result_detail(athlete_id, meet_id, event_name):
 
 @main_bp.route('/about')
 def about():
-    return render_template('about.html')
+    return redirect(url_for('main.home') + '#about', code=301)
 
 
 @main_bp.route('/robots.txt')
@@ -499,7 +499,6 @@ def sitemap_xml():
         url_for('main.hypothetical_query_page', _external=True),
         url_for('main.regional_qualifiers_page', _external=True),
         url_for('main.state_qualifiers_page', _external=True),
-        url_for('main.about', _external=True),
     ]
 
     athletes = Athlete.query.with_entities(Athlete.athlete_id).all()

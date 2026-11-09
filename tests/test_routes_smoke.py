@@ -56,6 +56,8 @@ EXPECTED = {
     '/api/regional-qualifiers/top-list': (200, 400),
     '/api/state-qualifiers': (200, 400),
     '/insights/hypothetical/result': (200, 400),
+    # The About page moved onto the homepage; the old address sends people there.
+    '/about': (301,),
     # Rendering needs Playwright and Chromium. Where they are not installed the
     # route says so with a 503 rather than failing; where they are, it renders.
     '/card/<int:athlete_id>/<int:meet_id>/<path:event_name>.png': (200, 503),

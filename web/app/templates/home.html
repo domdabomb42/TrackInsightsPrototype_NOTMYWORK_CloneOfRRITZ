@@ -376,207 +376,197 @@
 </div>
 </div>
 
-<!-- About Section -->
-<div id="about" class="relative z-10 bg-white min-h-screen pt-28 sm:pt-32 pb-24 sm:pb-32 px-2 sm:px-4">
-  <div class="max-w-6xl mx-auto space-y-8 sm:space-y-12">
-    <div
-      class="bg-gradient-to-br from-white via-primary/5 to-secondary/10 border border-primary/10 shadow-xl hover:shadow-2xl rounded-2xl sm:rounded-3xl p-6 sm:p-10">
-      <h1 class="font-impact italic text-primary text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-6">
-        About Track Insights
-      </h1>
-      <div class="text-base sm:text-lg md:text-xl text-gray-700 leading-relaxed space-y-6">
-        <p>
-          Welcome to <b>Track Insights</b>, your go-to app for IHSAA track and field playoff performances and data
-          insights. Our mission is to promote Indiana high school track and field, celebrate achievements, motivate
-          athletes, and provide meaningful insights for athletes, coaches, and fans.
-        </p>
-        <div class="bg-white/70 border border-primary/20 rounded-2xl p-5 sm:p-6 space-y-2">
-          <p>
-            The inspiration for this app came from a single question posed by an athlete:
-          </p>
-          <p class="italic font-bold text-primary text-lg sm:text-xl">
-            "I wonder how our 4x800 time would place in other Sectionals?"
-          </p>
-        </div>
-        <p>
-          Manually checking state-wide results is tedious and error-prone. This challenge inspired our first project: to
-          automate this functionality and help athletes quickly and easily see how their performances stack up in other
-          Sectionals across the state. From there, many more ideas emerged, leading to the creation of additional tools
-          designed to inform, motivate, and promote Indiana high school track and field.
-        </p>
-        <p>
-          Track Insights is a student-led initiative, developed by Park Tudor Computer Science students, and this app
-          serves as a platform to share our work with you.
-        </p>
-        <p>
-          We hope you enjoy using Track Insights!
-        </p>
-      </div>
-    </div>
-    <div
-      class="bg-gradient-to-br from-white via-secondary/10 to-primary/5 border border-secondary/10 shadow-xl hover:shadow-2xl rounded-2xl sm:rounded-3xl p-6 sm:p-10 space-y-6">
-      <h2 class="font-impact italic text-primary text-2xl sm:text-3xl md:text-4xl font-bold">
-        History
-      </h2>
-      <div class="space-y-4 text-base sm:text-lg md:text-xl text-gray-700 leading-relaxed">
-        <div class="rounded-2xl border border-primary/10 bg-white/80 p-5 space-y-2">
-          <p class="font-impact text-primary text-xl sm:text-2xl">2023 – 2024</p>
-          <p>
-            Created our first program that shows how athlete results would place in other Sectionals across the state.
-            Shortly thereafter, we built a tool to generate result percentiles (e.g., 50th percentile for all events
-            based on all Sectional performances), which was used at Park Tudor to help set fair Varsity Letter standards
-            for each event.
-          </p>
-        </div>
-        <div class="rounded-2xl border border-primary/10 bg-white/80 p-5 space-y-2">
-          <p class="font-impact text-primary text-xl sm:text-2xl">2024 – 2025</p>
-          <p>
-            Cal B, Malcolm H, Aashiv J, Justin L, Daniel L, Emily W, Owen W, Allison X: Designed and created the database
-            and developed multiple data analysis tools. Results were posted on Instagram:
-            <a href="https://www.instagram.com/trackinsights/" target="_blank" rel="noopener noreferrer"
-              class="text-primary font-semibold hover:underline">@trackinsights</a>
-          </p>
-        </div>
-        <div class="rounded-2xl border border-primary/10 bg-white/80 p-5 space-y-2">
-          <p class="font-impact text-primary text-xl sm:text-2xl">2025 – 2026</p>
-          <p>
-            Arnay G, Justin L, Owen Z: Designed and created the web application, enhanced existing analysis tools, and
-            developed new tools.
-          </p>
-        </div>
-      </div>
+<!-- About Section: same dark, photographic feel as the hero above it. -->
+<section id="about" class="about-section" aria-labelledby="about-title">
+  <div class="about-inner">
+
+    <header class="about-head">
+      <p class="about-kicker">About</p>
+      <h2 id="about-title" class="about-title">Track Insights</h2>
+      <p class="about-lede">
+        Your go-to app for IHSAA track and field playoff performances and data insights. Our mission is to promote
+        Indiana high school track and field, celebrate achievements, motivate athletes, and provide meaningful insights
+        for athletes, coaches, and fans.
+      </p>
+    </header>
+
+    <div class="about-quote">
+      <p class="about-quote-label">It started with one question from an athlete</p>
+      <p class="about-quote-text">&ldquo;I wonder how our 4x800 time would place in other Sectionals?&rdquo;</p>
+      <p class="about-quote-body">
+        Manually checking state-wide results is tedious and error-prone. That question inspired our first project: show
+        how any performance stacks up in every other Sectional across the state. From there, many more ideas emerged,
+        and Track Insights grew into the set of tools you see today, built by Park Tudor Computer Science students.
+      </p>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
-      <div
-        class="card bg-gradient-to-br from-white via-primary/5 to-secondary/10 border border-primary/10 shadow-xl hover:shadow-2xl transition-all">
-        <div class="card-body p-6 sm:p-8 space-y-2">
-          <div class="flex items-center gap-3">
+    <ul class="about-stats" aria-label="Database stats">
+      <li><span class="about-stat-number">23,000+</span><span class="about-stat-label">Athletes</span></li>
+      <li><span class="about-stat-number">62,500+</span><span class="about-stat-label">Individual Results</span></li>
+      <li><span class="about-stat-number">8,150+</span><span class="about-stat-label">Relay Results</span></li>
+      <li><span class="about-stat-number">400+</span><span class="about-stat-label">Member Schools</span></li>
+      <li><span class="about-stat-number">246</span><span class="about-stat-label">Meets</span></li>
+    </ul>
+    <p class="about-stats-note">IHSAA Sectional, Regional and State results from 2023 to the present.</p>
 
-            <h2 class="card-title font-impact italic text-primary text-xl sm:text-2xl md:text-3xl lg:text-4xl">
-              Key Features
-            </h2>
-          </div>
-          <div class="space-y-4">
-            <div class="flex gap-4">
-              <span class="text-primary font-impact text-2xl">01</span>
-              <p class="text-base sm:text-lg text-gray-700"><b>Athlete Dashboards</b>: View athlete IHSAA performance
-                marks in one easy-to-read place.</p>
-            </div>
-            <div class="flex gap-4">
-              <span class="text-primary font-impact text-2xl">02</span>
-              <p class="text-base sm:text-lg text-gray-700"><b>Achievement Badges</b>: View athlete badges for
-                achievements.</p>
-            </div>
-            <div class="flex gap-4">
-              <span class="text-primary font-impact text-2xl">03</span>
-              <p class="text-base sm:text-lg text-gray-700"><b>Performance Rankings</b>: See how athlete performances
-                rank across categories such as grade level and school size.</p>
-            </div>
-            <div class="flex gap-4">
-              <span class="text-primary font-impact text-2xl">04</span>
-              <p class="text-base sm:text-lg text-gray-700"><b>Advanced Queries</b>: Explore data insights and track
-                trends in IHSAA playoff performances.</p>
-            </div>
-          </div>
-        </div>
+    <div class="about-columns">
+      <div class="about-block">
+        <h3 class="about-heading">What you can do</h3>
+        <ol class="about-features">
+          <li><span>01</span><div><b>Athlete Dashboards</b> View athlete IHSAA performance marks in one easy-to-read place.</div></li>
+          <li><span>02</span><div><b>Athlete Cards</b> Share any postseason result as a card built in your school's colors.</div></li>
+          <li><span>03</span><div><b>Performance Rankings</b> See how performances rank by grade level and school size.</div></li>
+          <li><span>04</span><div><b>Advanced Queries</b> Explore data insights and trends in IHSAA playoff performances.</div></li>
+        </ol>
       </div>
-      <div
-        class="card bg-gradient-to-br from-white via-secondary/5 to-primary/10 border border-secondary/10 shadow-xl hover:shadow-2xl transition-all">
-        <div class="card-body p-6 sm:p-8 space-y-1">
-          <div class="flex items-center gap-3">
-            <h2 class="card-title font-impact italic text-primary text-xl sm:text-2xl md:text-3xl lg:text-4xl">
-              Stats
-            </h2>
-          </div>
-          <p class="text-base sm:text-lg md:text-xl text-gray-700 leading-relaxed">
-            Our app focuses on IHSAA playoff results (Sectional, Regional, and State) from 2023 to the present. Our
-            database includes:
-          </p>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div class="rounded-2xl border border-primary/10 bg-white/80 p-4">
-              <p class="text-3xl font-impact text-primary">23,000+</p>
-              <p class="text-sm sm:text-base uppercase tracking-wide text-gray-500">Athletes</p>
-            </div>
-            <div class="rounded-2xl border border-primary/10 bg-white/80 p-4">
-              <p class="text-3xl font-impact text-primary">8,150+</p>
-              <p class="text-sm sm:text-base uppercase tracking-wide text-gray-500">Relay Results</p>
-            </div>
-            <div class="rounded-2xl border border-primary/10 bg-white/80 p-4">
-              <p class="text-3xl font-impact text-primary">62,500+</p>
-              <p class="text-sm sm:text-base uppercase tracking-wide text-gray-500">Individual Results</p>
-            </div>
-            <div class="rounded-2xl border border-primary/10 bg-white/80 p-4">
-              <p class="text-3xl font-impact text-primary">400+</p>
-              <p class="text-sm sm:text-base uppercase tracking-wide text-gray-500">Member Schools</p>
-            </div>
-            <div class="rounded-2xl border border-primary/10 bg-white/80 p-4">
-              <p class="text-3xl font-impact text-primary">246</p>
-              <p class="text-sm sm:text-base uppercase tracking-wide text-gray-500">Meets</p>
-            </div>
-          </div>
-        </div>
+
+      <div class="about-block">
+        <h3 class="about-heading">History</h3>
+        <ol class="about-timeline">
+          <li>
+            <p class="about-year">2026 &ndash; 2027</p>
+            <p><b>Derek A, Navraj B, Aryav D, Dominic G, Sameer Z:</b> Redesigning the website and building the shareable
+              athlete cards, with more tools on the way for the 2026 season.</p>
+          </li>
+          <li>
+            <p class="about-year">2025 &ndash; 2026</p>
+            <p><b>Arnay G, Justin L, Owen Z:</b> Designed and created the web application, enhanced existing analysis
+              tools, and developed new tools.</p>
+          </li>
+          <li>
+            <p class="about-year">2024 &ndash; 2025</p>
+            <p><b>Cal B, Malcolm H, Aashiv J, Justin L, Daniel L, Emily W, Owen W, Allison X:</b> Designed and created
+              the database and developed multiple data analysis tools. Results were posted on Instagram:
+              <a href="https://www.instagram.com/trackinsights/" target="_blank" rel="noopener noreferrer">@trackinsights</a></p>
+          </li>
+          <li>
+            <p class="about-year">2023 &ndash; 2024</p>
+            <p>Created our first program that shows how athlete results would place in other Sectionals across the
+              state. Shortly after, we built a tool to generate result percentiles, which Park Tudor used to set fair
+              Varsity Letter standards for each event.</p>
+          </li>
+        </ol>
       </div>
     </div>
 
-    <div
-      class="bg-gradient-to-br from-white via-primary/5 to-secondary/10 border border-primary/10 shadow-xl hover:shadow-2xl rounded-2xl sm:rounded-3xl p-6 sm:p-10 space-y-6">
-      <h2 class="font-impact italic text-primary text-2xl sm:text-3xl md:text-4xl font-bold">
-        Development Team:
-      </h2>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div
-          class="rounded-2xl border border-primary/10 bg-white/80 p-6 flex flex-col items-center text-center space-y-3">
-          <img src="{{ url_for('static', filename='images/developer_portraits/arnay.webp') }}" alt="Arnay G."
-            class="w-28 h-28 rounded-full object-cover" />
-          <div>
-            <p class="font-impact text-primary text-2xl sm:text-3xl">Arnay G.</p>
-            <p class="text-sm sm:text-base uppercase tracking-wide text-gray-500">FrontEnd User Interface & User Experience</p>
-          </div>
-        </div>
-        <div
-          class="rounded-2xl border border-primary/10 bg-white/80 p-6 flex flex-col items-center text-center space-y-3">
-          <img src="{{ url_for('static', filename='images/developer_portraits/justin.webp') }}" alt="Justin L."
-            class="w-28 h-28 rounded-full object-cover" />
-          <div>
-            <p class="font-impact text-primary text-2xl sm:text-3xl">Justin L.</p>
-            <p class="text-sm sm:text-base uppercase tracking-wide text-gray-500">Backend Software & Database Management</p>
-          </div>
-        </div>
-        <div
-          class="rounded-2xl border border-primary/10 bg-white/80 p-6 flex flex-col items-center text-center space-y-3">
-          <img src="{{ url_for('static', filename='images/developer_portraits/owen.webp') }}" alt="Owen Z."
-            class="w-28 h-28 rounded-full object-cover" />
-          <div>
-            <p class="font-impact text-primary text-2xl sm:text-3xl">Owen Z.</p>
-            <p class="text-sm sm:text-base uppercase tracking-wide text-gray-500">Frontend and Backend API Integration</p>
-          </div>
-        </div>
-      </div>
-      <div
-        class="card border border-primary/10 bg-white/80 p-5 rounded-2xl sm:rounded-3xl flex flex-col items-start gap-3">
-        <div class="flex items-center gap-3">
-          <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current h-6 w-6 text-primary" fill="none"
-            viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <h3 class="font-impact italic text-primary text-xl sm:text-2xl">
-            Contact
-          </h3>
-        </div>
-        <p class="text-base sm:text-lg md:text-xl px-2 text-gray-700 space-y-1">
-          <span class="block">We'd love to hear from you! Please reach out to us at: <a
-              href="mailto:trackinsights@yahoo.com"
-              class="text-primary font-semibold hover:underline">trackinsights@yahoo.com</a></span>
-          <br>
-          <span class="block">See our past posts on Instagram: <a href="https://www.instagram.com/trackinsights/"
-              target="_blank" rel="noopener noreferrer"
-              class="text-primary font-semibold hover:underline">@trackinsights</a></span>
-        </p>
+    <div class="about-team">
+      <h3 class="about-heading">The 2026 &ndash; 2027 Team</h3>
+      <ul class="about-people">
+        <li><img src="{{ url_for('static', filename='images/developer_portraits/derek.webp') }}" alt="Derek A." width="320" height="320" loading="lazy" /><span>Derek A.</span><small>Homepage &amp; Navigation</small></li>
+        <li><img src="{{ url_for('static', filename='images/developer_portraits/navraj.webp') }}" alt="Navraj B." width="320" height="320" loading="lazy" /><span>Navraj B.</span><small>Insights &amp; Data Tools</small></li>
+        <li><img src="{{ url_for('static', filename='images/developer_portraits/aryav.webp') }}" alt="Aryav D." width="320" height="320" loading="lazy" /><span>Aryav D.</span><small>Visual Design &amp; Social</small></li>
+        <li><img src="{{ url_for('static', filename='images/developer_portraits/dominic.webp') }}" alt="Dominic G." width="320" height="320" loading="lazy" /><span>Dominic G.</span><small>Dashboards &amp; User Experience</small></li>
+        <li><img src="{{ url_for('static', filename='images/developer_portraits/sameer.webp') }}" alt="Sameer Z." width="320" height="320" loading="lazy" /><span>Sameer Z.</span><small>Event Pages &amp; Data Visualization</small></li>
+      </ul>
+      <h4 class="about-subheading">2025 &ndash; 2026</h4>
+      <ul class="about-people about-people-past">
+        <li><img src="{{ url_for('static', filename='images/developer_portraits/arnay.webp') }}" alt="Arnay G." width="320" height="303" loading="lazy" /><span>Arnay G.</span><small>Frontend UI &amp; UX</small></li>
+        <li><img src="{{ url_for('static', filename='images/developer_portraits/justin.webp') }}" alt="Justin L." width="240" height="300" loading="lazy" /><span>Justin L.</span><small>Backend &amp; Database</small></li>
+        <li><img src="{{ url_for('static', filename='images/developer_portraits/owen.webp') }}" alt="Owen Z." width="240" height="300" loading="lazy" /><span>Owen Z.</span><small>API Integration</small></li>
+      </ul>
+    </div>
+
+    <div class="about-contact">
+      <p>We&rsquo;d love to hear from you.</p>
+      <div class="about-contact-links">
+        <a href="mailto:trackinsights@yahoo.com">trackinsights@yahoo.com</a>
+        <a href="https://www.instagram.com/trackinsights/" target="_blank" rel="noopener noreferrer">@trackinsights on Instagram</a>
       </div>
     </div>
   </div>
-</div>
+
+  <style>
+    .about-section {
+      --about-bg: #0d0b0b;
+      --about-panel: rgba(255, 255, 255, 0.05);
+      --about-line: rgba(255, 255, 255, 0.14);
+      --about-red: #9b0a14;
+      --about-hot: #ff3b4e;
+      --about-ink: #f4f1ee;
+      --about-muted: rgba(244, 241, 238, 0.72);
+      position: relative;
+      z-index: 10;
+      background:
+        radial-gradient(ellipse 70% 40% at 50% 0%, rgba(155, 10, 20, 0.35) 0%, rgba(155, 10, 20, 0) 70%),
+        var(--about-bg);
+      color: var(--about-ink);
+      padding: clamp(4rem, 8vw, 7rem) 1rem clamp(4rem, 8vw, 6rem);
+      text-transform: none;
+    }
+    .about-inner { max-width: 72rem; margin: 0 auto; }
+    .about-head { max-width: 46rem; }
+    .about-kicker { margin: 0 0 .35rem; font-size: .85rem; letter-spacing: .3em; text-transform: uppercase; color: var(--about-hot); font-weight: 600; }
+    .about-title { margin: 0 0 1.1rem; font-family: 'Impact', 'Oswald', 'Arial Black', sans-serif; font-size: clamp(3rem, 8vw, 6rem); line-height: .9; letter-spacing: .04em; text-transform: uppercase; color: #fff; }
+    .about-lede { margin: 0; font-size: clamp(1.05rem, 1.6vw, 1.3rem); line-height: 1.55; color: var(--about-muted); }
+
+    .about-quote { margin-top: clamp(2.5rem, 5vw, 4rem); padding: clamp(1.4rem, 3vw, 2.4rem); border-left: 6px solid var(--about-red); background: var(--about-panel); border-radius: 0 1.25rem 1.25rem 0; }
+    .about-quote-label { margin: 0 0 .5rem; font-size: .8rem; letter-spacing: .22em; text-transform: uppercase; color: var(--about-muted); }
+    .about-quote-text { margin: 0 0 1rem; font-size: clamp(1.4rem, 3vw, 2.2rem); line-height: 1.2; font-weight: 600; color: #fff; }
+    .about-quote-body { margin: 0; line-height: 1.6; color: var(--about-muted); max-width: 56rem; }
+
+    .about-stats { list-style: none; margin: clamp(2.5rem, 5vw, 4rem) 0 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); border-top: 1px solid var(--about-line); border-bottom: 1px solid var(--about-line); }
+    .about-stats li { display: flex; flex-direction: column; gap: .2rem; padding: 1.3rem 1rem; border-left: 1px solid var(--about-line); }
+    .about-stats li:first-child { border-left: 0; }
+    .about-stat-number { font-family: 'Impact', 'Oswald', sans-serif; font-size: clamp(2rem, 3.6vw, 3rem); line-height: 1; color: #fff; letter-spacing: .02em; }
+    .about-stat-label { font-size: .78rem; letter-spacing: .18em; text-transform: uppercase; color: var(--about-muted); }
+    .about-stats-note { margin: .8rem 0 0; font-size: .9rem; color: var(--about-muted); }
+
+    .about-columns { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(1.5rem, 4vw, 3.5rem); margin-top: clamp(3rem, 6vw, 5rem); }
+    .about-heading { margin: 0 0 1.2rem; font-family: 'Impact', 'Oswald', sans-serif; font-size: clamp(1.8rem, 3vw, 2.6rem); letter-spacing: .05em; text-transform: uppercase; color: #fff; }
+    .about-heading::after { content: ''; display: block; width: 3.5rem; height: 4px; margin-top: .6rem; background: var(--about-red); }
+    .about-features { list-style: none; margin: 0; padding: 0; display: grid; gap: 1rem; }
+    .about-features li { display: flex; gap: 1rem; padding: 1rem 1.1rem; background: var(--about-panel); border: 1px solid var(--about-line); border-radius: 1rem; line-height: 1.5; color: var(--about-muted); }
+    .about-features li span { font-family: 'Impact', 'Oswald', sans-serif; font-size: 1.6rem; line-height: 1; color: var(--about-hot); flex: none; }
+    .about-features b { display: block; color: #fff; font-weight: 600; margin-bottom: .1rem; }
+
+    .about-timeline { list-style: none; margin: 0; padding: 0; position: relative; }
+    .about-timeline::before { content: ''; position: absolute; left: .45rem; top: .4rem; bottom: .4rem; width: 2px; background: var(--about-line); }
+    .about-timeline li { position: relative; padding: 0 0 1.5rem 2.2rem; }
+    .about-timeline li:last-child { padding-bottom: 0; }
+    .about-timeline li::before { content: ''; position: absolute; left: 0; top: .35rem; width: 1rem; height: 1rem; border-radius: 50%; background: var(--about-bg); border: 3px solid var(--about-red); }
+    .about-timeline li:first-child::before { background: var(--about-hot); border-color: var(--about-hot); box-shadow: 0 0 0 6px rgba(255, 59, 78, 0.18); }
+    .about-year { margin: 0 0 .3rem; font-family: 'Impact', 'Oswald', sans-serif; font-size: 1.35rem; letter-spacing: .06em; color: #fff; }
+    .about-timeline p { margin: 0; line-height: 1.55; color: var(--about-muted); }
+    .about-timeline b { color: #fff; font-weight: 600; }
+    .about-timeline a, .about-contact a { color: var(--about-hot); text-decoration: underline; text-underline-offset: 3px; }
+
+    .about-team { margin-top: clamp(3rem, 6vw, 5rem); }
+    .about-people { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: clamp(.8rem, 2vw, 1.5rem); }
+    .about-people li { display: flex; flex-direction: column; align-items: center; text-align: center; gap: .7rem; padding: 1.2rem .8rem 1.1rem; background: var(--about-panel); border: 1px solid var(--about-line); border-radius: 1.25rem; }
+    .about-people img { width: clamp(84px, 9vw, 128px); height: clamp(84px, 9vw, 128px); border-radius: 50%; object-fit: cover; border: 3px solid var(--about-red); box-shadow: 0 10px 30px rgba(0, 0, 0, .45); }
+    .about-people span { font-family: 'Impact', 'Oswald', sans-serif; font-size: 1.25rem; letter-spacing: .05em; color: #fff; }
+    .about-people small { font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; color: var(--about-muted); margin-top: -.35rem; line-height: 1.35; }
+    .about-subheading { margin: 2rem 0 .9rem; font-size: .85rem; letter-spacing: .25em; text-transform: uppercase; color: var(--about-muted); }
+    .about-people-past { grid-template-columns: repeat(3, minmax(0, 12rem)); }
+    .about-people-past li { padding: .9rem .6rem; background: transparent; }
+    .about-people-past img { width: 72px; height: 72px; border-color: var(--about-line); box-shadow: none; }
+    .about-people-past span { font-size: 1.05rem; }
+
+    .about-contact { margin-top: clamp(3rem, 6vw, 5rem); padding-top: 2rem; border-top: 1px solid var(--about-line); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; }
+    .about-contact p { margin: 0; font-size: 1.2rem; color: #fff; }
+    .about-contact-links { display: flex; flex-wrap: wrap; gap: .6rem; }
+    .about-contact-links a { display: inline-flex; align-items: center; min-height: 2.6rem; padding: .5rem 1.1rem; border: 1px solid rgba(255,255,255,.36); border-radius: 999px; background: rgba(255,255,255,.06); color: #fff; text-decoration: none; font-weight: 500; transition: background-color 150ms ease, border-color 150ms ease; }
+    .about-contact-links a:hover, .about-contact-links a:focus-visible { background: var(--about-red); border-color: var(--about-red); outline: none; }
+
+    @media (max-width: 900px) {
+      .about-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .about-stats li:nth-child(4) { border-left: 0; }
+      .about-stats li:nth-child(n+4) { border-top: 1px solid var(--about-line); }
+      .about-columns { grid-template-columns: 1fr; }
+      .about-people { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .about-people-past { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+    @media (max-width: 560px) {
+      .about-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .about-stats li:nth-child(odd) { border-left: 0; }
+      .about-stats li:nth-child(4) { border-left: 1px solid var(--about-line); }
+      .about-stats li:nth-child(n+3) { border-top: 1px solid var(--about-line); }
+      .about-people { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .about-people li:last-child:nth-child(odd) { grid-column: 1 / -1; }
+      .about-people-past { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .about-people-past li:last-child { grid-column: auto; }
+    }
+  </style>
+</section>
 </div>
 {% endblock %}

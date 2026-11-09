@@ -269,8 +269,8 @@ def _urls(card):
     theNames = {}
     for n in range(len(theDesignCodes)):
         theDesign = theDesignCodes[n]
-        theHtml[theDesign] = url_for("main.card_page", athlete_id=card["athlete_id"], meet_id=card["meet_id"], event_name=card["event"], design=theDesign)
-        thePng[theDesign] = url_for("main.card_png", athlete_id=card["athlete_id"], meet_id=card["meet_id"], event_name=card["event"], design=theDesign)
+        theHtml[theDesign] = url_for("main.card_page", athlete_id=card["athlete_id"], meet_id=card["meet_id"], event_name=card["event"], design=theDesign, v=theTemplateVersion)
+        thePng[theDesign] = url_for("main.card_png", athlete_id=card["athlete_id"], meet_id=card["meet_id"], event_name=card["event"], design=theDesign, v=theTemplateVersion)
         theShare[theDesign] = url_for("main.card_share_page", athlete_id=card["athlete_id"], meet_id=card["meet_id"], event_name=card["event"], design=theDesign, _external=True)
         theNames[theDesign] = download_name(card, theDesign)
     return {"html_url": theHtml, "png_url": thePng, "share_url": theShare, "download_name": theNames}

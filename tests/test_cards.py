@@ -185,8 +185,8 @@ def test_cards_api_lists_urls_per_design(client):
     assert len(theCards) == 3
     theCard = theCards[2]
     assert theCard["meet_type"] == "Sectional"
-    assert theCard["html_url"]["B"].endswith("?design=B")
-    assert theCard["png_url"]["E"].endswith(".png?design=E")
+    assert "?design=B&v=" in theCard["html_url"]["B"]
+    assert ".png?design=E&v=" in theCard["png_url"]["E"]
     assert theCard["download_name"]["B"] == "blake-sprinter-2024-sectional-100-meters-b.png"
     assert client.get("/api/athletes/999/cards").status_code == 404
 
