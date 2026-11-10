@@ -7,7 +7,12 @@ import time
 from flask import abort, redirect, render_template, request, url_for, Response, current_app
 from . import main_bp
 from ..queries import get_athletes
-from ..models import Athlete, School
+from ..queries.event_ranking import (
+    get_event_dashboard_analytics,
+    get_event_leaderboard,
+)
+from ..models import Athlete, School, AthleteResult
+from ..event_dashboards import EVENT_DASHBOARDS
 from ..videos import INTERVIEW_VIDEOS
 from ..services import cards, dashboard_v4
 from common.const import CONST
@@ -21,10 +26,14 @@ from ..analytics.regional_predictions import get_regional_predictions
 # pushing public; flip to True locally to spot-check the model.
 SHOW_2025_REGIONAL_PREDICTIONS = True
 
-
 @main_bp.route('/')
 def home():
-    return render_template('home.html')
+    return render_template(
+        'home.html',
+        event_pages=[
+            {**page, "url": f"/{page['slug']}"} for page in EVENT_DASHBOARDS
+        ],
+    )
 
 
 @main_bp.route('/search')
@@ -34,17 +43,22 @@ def search_page():
 
 @main_bp.route('/events')
 def events_page():
+    # An event that has its own dashboard goes straight there; the index is
+    # for picking one, and for the relays, which do not have a page yet.
     selected_event = request.args.get('event', '')
-    available_events = (
-        CONST.EVENT.ALL_TRACK
-        + CONST.EVENT.ALL_GIRLS_HURDLES
-        + CONST.EVENT.ALL_BOYS_HURDLES
-        + CONST.EVENT.ALL_RELAY
-        + CONST.EVENT.ALL_FIELD
-    )
-    if selected_event not in available_events:
+    for page in EVENT_DASHBOARDS:
+        if page['event'] == selected_event:
+            return redirect('/' + page['slug'])
+    if selected_event not in CONST.EVENT.ALL_RELAY:
         selected_event = ''
-    return render_template('events.html', selected_event=selected_event)
+    return render_template(
+        'events.html',
+        selected_event=selected_event,
+        event_pages=[
+            {**page, 'url': '/' + page['slug']} for page in EVENT_DASHBOARDS
+        ],
+        relay_events=CONST.EVENT.ALL_RELAY,
+    )
 
 
 @main_bp.route('/insights')
@@ -510,6 +524,10 @@ def sitemap_xml():
         url_for('main.regional_qualifiers_page', _external=True),
         url_for('main.state_qualifiers_page', _external=True),
     ]
+    pages.extend(
+        f"{request.url_root.rstrip('/')}/{page['slug']}"
+        for page in EVENT_DASHBOARDS
+    )
 
     athletes = Athlete.query.with_entities(Athlete.athlete_id).all()
     for (aid,) in athletes:
@@ -530,4 +548,99 @@ def sitemap_xml():
         + '\n</urlset>'
     )
     return Response(xml, mimetype='application/xml')
+@main_bp.route('/top-3200')
+def top_3200():
+    results = (
+    AthleteResult.query
+    .join(Athlete)
+    .filter(AthleteResult.event == '3200 Meters')
+    .filter(Athlete.gender == 'Boys')
+    .filter(AthleteResult.result2 < 9999)
+    .order_by(AthleteResult.result2)
+    .limit(10)
+    .all()
+    )
+    return render_template('top-3200.html',
+results=results,
+title='Boys 3200 Meters - Top 10 Since 2023')
 
+
+@main_bp.route('/100m', defaults={"event_slug": "100m"}, endpoint="hundred_meter_leaderboard")
+@main_bp.route('/200m', defaults={"event_slug": "200m"})
+@main_bp.route('/400m', defaults={"event_slug": "400m"})
+@main_bp.route('/800m', defaults={"event_slug": "800m"})
+@main_bp.route('/1600m', defaults={"event_slug": "1600m"})
+@main_bp.route('/3200m', defaults={"event_slug": "3200m"})
+@main_bp.route('/100h', defaults={"event_slug": "100h"})
+@main_bp.route('/110h', defaults={"event_slug": "110h"})
+@main_bp.route('/300h', defaults={"event_slug": "300h"})
+@main_bp.route('/shot-put', defaults={"event_slug": "shot-put"})
+@main_bp.route('/discus', defaults={"event_slug": "discus"})
+@main_bp.route('/pole-vault', defaults={"event_slug": "pole-vault"})
+@main_bp.route('/high-jump', defaults={"event_slug": "high-jump"})
+@main_bp.route('/long-jump', defaults={"event_slug": "long-jump"})
+def event_dashboard(event_slug):
+    event_page = next(
+        (page for page in EVENT_DASHBOARDS if page["slug"] == event_slug),
+        None,
+    )
+    if event_page is None:
+        return "Not Found", 404
+
+    available_genders = event_page["genders"]
+    gender = request.args.get('gender', 'Boys')
+    if gender not in available_genders:
+        gender = available_genders[0]
+
+    meet_type = request.args.get('meet_type', 'All')
+    if meet_type not in ('All', *CONST.MEET_TYPE.ALL):
+        meet_type = 'All'
+
+    event_name = event_page["event"]
+    selected_year = request.args.get('year', 'All')
+    if selected_year != 'All':
+        try:
+            year = int(selected_year)
+        except ValueError:
+            year = None
+            selected_year = 'All'
+    else:
+        year = None
+
+    analytics = get_event_dashboard_analytics(
+        event_name,
+        gender,
+        meet_type=None if meet_type == 'All' else meet_type,
+        year=year,
+    )
+    years = sorted(analytics["years"], reverse=True)
+    if year is not None and year not in years:
+        year = None
+        selected_year = 'All'
+        analytics = get_event_dashboard_analytics(
+            event_name,
+            gender,
+            meet_type=None if meet_type == 'All' else meet_type,
+        )
+
+    results = get_event_leaderboard(
+        event_name,
+        gender,
+        meet_type=None if meet_type == 'All' else meet_type,
+        year=year,
+    )
+    return render_template(
+        'event-dashboard.html',
+        results=results,
+        analytics=analytics,
+        gender=gender,
+        available_genders=available_genders,
+        meet_type=meet_type,
+        selected_year=selected_year,
+        years=years,
+        event_name=event_name,
+        event_slug=event_slug,
+        page_title=f"{event_page['label']} Leaderboard",
+        dashboard_url=request.path,
+    )
+   

@@ -109,8 +109,14 @@ def create_app(config_class=Config):
         # Keep the event picker aligned with the canonical DB event names while
         # presenting familiar labels in the menu and homepage search.
         from common.const import CONST
+        from .event_dashboards import EVENT_DASHBOARDS
 
-        return {'event_nav_groups': [
+        # Events with a dashboard link straight to it; the rest go through
+        # the events index page.
+        dashboard_urls = {
+            page['event']: '/' + page['slug'] for page in EVENT_DASHBOARDS}
+
+        return {'event_dashboard_urls': dashboard_urls, 'event_nav_groups': [
             {'label': 'Sprints', 'events': [
                 (CONST.EVENT.E100, '100m Dash'),
                 (CONST.EVENT.E200, '200m Dash'),

@@ -215,8 +215,8 @@
         <span class="search-pill__label">Search</span>
         <div class="search-pill__content">
           <form id="navSearchForm" class="search-pill__form" role="search" onsubmit="return false;" novalidate>
-            <label for="navSearchInput" class="sr-only">Search for your athlete's name and school</label>
-            <input id="navSearchInput" name="q" type="text" placeholder="Search for your athlete's name and school"
+            <label for="navSearchInput" class="sr-only">Search athletes, schools, and events</label>
+            <input id="navSearchInput" name="q" type="text" placeholder="Search athletes, schools, or events"
               autocomplete="off" class="search-pill__input" />
           </form>
           <button type="button" id="nav-search-close" class="search-pill__close" aria-label="Close search">
@@ -244,7 +244,7 @@
             </summary>
             <ul>
               {% for event_name, event_label in group.events %}
-              <li><a href="{{ url_for('main.events_page', event=event_name) }}" data-event-name="{{ event_name }}">{{ event_label }}</a></li>
+              <li><a href="{{ event_dashboard_urls.get(event_name) or url_for('main.events_page', event=event_name) }}" data-event-name="{{ event_name }}">{{ event_label }}</a></li>
               {% endfor %}
             </ul>
           </details>
