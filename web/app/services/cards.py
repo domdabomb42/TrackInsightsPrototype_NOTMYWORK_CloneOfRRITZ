@@ -46,8 +46,11 @@ theKnockoutNear = 30
 theKnockoutFar = 90
 theRenderGate = threading.BoundedSemaphore(2)
 theRenderTimeout = 20000
-theTemplateVersion = "7"
+theTemplateVersion = "8"
 theSilhouetteWidth = 1200
+theSmallLogo = 400
+theUpscaledLogo = 600
+theChipPad = 0.06
 theInkDark = 170
 theInkLight = 235
 theFilledShape = 0.55
@@ -223,7 +226,7 @@ def _silhouette_alpha(image):
         return None
     theMask = Image.new("L", image.size)
     theMask.putdata(theValues)
-    theMask = theMask.filter(ImageFilter.MedianFilter(3))
+    theMask = theMask.filter(ImageFilter.MedianFilter(5))
     theScale = theSilhouetteWidth / float(image.size[0])
     theSize = (theSilhouetteWidth, max(1, int(round(image.size[1] * theScale))))
     theMask = theMask.resize(theSize, Image.LANCZOS)
@@ -240,6 +243,8 @@ def _white_logo_bytes(logo_path):
         return None
     try:
         theImage = Image.open(logo_path).convert("RGBA")
+        if theImage.size[0] < theSmallLogo:
+            theImage = theImage.resize((theUpscaledLogo, max(1, int(round(theImage.size[1] * theUpscaledLogo / float(theImage.size[0]))))), Image.BICUBIC)
         theAlpha = _silhouette_alpha(theImage)
         if theAlpha is None:
             return None
@@ -258,6 +263,62 @@ def white_logo_png(school_id):
     if theSource is None:
         return None
     return _white_logo_bytes(theSource)
+
+
+@lru_cache(maxsize=512)
+def _chip_logo_bytes(logo_path):
+    try:
+        from PIL import Image
+    except ImportError:
+        return None
+    try:
+        theImage = Image.open(logo_path).convert("RGBA")
+        theBackground = _border_background(theImage)
+        if theBackground is not None:
+            thePixels = list(theImage.getdata())
+            theAlpha = list(theImage.getchannel("A").getdata())
+            for n in range(len(thePixels)):
+                thePixel = thePixels[n]
+                theDistance = abs(thePixel[0] - theBackground[0]) + abs(thePixel[1] - theBackground[1]) + abs(thePixel[2] - theBackground[2])
+                if theDistance <= theKnockoutNear:
+                    theAlpha[n] = 0
+                elif theDistance < theKnockoutFar:
+                    theAlpha[n] = min(theAlpha[n], int(255 * (theDistance - theKnockoutNear) / float(theKnockoutFar - theKnockoutNear)))
+            theMask = Image.new("L", theImage.size)
+            theMask.putdata(theAlpha)
+            theImage.putalpha(theMask)
+        theBox = theImage.getchannel("A").point(lambda v: 255 if v > 24 else 0).getbbox()
+        if theBox is None:
+            return None
+        thePad = int(round(max(theBox[2] - theBox[0], theBox[3] - theBox[1]) * theChipPad))
+        theBox = (max(0, theBox[0] - thePad), max(0, theBox[1] - thePad), min(theImage.size[0], theBox[2] + thePad), min(theImage.size[1], theBox[3] + thePad))
+        theImage = theImage.crop(theBox)
+        theBuffer = io.BytesIO()
+        theImage.save(theBuffer, format="PNG")
+        return theBuffer.getvalue(), theImage.size
+    except OSError as theError:
+        current_app.logger.warning("could not build the chip logo from %s: %s", logo_path, theError)
+        return None
+
+
+def chip_logo_png(school_id):
+    theSource = school_logo_path(school_id)
+    if theSource is None:
+        return None
+    theResult = _chip_logo_bytes(theSource)
+    if theResult is None:
+        return None
+    return theResult[0]
+
+
+def chip_logo_aspect(school_id):
+    theSource = school_logo_path(school_id)
+    if theSource is None:
+        return 1.0
+    theResult = _chip_logo_bytes(theSource)
+    if theResult is None:
+        return 1.0
+    return theResult[1][0] / float(max(theResult[1][1], 1))
 
 
 def _static_url(path):
@@ -299,7 +360,13 @@ def _school_block(card, embed):
     theWhiteBytes = white_logo_png(card["school_id"])
     theColors = school_colors(card["school_id"], theLogoPath)
     theLogo = None
-    if theLogoPath is not None:
+    theChipBytes = chip_logo_png(card["school_id"])
+    if theChipBytes is not None:
+        if embed == True:
+            theLogo = _bytes_uri(theChipBytes, "image/png")
+        else:
+            theLogo = url_for("main.school_logo_chip", school_id=card["school_id"], v=theTemplateVersion)
+    elif theLogoPath is not None:
         if embed == True:
             theLogo = _data_uri(theLogoPath)
         else:
@@ -315,6 +382,7 @@ def _school_block(card, embed):
         "accent": theColors["accent"],
         "glow": theColors["glow"],
         "logo": theLogo,
+        "logoAspect": chip_logo_aspect(card["school_id"]),
         "logoWhite": theWhite,
     }
 

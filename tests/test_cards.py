@@ -470,8 +470,8 @@ def test_glow_color_keeps_the_school_hue_on_black():
 
     assert glow_color("#1b2a57", "#f0d010") == "#f0d010"
     theRed = glow_color("#9e0e0e", "#ffffff")
-    assert theRed.startswith("#ff")
     assert theRed != "#ffffff"
+    assert int(theRed[1:3], 16) > 150 and int(theRed[3:5], 16) < 60
     assert glow_color("#111111", "#ffffff") == "#ffffff"
     assert glow_color("#1b2a57", "#ffffff") != "#ffffff"
 

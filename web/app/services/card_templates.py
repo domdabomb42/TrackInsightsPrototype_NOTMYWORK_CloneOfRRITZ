@@ -123,9 +123,11 @@ def whiteLogo(school, style):
 def logoChip(school):
     if school.get("logo") is None:
         return ""
+    theAspect = school.get("logoAspect", 1.0)
+    theWidth = int(round(min(260, max(110, 84 * theAspect + 26))))
     return (
-        '<div style="width:110px;height:110px;flex-shrink:0;background:#ffffff;border-radius:16px;display:flex;align-items:center;'
-        'justify-content:center;margin-bottom:10px"><img src="' + school["logo"] + '" alt="" style="max-height:84px;max-width:84px;width:auto;height:auto"></div>'
+        '<div style="width:' + str(theWidth) + 'px;height:110px;flex-shrink:0;background:#ffffff;border-radius:16px;display:flex;align-items:center;'
+        'justify-content:center;margin-bottom:10px"><img src="' + school["logo"] + '" alt="" style="max-height:84px;max-width:' + str(theWidth - 26) + 'px;width:auto;height:auto"></div>'
     )
 
 

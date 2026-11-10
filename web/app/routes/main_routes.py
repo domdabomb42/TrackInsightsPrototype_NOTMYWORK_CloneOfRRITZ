@@ -418,6 +418,16 @@ def card_sticker(athlete_id, meet_id, event_name):
     return _card_image_response(cards.render_sticker, theCard, theDesign, 'sticker-' + cards.download_name(theCard, theDesign))
 
 
+@main_bp.route('/card-logo/<int:school_id>/chip.png')
+def school_logo_chip(school_id):
+    theData = cards.chip_logo_png(school_id)
+    if theData is None:
+        abort(404)
+    theResponse = Response(theData, mimetype='image/png')
+    theResponse.headers['Cache-Control'] = 'public, max-age=604800'
+    return theResponse
+
+
 @main_bp.route('/card-logo/<int:school_id>/white.png')
 def school_logo_white(school_id):
     theData = cards.white_logo_png(school_id)

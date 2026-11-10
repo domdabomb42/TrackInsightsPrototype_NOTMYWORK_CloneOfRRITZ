@@ -28,7 +28,7 @@ theDistinctDistance = 120
 theSaturated = 0.35
 theCardBlack = (11, 11, 15)
 theMinAccentOnPrimary = 3.0
-theMinAccentOnBlack = 4.5
+theMinAccentOnBlack = 3.0
 theMinWhiteOnPrimary = 3.0
 theSameHue = 0.11
 theVividAccent = 0.5
@@ -36,7 +36,17 @@ theLightPrimary = 0.3
 theYellowHueLow = 0.07
 theYellowHueHigh = 0.2
 theMinPrimaryShare = 0.025
+theMinVividShare = 0.05
+theMinAccentShare = 0.015
+theRealColorShare = 0.04
+theDarkDominantShare = 0.2
+theDarkDominantSaturation = 0.6
+theMaxAccentWhitening = 4
+theTintedWins = 2.0
+theAccentValue = 0.92
+theAccentSaturation = 0.75
 theTintedSaturation = 0.12
+theTintedPrimarySaturation = 0.25
 theRichSaturation = 0.6
 theGlowMinChannel = 40
 theGlowSaturation = 0.85
@@ -143,7 +153,7 @@ def _reads_as_accent(rgb):
 
 
 def _richen(rgb):
-    if _saturation(rgb) < theTintedSaturation or max(rgb) < 60:
+    if _saturation(rgb) < theTintedSaturation or max(rgb) < 36:
         return rgb
     theHue, theSat, theVal = colorsys.rgb_to_hsv(rgb[0] / 255.0, rgb[1] / 255.0, rgb[2] / 255.0)
     theSat = max(theSat, theRichSaturation)
@@ -170,11 +180,20 @@ def _same_hue(rgb1, rgb2):
     return min(theGap, 1.0 - theGap) < theSameHue
 
 
-def _fit_accent(rgb, primary):
+def _brighten(rgb, theMinSaturation, theMinValue):
+    theHue, theSat, theValue = colorsys.rgb_to_hsv(rgb[0] / 255.0, rgb[1] / 255.0, rgb[2] / 255.0)
+    theRed, theGreen, theBlue = colorsys.hsv_to_rgb(theHue, max(theSat, theMinSaturation), max(theValue, theMinValue))
+    return (int(round(theRed * 255)), int(round(theGreen * 255)), int(round(theBlue * 255)))
+
+
+def _fit_accent(rgb, primary, share=1.0):
     if _same_hue(rgb, primary) == True:
         return (255, 255, 255)
-    for n in range(11):
-        theColor = _mix(rgb, (255, 255, 255), n / 10.0)
+    theBright = rgb
+    if _saturation(rgb) >= theVividAccent or (_saturation(rgb) >= theSaturated and share >= theRealColorShare):
+        theBright = _brighten(rgb, theAccentSaturation, theAccentValue)
+    for n in range(theMaxAccentWhitening + 1):
+        theColor = _mix(theBright, (255, 255, 255), n / 10.0)
         if _contrast(theColor, primary) >= theMinAccentOnPrimary and _contrast(theColor, theCardBlack) >= theMinAccentOnBlack:
             if _saturation(theColor) < theVividAccent:
                 return (255, 255, 255)
@@ -236,7 +255,7 @@ def _color_counts(path):
         thePixel = thePixels[n]
         if thePixel[3] < theOpaqueAlpha:
             continue
-        if theBackground is not None and _distance(thePixel[:3], theBackground) < 60:
+        if theBackground is not None and _saturation(theBackground) < theSaturated and _distance(thePixel[:3], theBackground) < 60:
             continue
         if min(thePixel[:3]) > 235:
             continue
@@ -249,16 +268,20 @@ def _color_counts(path):
     return theCounts
 
 
-def _pick_accent(ranked, primary):
+def _pick_accent(ranked, primary, shares=None):
     for n in range(len(ranked)):
         theCandidate = ranked[n]
+        if shares is not None and shares[n] < theMinAccentShare:
+            continue
         if _saturation(theCandidate) < theSaturated:
             continue
         if max(theCandidate) < 60:
             continue
         if _distance(theCandidate, primary) < theDistinctDistance:
             continue
-        return theCandidate
+        if shares is None:
+            return theCandidate, 1.0
+        return theCandidate, shares[n]
     return None
 
 
@@ -269,21 +292,33 @@ def _colors_from_logo(path):
     theTotal = float(sum(theCounts.values()))
     theRanked = sorted(theCounts.items(), key=lambda item: -item[1])
     theColors = []
+    theShares = []
     for n in range(len(theRanked)):
         theColors.append(theRanked[n][0])
+        theShares.append(theRanked[n][1] / theTotal)
     theVivid = []
+    theVividShare = 0.0
     for n in range(len(theRanked)):
         theCandidate = theRanked[n][0]
-        if _saturation(theCandidate) >= theSaturated and max(theCandidate) >= 60 and theRanked[n][1] / theTotal >= theMinPrimaryShare:
+        theShare = theRanked[n][1] / theTotal
+        theDarkDominant = _saturation(theCandidate) >= theDarkDominantSaturation and theShare >= theDarkDominantShare and max(theCandidate) >= 36
+        if _saturation(theCandidate) >= theSaturated and (max(theCandidate) >= 60 or theDarkDominant == True) and theShare >= theMinVividShare:
             theVivid.append(theCandidate)
-    if len(theVivid) == 0:
-        for n in range(len(theRanked)):
-            theCandidate = theRanked[n][0]
-            if _saturation(theCandidate) >= theTintedSaturation and max(theCandidate) >= 60 and theRanked[n][1] / theTotal >= theMinPrimaryShare:
-                theVivid.append(_richen(theCandidate))
-                break
+            if theVividShare == 0.0:
+                theVividShare = theShare
+    theTinted = None
+    theTintedShare = 0.0
+    for n in range(len(theRanked)):
+        theCandidate = theRanked[n][0]
+        if _saturation(theCandidate) >= theTintedPrimarySaturation and max(theCandidate) >= 60 and theRanked[n][1] / theTotal >= theMinPrimaryShare:
+            theTinted = theCandidate
+            theTintedShare = theRanked[n][1] / theTotal
+            break
+    if theTinted is not None and (len(theVivid) == 0 or theTintedShare >= theVividShare * theTintedWins):
+        theVivid.insert(0, _richen(theTinted))
     thePrimary = None
     theAccent = None
+    theAccentShare = theVividShare
     if len(theVivid) > 0:
         theLead = theVivid[0]
         if _reads_as_accent(theLead) == True:
@@ -303,12 +338,15 @@ def _colors_from_logo(path):
         thePrimary = _richen(thePrimary)
     thePrimary = _fit_primary(thePrimary)
     if theAccent is None:
-        theAccent = _pick_accent(theColors, thePrimary)
+        thePicked = _pick_accent(theColors, thePrimary, theShares)
+        if thePicked is not None:
+            theAccent = thePicked[0]
+            theAccentShare = thePicked[1]
     thePrimaryHex = _snap_edges(_to_hex(thePrimary))
     if theAccent is None:
         theAccentHex = theWhite
     else:
-        theAccentHex = _snap_edges(_to_hex(_fit_accent(theAccent, thePrimary)))
+        theAccentHex = _snap_edges(_to_hex(_fit_accent(theAccent, thePrimary, theAccentShare)))
     if theAccentHex == theNearBlack:
         theAccentHex = theWhite
     return {"primary": thePrimaryHex, "accent": theAccentHex}
@@ -335,10 +373,17 @@ def glow_color(primary, accent):
     if max(thePrimary) < theGlowMinChannel or _saturation(thePrimary) < theTintedSaturation:
         return theWhite
     theHue, theSat, theValue = colorsys.rgb_to_hsv(thePrimary[0] / 255.0, thePrimary[1] / 255.0, thePrimary[2] / 255.0)
-    theBright = colorsys.hsv_to_rgb(theHue, max(theSat, theGlowSaturation), 1.0)
-    theBright = (int(round(theBright[0] * 255)), int(round(theBright[1] * 255)), int(round(theBright[2] * 255)))
+    theSat = max(theSat, theGlowSaturation)
     for n in range(11):
-        theColor = _mix(theBright, (255, 255, 255), n / 10.0)
+        theLift = min(1.0, theValue + n / 10.0)
+        theColor = colorsys.hsv_to_rgb(theHue, theSat, theLift)
+        theColor = (int(round(theColor[0] * 255)), int(round(theColor[1] * 255)), int(round(theColor[2] * 255)))
+        if _contrast(theColor, theCardBlack) >= theMinAccentOnBlack:
+            return _to_hex(theColor)
+        if theLift >= 1.0:
+            break
+    for n in range(1, 11):
+        theColor = _mix(theColor, (255, 255, 255), n / 10.0)
         if _contrast(theColor, theCardBlack) >= theMinAccentOnBlack:
             if _saturation(theColor) < theGlowMinSaturation:
                 return theWhite
