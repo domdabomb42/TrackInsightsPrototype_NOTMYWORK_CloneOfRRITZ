@@ -250,7 +250,7 @@
       background: radial-gradient(ellipse at center, rgba(13, 11, 11, .42) 0%, rgba(13, 11, 11, .28) 40%, rgba(13, 11, 11, 0) 72%);
     }
     .home-search-hero h1.home-hero-title {
-      margin: 0 auto clamp(2rem, 4.5vw, 4rem);
+      margin: 0 auto clamp(1.5rem, 3.6vw, 3.75rem);
       font-family: 'Oswald', 'Arial Narrow', 'Segoe UI', 'Arial', sans-serif;
       font-size: clamp(3.4rem, 7vw, 8.5rem);
       line-height: .95;
@@ -357,10 +357,10 @@
     @media (min-width: 1024px) {
       .home-search-hero { width: clamp(40rem, 54vw, 68rem); }
       .home-search-hero h1.home-hero-title { white-space: nowrap; }
-      #homeSearchForm { height: 4.4rem; padding: 0 1.6rem; gap: 1rem; }
-      #homeSearchForm svg { width: 1.5rem; height: 1.5rem; }
-      #homeSearchForm input { font-size: 1.2rem; }
-      .home-qualifier-links { margin-top: 1.2rem; gap: .9rem; }
+      #homeSearchForm { height: clamp(3.5rem, 3.5vw, 4.5rem); padding: 0 clamp(1.15rem, 1.2vw, 1.6rem); gap: clamp(.8rem, .8vw, 1rem); }
+      #homeSearchForm svg { width: clamp(1.35rem, 1.15vw, 1.5rem); height: clamp(1.35rem, 1.15vw, 1.5rem); }
+      #homeSearchForm input { font-size: clamp(1.05rem, .95vw, 1.25rem); }
+      .home-qualifier-links { margin-top: clamp(.9rem, 1vw, 1.25rem); gap: clamp(.6rem, .7vw, .9rem); }
     }
     @media (max-width: 640px) {
       .home-search-hero { top: 48%; width: calc(100vw - 2rem); }
