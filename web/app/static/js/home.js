@@ -81,7 +81,19 @@
     preloadNext();
   }
 
-  // Change image every 5 seconds
+  // Change image every 7.5 seconds
   setInterval(nextImage, 7500);
   preloadNext();
+
+  // The full placeholder does not fit a phone-width search field.
+  const searchInput = document.getElementById('homeSearchInput');
+  const narrow = window.matchMedia('(max-width: 640px)');
+  if (searchInput && searchInput.dataset.placeholderShort) {
+    const fullPlaceholder = searchInput.placeholder;
+    const fitPlaceholder = () => {
+      searchInput.placeholder = narrow.matches ? searchInput.dataset.placeholderShort : fullPlaceholder;
+    };
+    fitPlaceholder();
+    if (narrow.addEventListener) narrow.addEventListener('change', fitPlaceholder);
+  }
 })();

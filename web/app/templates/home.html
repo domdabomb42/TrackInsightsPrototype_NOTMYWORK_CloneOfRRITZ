@@ -30,12 +30,13 @@
     <script src="{{ url_for('static', filename='js/home.js') }}?v={{ asset_version('js/home.js') }}" defer></script>
 
   <section class="home-search-hero" aria-label="Search Indiana track and field">
-    <h1 style = "margin-bottom: 4vh;">TRACK INSIGHTS</h1>
+    <h1>Track Insights</h1>
+    <p class="home-tagline">Indiana high school track and field: every postseason result, ranked, compared and ready to share.</p>
     <div class="home-search-wrap">
       <form id="homeSearchForm" role="search" autocomplete="off">
         <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg>
         <label for="homeSearchInput" class="sr-only">Search athletes, events, and schools</label>
-        <input id="homeSearchInput" name="q" type="search" placeholder="Search by athlete, event, or school name" aria-label="Search by athlete, event, or school name" />
+        <input id="homeSearchInput" name="q" type="search" placeholder="Search by athlete, event, or school name" data-placeholder-short="Athlete, event, or school" aria-label="Search by athlete, event, or school name" />
       </form>
       <div id="home-search-results" class="home-search-results" aria-live="polite"></div>
     </div>
@@ -45,6 +46,9 @@
     </nav>
   </section>
 
+  <a href="#about" class="home-scroll-cue" aria-label="Scroll down to learn about Track Insights">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+  </a>
   <div class="absolute bottom-4 right-4 md:bottom-6 md:right-6 text-[10px] sm:text-xs  uppercase text-white/80 drop-shadow-lg font-semibold no-select">
       Images licensed from IndyStar
     </div>
@@ -238,13 +242,67 @@
       color: #fff;
       text-shadow: 0 2px 16px rgba(0, 0, 0, .65);
     }
+    .home-search-hero::before {
+      content: '';
+      position: absolute;
+      inset: -40% -30%;
+      z-index: -1;
+      pointer-events: none;
+      background: radial-gradient(ellipse at center, rgba(13, 11, 11, .42) 0%, rgba(13, 11, 11, .28) 40%, rgba(13, 11, 11, 0) 72%);
+    }
     .home-search-hero h1 {
       max-width: 39rem;
-      margin: 0 auto 1.25rem;
+      margin: 0 auto .6rem;
       font: 600 clamp(2.5rem, 7vw, 5.5rem)/1 'Oswald', 'Arial Narrow', sans-serif;
       letter-spacing: .025em;
       text-transform: uppercase;
       text-shadow: 0 3px 18px rgba(0,0,0,.85), 0 1px 3px rgba(0,0,0,.9);
+    }
+    .home-tagline {
+      max-width: 34rem;
+      margin: 0 auto 1.75rem;
+      font-size: clamp(1rem, 1.5vw, 1.2rem);
+      line-height: 1.4;
+      font-weight: 500;
+      letter-spacing: .02em;
+      color: rgba(255, 255, 255, .92);
+    }
+    #bg-slideshow img {
+      transform-origin: 50% 30%;
+      animation: home-hero-zoom 22s ease-in-out infinite alternate;
+    }
+    #bg-image-2 { animation-delay: -11s; }
+    @keyframes home-hero-zoom {
+      from { transform: scale(1); }
+      to { transform: scale(1.07); }
+    }
+    .home-scroll-cue {
+      position: absolute;
+      left: 50%;
+      bottom: 1.4rem;
+      z-index: 5;
+      width: 2.6rem;
+      height: 2.6rem;
+      margin-left: -1.3rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(255, 255, 255, .36);
+      border-radius: 999px;
+      background: rgba(24, 20, 20, .45);
+      color: #fff;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, .3);
+      animation: home-cue-bob 2.4s ease-in-out infinite;
+      transition: background-color 150ms ease, border-color 150ms ease;
+    }
+    .home-scroll-cue svg { width: 1.2rem; height: 1.2rem; }
+    .home-scroll-cue:hover, .home-scroll-cue:focus-visible { background: rgba(24, 20, 20, .75); border-color: rgba(255, 255, 255, .7); outline: none; }
+    @keyframes home-cue-bob {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(5px); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #bg-slideshow img, .home-scroll-cue { animation: none; }
     }
     .home-search-wrap { position: relative; text-shadow: none; }
     #homeSearchForm {
@@ -304,8 +362,10 @@
       outline: none;
     }
     @media (max-width: 640px) {
-      .home-search-hero { top: 50%; width: calc(100vw - 2rem); }
-      .home-search-hero h1 { margin-bottom: 1rem; }
+      .home-search-hero { top: 48%; width: calc(100vw - 2rem); }
+      .home-search-hero h1 { margin-bottom: .5rem; }
+      .home-tagline { font-size: .95rem; margin-bottom: 1.25rem; }
+      .home-scroll-cue { bottom: 1rem; }
       #homeSearchForm { height: 3.4rem; }
       .home-qualifier-links { gap: .45rem; }
       .home-qualifier-links a { font-size: .82rem; padding: .4rem .75rem; }
