@@ -46,7 +46,7 @@ theKnockoutNear = 30
 theKnockoutFar = 90
 theRenderGate = threading.BoundedSemaphore(2)
 theRenderTimeout = 20000
-theTemplateVersion = "8"
+theTemplateVersion = "9"
 theSilhouetteWidth = 1200
 theSmallLogo = 400
 theUpscaledLogo = 600
@@ -55,7 +55,11 @@ theInkDark = 170
 theInkLight = 235
 theFilledShape = 0.55
 theCarveMinShare = 0.06
+theSparseLine = 0.02
 theCarveMinGap = 50
+theMinTonedShare = 0.25
+theEdgeFrame = 0.02
+theEdgeKnockout = 200
 theMinInkCoverage = 0.015
 theBorderShare = 0.8
 theStickerSize = 400
@@ -124,6 +128,8 @@ def _border_background(image):
 def _ink_mask(image):
     theAlphaChannel = image.getchannel("A")
     theBackground = _border_background(image)
+    theWidth, theHeight = image.size
+    theFrame = max(2, int(round(min(theWidth, theHeight) * theEdgeFrame)))
     theAlphaValues = list(theAlphaChannel.getdata())
     thePixels = list(image.getdata())
     theValues = []
@@ -138,7 +144,12 @@ def _ink_mask(image):
             theInk = int(255 * (theInkLight - theLightest) / float(theInkLight - theInkDark))
         if theBackground is not None:
             theDistance = abs(thePixel[0] - theBackground[0]) + abs(thePixel[1] - theBackground[1]) + abs(thePixel[2] - theBackground[2])
-            if theDistance <= theKnockoutNear:
+            theX = n % theWidth
+            theY = n // theWidth
+            theOnEdge = theX < theFrame or theX >= theWidth - theFrame or theY < theFrame or theY >= theHeight - theFrame
+            if theOnEdge == True and theDistance < theEdgeKnockout:
+                theBackgroundInk = 0
+            elif theDistance <= theKnockoutNear:
                 theBackgroundInk = 0
             elif theDistance >= theKnockoutFar:
                 theBackgroundInk = 255
@@ -190,30 +201,49 @@ def _carve_filled_shape(image, theValues):
     theInkIndexes = [n for n in range(len(theValues)) if theValues[n] > 128]
     if len(theInkIndexes) == 0:
         return theValues
-    theLeft = min(n % theWidth for n in theInkIndexes)
-    theRight = max(n % theWidth for n in theInkIndexes)
-    theTop = min(n // theWidth for n in theInkIndexes)
-    theBottom = max(n // theWidth for n in theInkIndexes)
-    theBoxArea = float((theRight - theLeft + 1) * (theBottom - theTop + 1))
-    if len(theInkIndexes) / theBoxArea < theFilledShape:
+    theColumnCounts = [0] * theWidth
+    theRowCounts = [0] * theHeight
+    for n in range(len(theInkIndexes)):
+        theColumnCounts[theInkIndexes[n] % theWidth] += 1
+        theRowCounts[theInkIndexes[n] // theWidth] += 1
+    theDenseColumns = [x for x in range(theWidth) if theColumnCounts[x] >= max(2, theHeight * theSparseLine)]
+    theDenseRows = [y for y in range(theHeight) if theRowCounts[y] >= max(2, theWidth * theSparseLine)]
+    if len(theDenseColumns) == 0 or len(theDenseRows) == 0:
         return theValues
+    theLeft = theDenseColumns[0]
+    theRight = theDenseColumns[-1]
+    theTop = theDenseRows[0]
+    theBottom = theDenseRows[-1]
+    theBoxArea = float((theRight - theLeft + 1) * (theBottom - theTop + 1))
+    theInside = [n for n in theInkIndexes if theLeft <= n % theWidth <= theRight and theTop <= n // theWidth <= theBottom]
+    if len(theInside) / theBoxArea < theFilledShape:
+        return theValues
+    theInkIndexes = theInside
     thePixels = list(image.getdata())
+    theLight = [n for n in theInkIndexes if min(thePixels[n][0], thePixels[n][1], thePixels[n][2]) >= theInkLight]
+    theLightShare = len(theLight) / float(len(theInkIndexes))
+    if theLightShare >= theCarveMinShare and theLightShare <= 1 - theMinTonedShare:
+        return _without(theValues, theLight)
     theLuminances = [_luminance(thePixels[n]) for n in theInkIndexes]
     theThreshold = _otsu(theLuminances)
-    theDark = [theLuminances[n] for n in range(len(theLuminances)) if theLuminances[n] <= theThreshold]
-    theLight = [theLuminances[n] for n in range(len(theLuminances)) if theLuminances[n] > theThreshold]
-    if len(theDark) == 0 or len(theLight) == 0:
+    theDark = [theInkIndexes[n] for n in range(len(theLuminances)) if theLuminances[n] <= theThreshold]
+    theBright = [theInkIndexes[n] for n in range(len(theLuminances)) if theLuminances[n] > theThreshold]
+    if len(theDark) == 0 or len(theBright) == 0:
         return theValues
-    theGap = sum(theLight) / float(len(theLight)) - sum(theDark) / float(len(theDark))
-    theMinorityShare = min(len(theDark), len(theLight)) / float(len(theLuminances))
-    if theGap < theCarveMinGap or theMinorityShare < theCarveMinShare:
+    theDarkMean = sum(theLuminances[n] for n in range(len(theLuminances)) if theLuminances[n] <= theThreshold) / float(len(theDark))
+    theBrightMean = sum(theLuminances[n] for n in range(len(theLuminances)) if theLuminances[n] > theThreshold) / float(len(theBright))
+    theMinorityShare = min(len(theDark), len(theBright)) / float(len(theLuminances))
+    if theBrightMean - theDarkMean < theCarveMinGap or theMinorityShare < theCarveMinShare:
         return theValues
-    theKeepDark = len(theDark) >= len(theLight)
+    if len(theDark) / float(len(theLuminances)) >= theMinTonedShare:
+        return _without(theValues, theBright)
+    return _without(theValues, theDark)
+
+
+def _without(theValues, theDrop):
     theCarved = list(theValues)
-    for n in range(len(theInkIndexes)):
-        theIsDark = theLuminances[n] <= theThreshold
-        if theIsDark != theKeepDark:
-            theCarved[theInkIndexes[n]] = 0
+    for n in range(len(theDrop)):
+        theCarved[theDrop[n]] = 0
     return theCarved
 
 
@@ -275,12 +305,19 @@ def _chip_logo_bytes(logo_path):
         theImage = Image.open(logo_path).convert("RGBA")
         theBackground = _border_background(theImage)
         if theBackground is not None:
+            theWidth, theHeight = theImage.size
+            theFrame = max(2, int(round(min(theWidth, theHeight) * theEdgeFrame)))
             thePixels = list(theImage.getdata())
             theAlpha = list(theImage.getchannel("A").getdata())
             for n in range(len(thePixels)):
                 thePixel = thePixels[n]
                 theDistance = abs(thePixel[0] - theBackground[0]) + abs(thePixel[1] - theBackground[1]) + abs(thePixel[2] - theBackground[2])
-                if theDistance <= theKnockoutNear:
+                theX = n % theWidth
+                theY = n // theWidth
+                theOnEdge = theX < theFrame or theX >= theWidth - theFrame or theY < theFrame or theY >= theHeight - theFrame
+                if theOnEdge == True and theDistance < theEdgeKnockout:
+                    theAlpha[n] = 0
+                elif theDistance <= theKnockoutNear:
                     theAlpha[n] = 0
                 elif theDistance < theKnockoutFar:
                     theAlpha[n] = min(theAlpha[n], int(255 * (theDistance - theKnockoutNear) / float(theKnockoutFar - theKnockoutNear)))
