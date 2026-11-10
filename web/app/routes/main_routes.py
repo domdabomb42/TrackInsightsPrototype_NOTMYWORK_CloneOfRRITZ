@@ -28,12 +28,7 @@ SHOW_2025_REGIONAL_PREDICTIONS = True
 
 @main_bp.route('/')
 def home():
-    return render_template(
-        'home.html',
-        event_pages=[
-            {**page, "url": f"/{page['slug']}"} for page in EVENT_DASHBOARDS
-        ],
-    )
+    return render_template('home.html')
 
 
 @main_bp.route('/search')

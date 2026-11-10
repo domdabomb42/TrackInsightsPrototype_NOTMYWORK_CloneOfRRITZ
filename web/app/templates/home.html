@@ -481,8 +481,7 @@
           <li><span class="font-impact text-primary">02</span><p><b>Athlete Cards</b>: Share any postseason result as a card in your school&rsquo;s colors, straight to Instagram or Snapchat.</p></li>
           <li><span class="font-impact text-primary">03</span><p><b>Performance Rankings</b>: See how athlete performances rank across categories such as grade level and school size.</p></li>
           <li><span class="font-impact text-primary">04</span><p><b>Qualifiers &amp; Queries</b>: Follow the unofficial Regional and State qualifier lists, and explore trends in IHSAA playoff performances.</p></li>
-          <li><span class="font-impact text-primary">05</span><div><p><b>Event Dashboards</b>: Compare postseason marks, percentiles, advancement benchmarks, and season trends for every event.</p>
-            <div class="about-event-links">{% for event_page in event_pages %}<a href="{{ event_page.url }}">{{ event_page.label }}</a>{% endfor %}</div></div></li>
+          <li><span class="font-impact text-primary">05</span><p><b>Event Dashboards</b>: Compare postseason marks, percentiles, advancement benchmarks, and season trends for every event.</p></li>
         </ol>
       </div>
       <div>
@@ -553,9 +552,6 @@
     .about-features li:first-child { padding-top: 0; }
     .about-features span { font-size: 1.5rem; line-height: 1.25; }
     .about-features p { margin: 0; font-size: 1rem; }
-    .about-event-links { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .6rem; }
-    .about-event-links a { font-size: .8rem; font-weight: 600; padding: .2rem .65rem; border: 1px solid var(--color-primary); border-radius: 999px; color: var(--color-primary); text-decoration: none; }
-    .about-event-links a:hover { background: var(--color-primary); color: #fff; }
     .about-stats-lead { margin: 0 0 1.1rem; font-size: 1rem; }
     .about-stats { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
     .about-stats li { display: flex; flex-direction: column; gap: .1rem; padding: 1rem 1.15rem; background: #f6f7fa; border: 1px solid #e5e7eb; border-radius: .85rem; }
