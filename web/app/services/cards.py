@@ -46,10 +46,13 @@ theKnockoutNear = 30
 theKnockoutFar = 90
 theRenderGate = threading.BoundedSemaphore(2)
 theRenderTimeout = 20000
-theTemplateVersion = "6"
+theTemplateVersion = "7"
 theSilhouetteWidth = 1200
 theInkDark = 170
 theInkLight = 235
+theFilledShape = 0.55
+theCarveMinShare = 0.06
+theCarveMinGap = 50
 theMinInkCoverage = 0.015
 theBorderShare = 0.8
 theStickerSize = 400
@@ -146,10 +149,75 @@ def _ink_mask(image):
     return theValues
 
 
+def _luminance(pixel):
+    return int(0.299 * pixel[0] + 0.587 * pixel[1] + 0.114 * pixel[2])
+
+
+def _otsu(values):
+    theCounts = [0] * 256
+    for n in range(len(values)):
+        theCounts[values[n]] += 1
+    theTotal = float(len(values))
+    theSum = 0.0
+    for n in range(256):
+        theSum += n * theCounts[n]
+    theBest = 0
+    theBestVariance = -1.0
+    theWeightBelow = 0.0
+    theSumBelow = 0.0
+    for n in range(256):
+        theWeightBelow += theCounts[n]
+        if theWeightBelow == 0:
+            continue
+        theWeightAbove = theTotal - theWeightBelow
+        if theWeightAbove == 0:
+            break
+        theSumBelow += n * theCounts[n]
+        theMeanBelow = theSumBelow / theWeightBelow
+        theMeanAbove = (theSum - theSumBelow) / theWeightAbove
+        theVariance = theWeightBelow * theWeightAbove * (theMeanBelow - theMeanAbove) ** 2
+        if theVariance > theBestVariance:
+            theBestVariance = theVariance
+            theBest = n
+    return theBest
+
+
+def _carve_filled_shape(image, theValues):
+    theWidth, theHeight = image.size
+    theInkIndexes = [n for n in range(len(theValues)) if theValues[n] > 128]
+    if len(theInkIndexes) == 0:
+        return theValues
+    theLeft = min(n % theWidth for n in theInkIndexes)
+    theRight = max(n % theWidth for n in theInkIndexes)
+    theTop = min(n // theWidth for n in theInkIndexes)
+    theBottom = max(n // theWidth for n in theInkIndexes)
+    theBoxArea = float((theRight - theLeft + 1) * (theBottom - theTop + 1))
+    if len(theInkIndexes) / theBoxArea < theFilledShape:
+        return theValues
+    thePixels = list(image.getdata())
+    theLuminances = [_luminance(thePixels[n]) for n in theInkIndexes]
+    theThreshold = _otsu(theLuminances)
+    theDark = [theLuminances[n] for n in range(len(theLuminances)) if theLuminances[n] <= theThreshold]
+    theLight = [theLuminances[n] for n in range(len(theLuminances)) if theLuminances[n] > theThreshold]
+    if len(theDark) == 0 or len(theLight) == 0:
+        return theValues
+    theGap = sum(theLight) / float(len(theLight)) - sum(theDark) / float(len(theDark))
+    theMinorityShare = min(len(theDark), len(theLight)) / float(len(theLuminances))
+    if theGap < theCarveMinGap or theMinorityShare < theCarveMinShare:
+        return theValues
+    theKeepDark = len(theDark) >= len(theLight)
+    theCarved = list(theValues)
+    for n in range(len(theInkIndexes)):
+        theIsDark = theLuminances[n] <= theThreshold
+        if theIsDark != theKeepDark:
+            theCarved[theInkIndexes[n]] = 0
+    return theCarved
+
+
 def _silhouette_alpha(image):
     from PIL import Image, ImageFilter
 
-    theValues = _ink_mask(image)
+    theValues = _carve_filled_shape(image, _ink_mask(image))
     theCoverage = sum(1 for n in range(len(theValues)) if theValues[n] > 128) / float(max(len(theValues), 1))
     if theCoverage < theMinInkCoverage:
         return None
