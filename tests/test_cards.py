@@ -209,6 +209,15 @@ def test_card_png_is_rendered_in_memory_and_served(app, client):
     assert theAgain.headers["Content-Disposition"].startswith("attachment;")
 
 
+def test_the_painter_has_everything_it_needs(app):
+    from app.services.cards import paint_problem, thePaintFontFiles
+
+    assert paint_problem() is None
+    assert app.config["CARDS_RENDER_PROBLEM"] is None
+    for theKey in thePaintFontFiles:
+        assert os.path.isfile(os.path.join(app.static_folder, thePaintFontFiles[theKey])), theKey
+
+
 def test_every_design_paints_without_a_browser(client):
     for theDesign in ("B", "E", "A"):
         theResponse = client.get("/card/102/4/100 Meters.png?design=" + theDesign)

@@ -34,6 +34,12 @@ theFontFiles = {
     "mono400": "fonts/space-mono-latin-400-normal.woff2",
     "mono700": "fonts/space-mono-latin-700-normal.woff2",
 }
+thePaintFontFiles = {
+    "oswald500": "fonts/oswald-latin-500-normal.ttf",
+    "oswald700": "fonts/oswald-latin-700-normal.ttf",
+    "mono400": "fonts/space-mono-latin-400-normal.ttf",
+    "mono700": "fonts/space-mono-latin-700-normal.ttf",
+}
 theTiLogoFile = "images/favicon-ti.webp"
 theMimeTypes = {
     ".woff2": "font/woff2",
@@ -530,9 +536,27 @@ def _painter():
 
 def _files():
     theFonts = {}
-    for theKey in theFontFiles:
-        theFonts[theKey] = _static_path(theFontFiles[theKey])
+    for theKey in thePaintFontFiles:
+        theFonts[theKey] = _static_path(thePaintFontFiles[theKey])
     return {"tiLogo": _static_path(theTiLogoFile), "fonts": theFonts}
+
+
+def paint_problem():
+    try:
+        from PIL import Image, ImageFont
+        import numpy
+    except ImportError as theError:
+        return "Pillow and numpy are not installed (" + str(theError) + "); run pip install Pillow numpy"
+    theFiles = _files()
+    theMissing = [thePath for thePath in list(theFiles["fonts"].values()) + [theFiles["tiLogo"]] if os.path.isfile(thePath) == False]
+    if len(theMissing) > 0:
+        return "card assets are missing from static/: " + ", ".join(os.path.basename(thePath) for thePath in theMissing)
+    try:
+        ImageFont.truetype(theFiles["fonts"]["oswald700"], 40)
+        Image.open(theFiles["tiLogo"]).close()
+    except Exception as theError:
+        return "card assets could not be loaded (" + str(theError) + ")"
+    return None
 
 
 def _paint(card, design):

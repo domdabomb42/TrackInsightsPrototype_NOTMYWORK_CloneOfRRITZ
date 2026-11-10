@@ -520,23 +520,28 @@ template or styling fix while the results are mid-rebuild, where blocking the
 deploy would be the wrong answer. It is a deliberate override -- the deploy
 script above uses the gate.
 
-**The server needs three packages and nothing else:**
+**The server needs four packages and nothing else:**
 
 ```bash
-pip install Flask Flask-SQLAlchemy pandas
+pip install Flask Flask-SQLAlchemy pandas Pillow
 ```
+
+Pillow paints the athlete card images (numpy, which the painter also uses,
+arrives with pandas). Leave it out and every card `.png` answers 503; the app
+also logs `athlete cards cannot render on this server` at start-up so the
+error log says why.
 
 No `pip install -e .` here -- `pyproject.toml` is at the repo root and the
 deploy does not copy it, so there is no project for pip to install. `common/`
 needs no install either: it lands beside `wsgi.py` in `~/mysite`, which is
 already on `sys.path`.
 
-Those three are the `[web]` extra plus the base dependency in
+Those four are the `[web]` extra plus the base dependency in
 `pyproject.toml`; keep them in step by hand, or copy `pyproject.toml` across
 in the deploy and use `pip install ".[web]"` instead.
 
 Do **not** install the `standalone` or `dev` extras there. They pull jupyter,
-matplotlib, Pillow and reportlab -- roughly 300 MB that never runs on the
+matplotlib and reportlab -- roughly 300 MB that never runs on the
 site, and enough to crowd a 1 GB quota. Note that installing the lean set
 does not remove them: pip never prunes, so an environment that already has
 them has to be rebuilt to get the space back.

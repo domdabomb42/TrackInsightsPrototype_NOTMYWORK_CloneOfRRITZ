@@ -151,6 +151,16 @@ def create_app(config_class=Config):
     app.register_blueprint(main_bp)
     app.register_blueprint(api_bp, url_prefix='/api')
 
+    # Athlete card PNGs are painted in-process with Pillow. If that cannot
+    # work here (package or font missing) say so at start-up, in the error
+    # log a deployer actually reads, instead of a 503 on every card.
+    from .services.cards import paint_problem
+    with app.app_context():
+        theCardProblem = paint_problem()
+    app.config['CARDS_RENDER_PROBLEM'] = theCardProblem
+    if theCardProblem is not None:
+        app.logger.error('athlete cards cannot render on this server: %s', theCardProblem)
+
     # Query results are cached in-process and keyed on their arguments, so
     # nothing evicts them when Track.db is replaced -- a worker would serve the
     # rankings it computed at start-up until someone reloaded the web app. This
