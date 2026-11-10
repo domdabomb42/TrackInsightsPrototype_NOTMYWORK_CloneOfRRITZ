@@ -250,25 +250,15 @@
       background: radial-gradient(ellipse at center, rgba(13, 11, 11, .42) 0%, rgba(13, 11, 11, .28) 40%, rgba(13, 11, 11, 0) 72%);
     }
     .home-search-hero h1.home-hero-title {
-      margin: 0 auto 1.5rem;
-      font-family: 'Impact', 'Arial Black', 'Segoe UI', sans-serif;
-      font-size: clamp(3rem, 6.6vw, 6.25rem);
-      line-height: .9;
-      font-weight: 400;
+      margin: 0 auto clamp(2rem, 4.5vw, 4rem);
+      font-family: 'Oswald', 'Arial Narrow', 'Segoe UI', 'Arial', sans-serif;
+      font-size: clamp(3.4rem, 7vw, 8.5rem);
+      line-height: .95;
+      font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: clamp(0.2rem, .8vw, .9rem);
-      color: rgba(255, 255, 255, 0.94);
-      text-shadow: 0 10px 22px rgba(0, 0, 0, 0.55);
-      filter: drop-shadow(0 18px 28px rgba(0, 0, 0, 0.45));
-      padding-left: clamp(0.2rem, .8vw, .9rem);
-    }
-    @media (min-width: 1024px) {
-      .home-search-hero { width: max-content; max-width: 92vw; }
-      .home-search-hero h1.home-hero-title { white-space: nowrap; }
-      .home-search-wrap { width: 86%; margin: 0 auto; }
-    }
-    @media (max-width: 640px) {
-      .home-search-hero h1.home-hero-title { line-height: .95; }
+      letter-spacing: .01em;
+      color: #fff;
+      text-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.45);
     }
     #bg-slideshow img {
       transform-origin: 50% 30%;
@@ -364,9 +354,17 @@
       border-color: rgba(255,255,255,.7);
       outline: none;
     }
+    @media (min-width: 1024px) {
+      .home-search-hero { width: clamp(40rem, 54vw, 68rem); }
+      .home-search-hero h1.home-hero-title { white-space: nowrap; }
+      #homeSearchForm { height: 4.4rem; padding: 0 1.6rem; gap: 1rem; }
+      #homeSearchForm svg { width: 1.5rem; height: 1.5rem; }
+      #homeSearchForm input { font-size: 1.2rem; }
+      .home-qualifier-links { margin-top: 1.2rem; gap: .9rem; }
+    }
     @media (max-width: 640px) {
       .home-search-hero { top: 48%; width: calc(100vw - 2rem); }
-      .home-search-hero h1.home-hero-title { margin-bottom: 1rem; }
+      .home-search-hero h1.home-hero-title { margin-bottom: 1.75rem; }
       .home-scroll-cue { bottom: 1rem; }
       #homeSearchForm { height: 3.4rem; }
       .home-qualifier-links { gap: .45rem; }
