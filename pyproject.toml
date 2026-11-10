@@ -15,6 +15,8 @@ dependencies = [
 web = [
     "Flask",
     "Flask-SQLAlchemy",
+    "Pillow",      # paints the athlete card PNGs and the logo silhouettes
+    "numpy",       # card gradients and washes
 ]
 standalone = [
     "requests",
@@ -31,8 +33,8 @@ standalone = [
     "rlPyCairo",
 ]
 cards = [
-    "Pillow",      # white logo silhouettes and fallback school colors for athlete cards
-    "playwright",  # renders the card HTML to PNG; run `playwright install chromium` once
+    "Pillow",      # kept so an older `pip install -e ".[cards]"` still works; web covers it
+    "numpy",
 ]
 dev = [
     "pytest",

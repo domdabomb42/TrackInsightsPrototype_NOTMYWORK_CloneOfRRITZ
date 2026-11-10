@@ -314,26 +314,19 @@ whenever the sampled pair looks wrong; the next render uses it. The card
 ID (`TI26-SEC-D699`) hashes `athlete_id`, `meet_id` and event, so a screenshot
 of a card can be traced back to one `athlete_result` row.
 
-**Rendering needs two extra packages**: `pip install -e ".[cards]"`, then
-`playwright install chromium` once. Without them the card HTML still works and
-the `.png` route answers 503, which the dashboard reports as the image being
-unavailable. Images are rendered in memory when a visitor asks for one and
+**Rendering needs no browser.** The PNG is painted with Pillow and numpy
+(`web/app/services/card_paint.py`), which `pip install -e ".[web]"` already
+brings in, so cards work on any machine or server that runs the site. The HTML
+version of each card (`card_templates.py`) is the same design and is what the
+dashboard shows in its preview; the painter uses the same layout numbers, so
+the two match. Images are rendered in memory when a visitor asks for one and
 streamed back; nothing is written to disk. A small in-memory buffer holds the
 most recent images so a repeat click is instant, and it empties when the
 process restarts. `render_cards --out <folder>` exports files when you want
 them for a post.
 
-**On PythonAnywhere** a normal `playwright install` does not work, but paid
-accounts can use the system Chromium: `pip install playwright` and set
-`CARD_CHROMIUM_PATH` to that binary (see PythonAnywhere's Playwright help page
-for the path on your system image) in the WSGI file's environment. The renderer
-then launches it headless without a GPU. PythonAnywhere's Chromium also needs
-`--no-sandbox`; set `CARD_CHROMIUM_NO_SANDBOX=1` to add it. That flag is an
-explicit choice because it removes Chromium's process isolation. It is
-acceptable here because the browser only ever loads HTML this app builds from
-card rows, with every string escaped and every asset embedded, never a page from
-the internet. Images are rendered from the card rows the first time anyone asks
-for them in memory; nothing has to be built, uploaded or stored anywhere.
+**On PythonAnywhere** nothing extra is needed: Pillow and numpy install from
+the normal requirements, and the renderer never launches a browser.
 
 ---
 

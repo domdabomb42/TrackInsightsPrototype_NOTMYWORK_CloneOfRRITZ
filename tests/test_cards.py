@@ -192,12 +192,13 @@ def test_cards_api_lists_urls_per_design(client):
 
 
 def test_card_png_is_rendered_in_memory_and_served(app, client):
-    pytest.importorskip("playwright")
     theResponse = client.get("/card/102/4/100 Meters.png?design=B")
-    if theResponse.status_code == 503:
-        pytest.skip("Chromium is not installed for Playwright on this machine")
     assert theResponse.status_code == 200
     assert theResponse.content_type == "image/png"
+    from io import BytesIO
+    from PIL import Image
+    theImage = Image.open(BytesIO(theResponse.data))
+    assert theImage.size == (1080, 1350)
     assert theResponse.data[:8] == b"\x89PNG\r\n\x1a\n"
     assert "inline" in theResponse.headers["Content-Disposition"]
     theStatic = os.path.join(app.static_folder, "cards")
@@ -206,6 +207,13 @@ def test_card_png_is_rendered_in_memory_and_served(app, client):
     assert theAgain.status_code == 200
     assert theAgain.data == theResponse.data
     assert theAgain.headers["Content-Disposition"].startswith("attachment;")
+
+
+def test_every_design_paints_without_a_browser(client):
+    for theDesign in ("B", "E", "A"):
+        theResponse = client.get("/card/102/4/100 Meters.png?design=" + theDesign)
+        assert theResponse.status_code == 200, theDesign
+        assert theResponse.data[:8] == b"\x89PNG\r\n\x1a\n"
 
 
 def test_long_names_split_on_first_and_last_not_the_first_space(app):
@@ -415,10 +423,7 @@ def test_cards_api_includes_a_share_url_per_design(client):
 
 
 def test_sticker_is_a_square_transparent_png(app, client):
-    pytest.importorskip("playwright")
     theResponse = client.get("/card/102/4/100 Meters/sticker.png?design=B")
-    if theResponse.status_code == 503:
-        pytest.skip("Chromium is not installed for Playwright on this machine")
     assert theResponse.status_code == 200
     from io import BytesIO
     from PIL import Image

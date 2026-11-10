@@ -63,7 +63,7 @@ def main(argv):
     theParser.add_argument("--year", type=int, default=None)
     theParser.add_argument("--design", choices=list(cards.theDesignCodes), default=None)
     theParser.add_argument("--out", required=True, help="folder to write the PNG files into")
-    theParser.add_argument("--workers", type=int, default=1, help="browsers to run side by side for --all")
+    theParser.add_argument("--workers", type=int, default=1, help="processes to run side by side for --all")
     theArgs = theParser.parse_args(argv)
 
     theDesigns = list(cards.theDesignCodes)

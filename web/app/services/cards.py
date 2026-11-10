@@ -2,7 +2,7 @@
 
 The queries layer decides which results earn a card and what the card says.
 This layer adds the school's colors and logos, builds the HTML from the approved
-templates, and renders the PNG with headless Chromium when someone asks for it.
+templates, and paints the PNG with Pillow (card_paint.py) when someone asks for it.
 Nothing is written to disk: the image is produced in memory and streamed to
 the browser, with a small in-memory buffer so a repeat click is instant.
 """
@@ -45,8 +45,7 @@ theFlatAlpha = 250
 theKnockoutNear = 30
 theKnockoutFar = 90
 theRenderGate = threading.BoundedSemaphore(2)
-theRenderTimeout = 20000
-theTemplateVersion = "9"
+theTemplateVersion = "10"
 theSilhouetteWidth = 1200
 theSmallLogo = 400
 theUpscaledLogo = 600
@@ -63,8 +62,6 @@ theEdgeKnockout = 200
 theMinInkCoverage = 0.015
 theBorderShare = 0.8
 theStickerSize = 400
-theChromiumArgs = ["--disable-gpu", "--headless"]
-theChromiumNoSandbox = "--no-sandbox"
 theRecentImages = 48
 theRecentLock = threading.Lock()
 theRecent = OrderedDict()
@@ -421,6 +418,8 @@ def _school_block(card, embed):
         "logo": theLogo,
         "logoAspect": chip_logo_aspect(card["school_id"]),
         "logoWhite": theWhite,
+        "whiteBytes": theWhiteBytes,
+        "chipBytes": theChipBytes,
     }
 
 
@@ -521,29 +520,25 @@ def forget_rendered_images():
         theRecent.clear()
 
 
-def _launch(playwright):
-    theExecutable = os.environ.get("CARD_CHROMIUM_PATH") or None
-    if theExecutable is None:
-        return playwright.chromium.launch()
-    theArgs = list(theChromiumArgs)
-    if os.environ.get("CARD_CHROMIUM_NO_SANDBOX") == "1":
-        theArgs.append(theChromiumNoSandbox)
-    return playwright.chromium.launch(executable_path=theExecutable, args=theArgs)
-
-
-def _playwright():
+def _painter():
     try:
-        from playwright.sync_api import sync_playwright
-    except ImportError:
-        raise CardRenderUnavailable("Playwright is not installed; run pip install -e '.[cards]' and playwright install chromium")
-    return sync_playwright
+        from . import card_paint
+    except ImportError as theError:
+        raise CardRenderUnavailable("Pillow and numpy are needed to paint cards; run pip install -e '.[web]' (" + str(theError) + ")")
+    return card_paint
 
 
-def _screenshot(page, html):
-    page.set_content(html, wait_until="load", timeout=theRenderTimeout)
-    page.evaluate("document.fonts.ready")
-    page.evaluate("window.fitCardText && window.fitCardText()")
-    return page.screenshot(type="png", clip={"x": 0, "y": 0, "width": theCardWidth, "height": theCardHeight}, timeout=theRenderTimeout)
+def _files():
+    theFonts = {}
+    for theKey in theFontFiles:
+        theFonts[theKey] = _static_path(theFontFiles[theKey])
+    return {"tiLogo": _static_path(theTiLogoFile), "fonts": theFonts}
+
+
+def _paint(card, design):
+    theFull = dict(card)
+    theFull["school"] = _school_block(card, True)
+    return _painter().paint(theFull, design, _files())
 
 
 def render_png(card, design):
@@ -551,19 +546,11 @@ def render_png(card, design):
     theData = _recall(theKey)
     if theData is not None:
         return theData
-    theStart = _playwright()
-    theHtml = card_html(card, design, embed=True)
     with theRenderGate:
         theData = _recall(theKey)
         if theData is not None:
             return theData
-        with theStart() as thePlaywright:
-            theBrowser = _launch(thePlaywright)
-            try:
-                thePage = theBrowser.new_page(viewport={"width": theCardWidth, "height": theCardHeight})
-                theData = _screenshot(thePage, theHtml)
-            finally:
-                theBrowser.close()
+        theData = _paint(card, design)
     _remember(theKey, theData)
     return theData
 
@@ -589,20 +576,12 @@ def render_sticker(card, design):
 
 
 def render_many(cardList, designs, progress=None):
-    theStart = _playwright()
     theDone = 0
     theOutput = []
-    with theStart() as thePlaywright:
-        theBrowser = _launch(thePlaywright)
-        try:
-            thePage = theBrowser.new_page(viewport={"width": theCardWidth, "height": theCardHeight})
-            for n in range(len(cardList)):
-                for i in range(len(designs)):
-                    theData = _screenshot(thePage, card_html(cardList[n], designs[i], embed=True))
-                    theOutput.append((cardList[n], designs[i], theData))
-                    theDone = theDone + 1
-                if progress is not None:
-                    progress(n + 1, len(cardList), theDone)
-        finally:
-            theBrowser.close()
+    for n in range(len(cardList)):
+        for i in range(len(designs)):
+            theOutput.append((cardList[n], designs[i], _paint(cardList[n], designs[i])))
+            theDone = theDone + 1
+        if progress is not None:
+            progress(n + 1, len(cardList), theDone)
     return theOutput
