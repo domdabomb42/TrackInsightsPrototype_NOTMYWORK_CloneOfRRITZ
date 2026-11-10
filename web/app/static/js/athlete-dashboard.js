@@ -578,6 +578,7 @@ const shareStatus = document.getElementById('share-dashboard-status');
         // Include personal-best events even when there is no playoff history.
         bests.forEach(best => { if (!events.has(best.event)) events.set(best.event, []); });
         const names = [...events.keys()].sort((a, b) => a.localeCompare(b));
+        tabs.classList.toggle('event-tabs-horizontal', names.length <= 2);
         if (!names.length) {
             tabs.hidden = true;
             panel.innerHTML = '<p class="dashboard-empty">No event results recorded yet.</p>';

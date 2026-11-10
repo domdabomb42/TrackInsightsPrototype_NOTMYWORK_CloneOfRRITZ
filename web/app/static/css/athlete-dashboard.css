@@ -1,4 +1,4 @@
-.athlete-dashboard-page { --athlete-accent: #a60942; color: #172033; }
+.athlete-dashboard-page { --athlete-accent: #a60942; color: #172033; padding-top: 24px; }
 .athlete-dashboard { max-width: 1080px; margin: 0 auto; }
 .athlete-header { background: linear-gradient(110deg, #f1e0e5, #fcf0f2); border-radius: 18px; padding: 25px 30px; margin-bottom: 24px; box-shadow: 0 4px 12px #25304b18; }
 .athlete-header-inner { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
@@ -119,6 +119,18 @@
 .athlete-card-action:focus-visible { outline: 2px solid var(--athlete-accent); outline-offset: 3px; }
 .athlete-card-action svg { display: block; width: 52px; height: 52px; flex-shrink: 0; }
 .athlete-card-share-status { color: #52617a; font-size: 13px; margin-top: 12px; min-height: 18px; }
+@media (max-width: 767px) {
+  .event-tabs { display: flex; flex-wrap: nowrap; align-items: flex-end; gap: 4px; overflow: visible; padding: 8px 0 0; }
+  .event-tab { flex: 1 1 0; width: 0; min-width: 0; height: 132px; margin-right: 0; padding: 10px 6px; border-radius: 5px 5px 0 0; writing-mode: vertical-rl; text-orientation: mixed; white-space: normal; overflow-wrap: anywhere; font-size: 14px; text-align: center; box-shadow: 1px -2px 4px #74243f14; }
+  .event-tab[aria-selected="true"] { height: 144px; font-size: 14px; }
+  .event-tabs-horizontal { align-items: stretch; padding-top: 2px; }
+  .event-tabs-horizontal .event-tab { height: auto; padding: 14px 10px 12px; border-radius: 13px 18px 0 0; writing-mode: horizontal-tb; box-shadow: none; }
+  .event-columns { grid-template-columns: minmax(0, 1fr); }
+  .event-panel { padding: 16px 10px; }
+  .event-results table { min-width: 0; font-size: 11px; }
+  .event-results td, .event-results th { padding: 8px 3px; }
+  .event-progression { padding: 16px 0 0; border-left: none; border-top: 1px solid #edf0f4; }
+}
 @media (max-width: 800px) {
   .athlete-card-actions { gap: 10px; }
   .athlete-card-action { min-height: 84px; padding: 14px 16px; font-size: 17px; gap: 14px; }
@@ -144,9 +156,8 @@
   .medal-circle { font-size: 10px; }
   .personal-best { padding: 10px 12px; }
   .personal-best-value { font-size: 23px; }
-  .event-panel { padding: 16px; }
+  .event-panel { padding: 16px 10px; }
   .event-columns { gap: 14px; }
-  .event-progression { padding-left: 14px; }
   .event-panel h3 { font-size: 15px; }
 }
 @media (max-width: 520px) {
