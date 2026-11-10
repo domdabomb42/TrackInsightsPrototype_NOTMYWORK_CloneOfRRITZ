@@ -252,6 +252,9 @@ def get_event_dashboard_analytics(event_name, gender, meet_type=None, year=None)
     distribution_labels = []
     distribution_counts = []
     distribution_max = None
+    first_bin = None
+    bin_width = None
+    underflow_count = 0
     if values:
         for percentile in (25, 50, 75):
             value = _interpolated_percentile(values, percentile)
@@ -364,6 +367,9 @@ def get_event_dashboard_analytics(event_name, gender, meet_type=None, year=None)
         "distribution": {
             "labels": distribution_labels,
             "counts": distribution_counts,
+            "bin_start": first_bin,
+            "bin_width": bin_width,
+            "has_underflow": underflow_count > 0,
         },
         "percentiles": percentile_rows,
         "advancement_ranges": advancement_ranges,

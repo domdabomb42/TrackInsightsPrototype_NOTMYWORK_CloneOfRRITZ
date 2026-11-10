@@ -42,7 +42,7 @@ def test_100m_dashboard_includes_analytics_without_the_top_list_panels(client):
     assert b'50th' in response.data
     assert b'75th' in response.data
     assert b'Cutoffs' in response.data
-    assert b'Season-over-season median' in response.data
+    assert b'Median by Season' in response.data
     assert b'data-trend="Sectional"' in response.data
     assert b'data-trend="Regional"' in response.data
     assert b'data-trend="State"' in response.data
@@ -144,7 +144,7 @@ def test_all_requested_event_dashboard_routes_render(client):
         assert b'Leaderboard' in response.data
         assert b'aria-label="Event dashboards"' not in response.data
         assert b'Performance Distribution' in response.data
-        assert b'Season-over-season median' in response.data
+        assert b'Median by Season' in response.data
 
 
 def test_search_returns_matching_event_dashboards(client):

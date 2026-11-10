@@ -42,38 +42,75 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (distributionCanvas && chartData.distribution.labels.length) {
+    const distribution = chartData.distribution;
+    const percentileIndex = (value) => {
+      if (distribution.bin_start === null || !distribution.bin_width) return null;
+      const offset = distribution.has_underflow ? 1 : 0;
+      return (Number(value) - distribution.bin_start) / distribution.bin_width - 0.5 + offset;
+    };
+    const percentileMarkers = {
+      id: 'percentileMarkers',
+      afterDatasetsDraw(chart) {
+        const {ctx, chartArea, scales} = chart;
+        if (!chartArea) return;
+        ctx.save();
+        (chartData.percentiles || []).forEach((percentile) => {
+          const index = percentileIndex(percentile.value);
+          if (index === null) return;
+          const x = scales.x.getPixelForValue(index);
+          if (x < chartArea.left || x > chartArea.right) return;
+          const isMedian = percentile.label === '50th';
+          ctx.strokeStyle = isMedian ? '#8c0327' : 'rgba(140, 3, 39, 0.55)';
+          ctx.lineWidth = isMedian ? 2 : 1.5;
+          ctx.setLineDash(isMedian ? [] : [5, 4]);
+          ctx.beginPath();
+          ctx.moveTo(x, chartArea.top);
+          ctx.lineTo(x, chartArea.bottom);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        });
+        ctx.restore();
+      },
+    };
     new Chart(distributionCanvas, {
-      type: 'bar',
+      type: 'line',
       data: {
-        labels: chartData.distribution.labels,
+        labels: distribution.labels,
         datasets: [{
-          label: 'Athlete-season bests',
-          data: chartData.distribution.counts,
-          backgroundColor: 'rgba(140, 3, 39, 0.68)',
+          label: 'Athletes',
+          data: distribution.counts,
           borderColor: '#8c0327',
-          borderWidth: 1,
-          borderRadius: 4,
+          borderWidth: 2.5,
+          backgroundColor: 'rgba(140, 3, 39, 0.14)',
+          fill: true,
+          tension: 0.45,
+          pointRadius: 0,
+          pointHoverRadius: 5,
+          pointHoverBackgroundColor: '#8c0327',
         }],
       },
+      plugins: [percentileMarkers],
       options: {
         maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
         plugins: {
           legend: { display: false },
           tooltip: {
             callbacks: {
-              title: (items) => items[0].label,
-              label: (item) => `${item.formattedValue} athlete-season bests`,
+              title: (items) => `${items[0].label}${isFieldEvent ? ' in' : ' sec'}`,
+              label: (item) => `${item.formattedValue} athlete${Number(item.raw) === 1 ? '' : 's'}`,
             },
           },
         },
         scales: {
           x: {
             title: { display: true, text: axisTitle },
-            ticks: { maxRotation: 45, minRotation: 0, autoSkip: true, maxTicksLimit: 12 },
+            grid: { display: false },
+            ticks: { maxRotation: 45, minRotation: 0, autoSkip: true, maxTicksLimit: 10 },
           },
           y: {
             beginAtZero: true,
-            title: { display: true, text: 'Athlete-season count' },
+            title: { display: true, text: 'Athletes' },
             ticks: { precision: 0 },
           },
         },
