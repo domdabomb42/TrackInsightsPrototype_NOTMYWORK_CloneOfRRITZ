@@ -257,7 +257,8 @@ def get_event_dashboard_analytics(event_name, gender, meet_type=None, year=None)
     underflow_count = 0
     if values:
         for percentile in (25, 50, 75):
-            value = _interpolated_percentile(values, percentile)
+            value_percentile = 100 - percentile if lower_is_better else percentile
+            value = _interpolated_percentile(values, value_percentile)
             percentile_rows.append({
                 "label": f"{percentile}th",
                 "value": round(value, 2),
@@ -296,9 +297,8 @@ def get_event_dashboard_analytics(event_name, gender, meet_type=None, year=None)
         for index in range(bin_count):
             start = first_bin + index * bin_width
             end = first_bin + (index + 1) * bin_width
-            distribution_labels.append(
-                f"{format_distribution_mark(start)}–{format_distribution_mark(end)}"
-            )
+            midpoint = (start + end) / 2
+            distribution_labels.append(format_distribution_mark(midpoint))
         if underflow_count:
             distribution_labels.insert(0, f"<{format_distribution_mark(first_bin)}")
             distribution_counts.insert(0, underflow_count)

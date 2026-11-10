@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const axisTitle = isFieldEvent
     ? 'Distance (inches)'
     : chartData.distributionUsesMinutes
-      ? 'Time (minutes:seconds above 1 minute)'
+      ? 'Time (minutes)'
       : 'Time (seconds)';
   const trendAxisTitle = isFieldEvent
     ? 'Median distance (inches)'
@@ -43,16 +43,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (distributionCanvas && chartData.distribution.labels.length) {
     const distribution = chartData.distribution;
+    const distributionLabels = chartData.lowerIsBetter
+      ? [...distribution.labels].reverse()
+      : distribution.labels;
+    const distributionCounts = chartData.lowerIsBetter
+      ? [...distribution.counts].reverse()
+      : distribution.counts;
     const percentileIndex = (value) => {
       if (distribution.bin_start === null || !distribution.bin_width) return null;
       const offset = distribution.has_underflow ? 1 : 0;
-      return (Number(value) - distribution.bin_start) / distribution.bin_width - 0.5 + offset;
+      const index = (Number(value) - distribution.bin_start) / distribution.bin_width - 0.5 + offset;
+      return chartData.lowerIsBetter ? distribution.labels.length - 1 - index : index;
     };
     const percentileMarkers = {
       id: 'percentileMarkers',
       afterDatasetsDraw(chart) {
         const {ctx, chartArea, scales} = chart;
         if (!chartArea) return;
+        const markers = [];
         ctx.save();
         (chartData.percentiles || []).forEach((percentile) => {
           const index = percentileIndex(percentile.value);
@@ -60,7 +68,8 @@ document.addEventListener('DOMContentLoaded', () => {
           const x = scales.x.getPixelForValue(index);
           if (x < chartArea.left || x > chartArea.right) return;
           const isMedian = percentile.label === '50th';
-          ctx.strokeStyle = isMedian ? '#8c0327' : 'rgba(140, 3, 39, 0.55)';
+          const color = isMedian ? '#8c0327' : 'rgba(140, 3, 39, 0.75)';
+          ctx.strokeStyle = color;
           ctx.lineWidth = isMedian ? 2 : 1.5;
           ctx.setLineDash(isMedian ? [] : [5, 4]);
           ctx.beginPath();
@@ -68,6 +77,36 @@ document.addEventListener('DOMContentLoaded', () => {
           ctx.lineTo(x, chartArea.bottom);
           ctx.stroke();
           ctx.setLineDash([]);
+          markers.push({x, label: `${percentile.label.slice(0, -2)}%`, color});
+        });
+
+        ctx.font = '600 9px Arial, sans-serif';
+        const labelHeight = 12;
+        markers.forEach((marker) => {
+          const labelWidth = ctx.measureText(marker.label).width + 8;
+          const left = Math.max(
+            chartArea.left,
+            Math.min(chartArea.right - labelWidth, marker.x - labelWidth / 2),
+          );
+          let lane = 0;
+          while (markers.some((other) => {
+            if (other === marker || other.lane !== lane || other.left === undefined) return false;
+            return left < other.left + other.width + 3 && left + labelWidth + 3 > other.left;
+          })) lane += 1;
+          marker.left = left;
+          marker.width = labelWidth;
+          marker.lane = lane;
+
+          const top = chartArea.top + 2 + lane * 12;
+          ctx.fillStyle = 'rgba(255,255,255,.94)';
+          ctx.fillRect(left, top, labelWidth, labelHeight);
+          ctx.strokeStyle = marker.color;
+          ctx.lineWidth = 1;
+          ctx.strokeRect(left, top, labelWidth, labelHeight);
+          ctx.fillStyle = '#8c0327';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(marker.label, left + labelWidth / 2, top + labelHeight / 2);
         });
         ctx.restore();
       },
@@ -75,10 +114,10 @@ document.addEventListener('DOMContentLoaded', () => {
     new Chart(distributionCanvas, {
       type: 'line',
       data: {
-        labels: distribution.labels,
+        labels: distributionLabels,
         datasets: [{
           label: 'Athletes',
-          data: distribution.counts,
+          data: distributionCounts,
           borderColor: '#8c0327',
           borderWidth: 2.5,
           backgroundColor: 'rgba(140, 3, 39, 0.14)',
@@ -92,6 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
       plugins: [percentileMarkers],
       options: {
         maintainAspectRatio: false,
+        layout: { padding: { top: 0 } },
         interaction: { mode: 'index', intersect: false },
         plugins: {
           legend: { display: false },
@@ -106,7 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
           x: {
             title: { display: true, text: axisTitle },
             grid: { display: false },
-            ticks: { maxRotation: 45, minRotation: 0, autoSkip: true, maxTicksLimit: 10 },
+            ticks: { maxRotation: 0, minRotation: 0, autoSkip: true, maxTicksLimit: 10 },
           },
           y: {
             beginAtZero: true,

@@ -52,11 +52,11 @@
   }
 
   .event-dashboard-page .cutoff-tile .cutoff-label {
-    font-size: 1.25rem;
+    font-size: 1.6rem;
   }
 
   .event-dashboard-page .cutoff-tile .cutoff-range {
-    font-size: 2.6rem;
+    font-size: 2.2rem;
     line-height: 1;
     white-space: nowrap;
   }
@@ -78,6 +78,13 @@
   .distribution-chart-frame,
   .trend-chart-frame {
     position: relative;
+  }
+
+  .distribution-chart-frame {
+    height: 14rem;
+  }
+
+  .trend-chart-frame {
     height: 15rem;
   }
 
@@ -87,7 +94,7 @@
 
   @media (min-width: 40rem) {
     .distribution-chart-frame {
-      height: 18rem;
+      height: 16.5rem;
     }
 
     .trend-chart-frame {
@@ -103,7 +110,7 @@
     }
 
     .event-dashboard-page .cutoff-tile .cutoff-range {
-      font-size: 3.4rem;
+      font-size: 2.8rem;
     }
   }
 
@@ -182,14 +189,14 @@
         <div class="percentile-times mt-4">
           {% for percentile in analytics.percentiles %}
           <div>
-            <p class="percentile-label font-impact text-base-content/60">{% if percentile.label == '50th' %}Median{% else %}{{ percentile.label }}{% endif %}</p>
-            <p class="percentile-value font-impact italic text-primary">{{ percentile.display }}</p>
+            <p class="percentile-label font-impact text-base-content/60">{{ percentile.label }} percentile</p>
+            <p class="percentile-value font-impact italic text-primary">{{ percentile.display }}{% if analytics.event_type != 'Field' %}<span class="ml-1 text-sm not-italic text-base-content/55">{% if percentile.value >= 60 %}min{% else %}sec{% endif %}</span>{% endif %}</p>
           </div>
           {% endfor %}
         </div>
         {% endif %}
         {% if analytics.distribution.labels %}
-        <div class="mt-4 distribution-chart-frame"><canvas id="event-distribution-chart" aria-label="Filtered {{ event_name }} performance distribution" role="img"></canvas></div>
+        <div class="mt-1 distribution-chart-frame"><canvas id="event-distribution-chart" aria-label="Filtered {{ event_name }} performance distribution" role="img"></canvas></div>
         {% else %}
         <p class="py-10 text-center text-sm text-base-content/55">No results match the selected filters.</p>
         {% endif %}
@@ -200,10 +207,10 @@
         <div class="flex flex-1 flex-col gap-3 mt-4">
           {% for target in ['Regional', 'State'] %}
           {% set cutoff = analytics.advancement_ranges.get(target) %}
-          <div class="cutoff-tile flex flex-1 min-h-36 flex-col justify-center rounded-xl border border-base-200 bg-base-200/30 px-5 py-4 sm:px-6">
+          <div class="cutoff-tile flex flex-1 min-h-32 flex-col justify-center rounded-xl border border-base-200 bg-base-200/30 px-5 py-4 sm:px-6">
             <p class="cutoff-label font-impact text-base-content/60">{{ target }}</p>
             {% if cutoff %}
-            <p class="cutoff-range font-impact italic text-primary mt-1">{{ cutoff.low_display }}–{{ cutoff.high_display }}{% if analytics.event_type != 'Field' %}<span class="ml-1 text-base not-italic text-base-content/55">sec</span>{% endif %}</p>
+            <p class="cutoff-range font-impact italic text-primary mt-1">{{ cutoff.low_display }}–{{ cutoff.high_display }}{% if analytics.event_type != 'Field' %}<span class="ml-1 text-base not-italic text-base-content/55">{% if cutoff.low >= 60 %}min{% else %}sec{% endif %}</span>{% endif %}</p>
             {% else %}
             <p class="text-sm text-base-content/55 mt-2">No results yet.</p>
             {% endif %}
@@ -215,7 +222,7 @@
       <article class="dashboard-trend-card bg-white border border-base-200/80 rounded-2xl shadow-lg shadow-base-300/40 p-4 sm:p-5">
         <div class="flex flex-wrap items-baseline justify-between gap-2">
           <div>
-            <h2 class="section-heading font-impact italic text-primary">Median by Season</h2>
+            <h2 class="section-heading font-impact italic text-primary">Event Trends</h2>
           </div>
         </div>
         <fieldset class="mt-3 flex flex-wrap gap-x-5 gap-y-2" aria-label="Choose trend lines">
@@ -242,8 +249,7 @@
     <section class="leaderboard-section bg-white border border-base-200/80 rounded-2xl shadow-xl shadow-base-300/30 overflow-hidden" aria-labelledby="leaderboard-heading">
       <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 px-4 sm:px-6 py-4 border-b border-base-200">
         <div>
-          <p class="text-xs uppercase tracking-[0.2em] text-base-content/50 font-bold">{{ gender }} · {{ meet_type }} · {{ selected_year if selected_year != 'All' else 'All seasons' }}</p>
-          <h2 id="leaderboard-heading" class="section-heading font-impact italic text-primary mt-1">{% if analytics.event_type == 'Field' %}Best Marks{% else %}Fastest Marks{% endif %}</h2>
+          <h2 id="leaderboard-heading" class="section-heading font-impact italic text-primary">Event Leaderboard</h2>
         </div>
         <span class="badge badge-outline rounded-full">{{ results|length }} mark{% if results|length != 1 %}s{% endif %}</span>
       </div>
