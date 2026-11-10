@@ -100,14 +100,13 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   const adjustResultsPanelBounds = () => {
-    if (!resultsPanel || !searchPill || !aboutButton || !navbarEnd) return;
+    if (!resultsPanel || !searchPill || !navbarEnd) return;
 
     const searchRect = searchPill.getBoundingClientRect();
-    const aboutRect = aboutButton.getBoundingClientRect();
     const navbarRect = navbarEnd.getBoundingClientRect();
 
     const leftOffset = Math.max(0, searchRect.left - navbarRect.left);
-    const width = Math.max(aboutRect.right - searchRect.left, 280);
+    const width = searchRect.width;
 
     resultsPanel.style.setProperty('--results-left', `${leftOffset}px`);
     resultsPanel.style.setProperty('--results-width', `${width}px`);
