@@ -252,24 +252,20 @@
     .home-search-hero h1.home-hero-title {
       margin: 0 auto 1.5rem;
       font-family: 'Impact', 'Arial Black', 'Segoe UI', sans-serif;
-      font-size: clamp(3.25rem, 8vw, 7.5rem);
+      font-size: clamp(3rem, 6.6vw, 6.25rem);
       line-height: .9;
       font-weight: 400;
       text-transform: uppercase;
-      letter-spacing: clamp(0.25rem, 1vw, 1.2rem);
+      letter-spacing: clamp(0.2rem, .8vw, .9rem);
       color: rgba(255, 255, 255, 0.94);
       text-shadow: 0 10px 22px rgba(0, 0, 0, 0.55);
       filter: drop-shadow(0 18px 28px rgba(0, 0, 0, 0.45));
-      padding-left: clamp(0.25rem, 1vw, 1.2rem);
+      padding-left: clamp(0.2rem, .8vw, .9rem);
     }
     @media (min-width: 1024px) {
-      .home-search-hero h1.home-hero-title {
-        white-space: nowrap;
-        position: relative;
-        left: 50%;
-        width: max-content;
-        transform: translateX(-50%);
-      }
+      .home-search-hero { width: max-content; max-width: 92vw; }
+      .home-search-hero h1.home-hero-title { white-space: nowrap; }
+      .home-search-wrap { width: 86%; margin: 0 auto; }
     }
     @media (max-width: 640px) {
       .home-search-hero h1.home-hero-title { line-height: .95; }
@@ -436,35 +432,31 @@
   <div class="about-wrap">
 
     <div class="about-intro">
-      <div>
-        <h2 class="font-impact italic text-primary">About Track Insights</h2>
-        <p>
-          Welcome to <b>Track Insights</b>, your go-to app for IHSAA track and field playoff performances and data
-          insights. Our mission is to promote Indiana high school track and field, celebrate achievements, motivate
-          athletes, and provide meaningful insights for athletes, coaches, and fans.
-        </p>
-        <p>
-          Track Insights is a student-led initiative, developed by Park Tudor Computer Science students, and this app
-          serves as a platform to share our work with you.
-        </p>
-        <p>
-          Not sure where to start? Search for an athlete, school, or event at the top of the page. Every athlete who has
-          competed in an IHSAA Sectional since 2023 has a dashboard, every school has a page, and each postseason result
-          comes with a card you can share. During the season, check back for the unofficial Regional and State qualifier
-          lists as results come in.
-        </p>
-        <p>We hope you enjoy using Track Insights!</p>
-      </div>
-      <div class="about-origin">
-        <p class="about-origin-lead">The inspiration for this app came from a single question posed by an athlete:</p>
-        <blockquote>&ldquo;I wonder how our 4x800 time would place in other Sectionals?&rdquo;</blockquote>
-        <p>
-          Manually checking state-wide results is tedious and error-prone. This challenge inspired our first project: to
-          automate this functionality and help athletes quickly and easily see how their performances stack up in other
-          Sectionals across the state. From there, many more ideas emerged, leading to the creation of additional tools
-          designed to inform, motivate, and promote Indiana high school track and field.
-        </p>
-      </div>
+      <h2 class="font-impact italic text-primary">About Track Insights</h2>
+      <p>
+        Welcome to <b>Track Insights</b>, your go-to app for IHSAA track and field playoff performances and data
+        insights. Our mission is to promote Indiana high school track and field, celebrate achievements, motivate
+        athletes, and provide meaningful insights for athletes, coaches, and fans.
+      </p>
+      <p>
+        Track Insights is a student-led initiative, developed by Park Tudor Computer Science students, and this app
+        serves as a platform to share our work with you. The inspiration for it came from a single question posed by an
+        athlete:
+      </p>
+      <blockquote class="about-quote">&ldquo;I wonder how our 4x800 time would place in other Sectionals?&rdquo;</blockquote>
+      <p>
+        Manually checking state-wide results is tedious and error-prone. This challenge inspired our first project: to
+        automate this functionality and help athletes quickly and easily see how their performances stack up in other
+        Sectionals across the state. From there, many more ideas emerged, leading to the creation of additional tools
+        designed to inform, motivate, and promote Indiana high school track and field.
+      </p>
+      <p>
+        Not sure where to start? Search for an athlete, school, or event at the top of the page. Every athlete who has
+        competed in an IHSAA Sectional since 2023 has a dashboard, every school has a page, and each postseason result
+        comes with a card you can share. During the season, check back for the unofficial Regional and State qualifier
+        lists as results come in.
+      </p>
+      <p>We hope you enjoy using Track Insights!</p>
     </div>
 
     <div class="about-history">
@@ -543,13 +535,11 @@
     .about-section p { line-height: 1.65; }
     .about-section b { color: #111827; font-weight: 600; }
 
-    .about-intro { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 2rem clamp(2rem, 5vw, 4.5rem); align-items: start; font-size: 1.05rem; }
+    .about-intro { font-size: 1.05rem; }
     .about-intro h2 { font-size: clamp(2.4rem, 4vw, 3.4rem); line-height: 1.05; margin: 0 0 1.1rem; }
     .about-intro p { margin: 0 0 1rem; }
     .about-intro p:last-child { margin-bottom: 0; }
-    .about-origin { padding: 1.5rem 1.75rem; background: #f6f7fa; border: 1px solid #e5e7eb; border-radius: 1rem; font-size: 1rem; }
-    .about-origin-lead { color: #6b7280; }
-    .about-origin blockquote { margin: 0 0 1.1rem; padding: .25rem 0 .25rem 1.1rem; border-left: 4px solid var(--color-primary); font-size: 1.3rem; line-height: 1.35; font-style: italic; font-weight: 600; color: #111827; }
+    .about-quote { margin: 1.25rem 0 1.25rem; padding: .35rem 0 .35rem 1.25rem; border-left: 4px solid var(--color-primary); font-size: clamp(1.25rem, 2vw, 1.6rem); line-height: 1.35; font-style: italic; font-weight: 600; color: #111827; }
 
     .about-heading { padding-bottom: .8rem; margin-bottom: 1.4rem; border-bottom: 1px solid #e5e7eb; }
     .about-heading h3 { font-size: clamp(1.7rem, 2.4vw, 2.1rem); line-height: 1.1; margin: 0; }
@@ -593,7 +583,7 @@
       .about-people { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     }
     @media (max-width: 768px) {
-      .about-intro, .about-split { grid-template-columns: 1fr; gap: 1.5rem; }
+      .about-split { grid-template-columns: 1fr; gap: 1.5rem; }
       .about-people { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
     @media (max-width: 480px) {
