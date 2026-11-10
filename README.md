@@ -18,8 +18,15 @@ One virtual environment at the repo root covers everything (the web app, noteboo
 ```bash
 python -m venv .venv
 .venv\Scripts\activate      # or source .venv/bin/activate on macOS/Linux
+python -m pip install --upgrade pip
 pip install -e ".[web,standalone,dev]"
 ```
+
+The pip upgrade matters: the pip that ships with macOS and some older Python
+installs is too old to install this project and quietly installs nothing.
+Run the `pip install -e` line again after every `git pull` that adds a
+package (the athlete cards added Pillow); the app says so at start-up and on
+the athlete dashboard if something is missing.
 
 ## Running the web app
 

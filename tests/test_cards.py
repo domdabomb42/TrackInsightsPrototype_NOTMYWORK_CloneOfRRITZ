@@ -316,7 +316,7 @@ def test_an_athlete_with_no_results_or_relays_has_no_cards(app, client):
         db.session.commit()
         list_cards_for_athlete.cache_clear()
         assert list_cards_for_athlete(906) == []
-    assert client.get("/api/athletes/906/cards").get_json() == {"cards": []}
+    assert client.get("/api/athletes/906/cards").get_json() == {"cards": [], "problem": None}
 
 
 def test_design_parameter_is_case_insensitive(client):
@@ -507,3 +507,12 @@ def test_black_schools_get_a_light_school_color_card():
     theCard["school"]["accent"] = "#ffffff"
     theCard["school"]["glow"] = "#ffffff"
     assert "overflow:hidden;background:#f2f2f3;" in designRail(theCard, theAssets)
+
+
+def test_the_cards_api_reports_a_painter_problem(client, app):
+    theResponse = client.get("/api/athletes/102/cards")
+    assert theResponse.status_code == 200
+    assert theResponse.get_json()["problem"] is None
+    app.config["CARDS_RENDER_PROBLEM"] = "Pillow and numpy are not installed; run pip install Pillow numpy"
+    theAgain = client.get("/api/athletes/102/cards")
+    assert theAgain.get_json()["problem"].startswith("Pillow and numpy are not installed")

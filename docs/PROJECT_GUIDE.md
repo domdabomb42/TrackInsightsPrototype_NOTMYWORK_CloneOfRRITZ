@@ -141,12 +141,19 @@ works no matter which file `X` is in.
 
 ```bash
 python -m venv .venv
-.venv\Scripts\activate            # Windows
+.venv\Scripts\activate            # Windows (source .venv/bin/activate on macOS/Linux)
+python -m pip install --upgrade pip
 pip install -e ".[web,standalone,dev]"
 
 cd web
 python wsgi.py                    # http://localhost:5000
 ```
+
+Upgrade pip first: the pip that ships with macOS and older Python installs is
+too old for this project and quietly installs nothing. Re-run the `pip install
+-e` line after any `git pull` that adds a package (the athlete cards added
+Pillow). If something is missing, the app logs it at start-up and the athlete
+dashboard says so in the card slot.
 
 `wsgi.py` cannot be called `app.py`: `app/` beside it is the package, and Python
 would not know which one `import app` meant. WSGI is the interface Python web

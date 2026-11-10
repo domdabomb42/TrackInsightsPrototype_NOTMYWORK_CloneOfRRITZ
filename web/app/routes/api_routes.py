@@ -116,7 +116,7 @@ def api_get_athlete_dashboard(aid):
 def api_get_athlete_cards(aid):
     if get_athlete_by_id(aid) is None:
         return jsonify({'error': 'not found'}), 404
-    return jsonify({'cards': cards.list_cards(aid)})
+    return jsonify({'cards': cards.list_cards(aid), 'problem': current_app.config.get('CARDS_RENDER_PROBLEM')})
 
 
 @api_bp.route('/athletes/<int:aid>/result-rankings')

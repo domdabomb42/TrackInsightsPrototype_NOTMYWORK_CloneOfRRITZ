@@ -96,7 +96,7 @@ const shareStatus = document.getElementById('share-dashboard-status');
         shareButton.addEventListener('click', handleShareButtonClick);
     }
 
-    function initializeAthleteCard(athlete, cards) {
+    function initializeAthleteCard(athlete, cards, problem) {
         // Share the public dashboard so scanned codes work away from this computer.
         const url = `https://www.trackinsights.org/athlete-dashboard/${athleteId}`;
         const name = athlete.full_name || 'Athlete';
@@ -137,8 +137,14 @@ const shareStatus = document.getElementById('share-dashboard-status');
             });
         }
 
-        if (!cards.length) {
-            stack.innerHTML = '<div class="athlete-card-empty">No postseason cards yet. Place at a sectional, regional, or state meet to earn one.</div>';
+        if (problem || !cards.length) {
+            const emptyMessage = problem
+                ? 'Athlete cards cannot be drawn on this server yet: ' + problem
+                : 'No postseason cards yet. Place at a sectional, regional, or state meet to earn one.';
+            const empty = document.createElement('div');
+            empty.className = 'athlete-card-empty';
+            empty.textContent = emptyMessage;
+            stack.replaceChildren(empty);
             position.textContent = '0 / 0';
             previousButton.disabled = true;
             nextButton.disabled = true;
@@ -734,15 +740,18 @@ const shareStatus = document.getElementById('share-dashboard-status');
         // The cards come last and from their own request, so a slow card query
         // or a rendering problem never holds up or hides the rest of the page.
         let athleteCards = [];
+        let cardProblem = null;
         try {
             const cardsResponse = await fetch(`/api/athletes/${athleteId}/cards`);
             if (cardsResponse.ok) {
-                athleteCards = (await cardsResponse.json()).cards || [];
+                const cardsPayload = await cardsResponse.json();
+                athleteCards = cardsPayload.cards || [];
+                cardProblem = cardsPayload.problem || null;
             }
         } catch (error) {
             console.warn('Unable to load athlete cards:', error);
         }
-        initializeAthleteCard(data.athlete, athleteCards);
+        initializeAthleteCard(data.athlete, athleteCards, cardProblem);
 
     } catch (error) {
         console.error('Error loading athlete data:', error);
