@@ -37,7 +37,7 @@ def test_100m_dashboard_includes_analytics_without_the_top_list_panels(client):
     response = client.get('/100m?gender=Boys')
 
     assert response.status_code == 200
-    assert b'Performance distribution' in response.data
+    assert b'Performance Distribution' in response.data
     assert b'25th' in response.data
     assert b'50th' in response.data
     assert b'75th' in response.data
@@ -143,7 +143,7 @@ def test_all_requested_event_dashboard_routes_render(client):
         assert event_name.encode() in response.data
         assert b'Leaderboard' in response.data
         assert b'aria-label="Event dashboards"' not in response.data
-        assert b'Performance distribution' in response.data
+        assert b'Performance Distribution' in response.data
         assert b'Season-over-season median' in response.data
 
 
