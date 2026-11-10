@@ -4,8 +4,8 @@
 {% block meta_description %}Search for Indiana high school track and field athletes and schools. Find dashboards, performance data, and sectional projections.{% endblock %}
 
 {% block content %}
-<section class="min-h-screen bg-white text-base-content pt-20 sm:pt-24 pb-16 px-4 sm:px-6">
-  <div class="max-w-3xl mx-auto space-y-10">
+<section class="athlete-search-page min-h-screen bg-white text-base-content pt-20 sm:pt-24 pb-16 px-4 sm:px-6">
+  <div class="max-w-3xl mx-auto space-y-4">
     <header class="space-y-4 text-center">
       <h1 class="font-impact text-primary text-4xl sm:text-5xl md:text-6xl">
         Search Track Insights
@@ -15,22 +15,29 @@
       </p>
     </header>
 
-    <div class="bg-white rounded-3xl p-6 shadow-2xl space-y-6 border border-base-200">
+    <div class="athlete-search-box bg-white rounded-3xl p-6 shadow-2xl space-y-6 border border-base-200">
       <form id="searchForm" class="space-y-4" autocomplete="off">
         <label for="searchInput" class="text-sm font-semibold text-primary tracking-wide uppercase">Search</label>
         <input id="searchInput" name="q" type="text"
           class="input input-lg input-primary w-full bg-white text-base-content" placeholder="Ex: Jordan Smith, Cathedral, or 200m"
           aria-label="Search athletes, schools, and events" />
       </form>
-      <div id="results" class="rounded-2xl border border-primary/30 bg-white text-base-content p-4 min-h-[180px] athlete-search-results"
-        aria-live="polite">
-        <p class="text-sm text-gray-500">Results will appear here once you start typing.</p>
-      </div>
+      <div id="results" class="rounded-2xl border border-primary/30 bg-white text-base-content p-4 athlete-search-results"
+        aria-live="polite"></div>
     </div>
   </div>
 </section>
 
 <style>
+  .athlete-search-results:empty {
+    display: none;
+  }
+
+  @media (max-width: 767px) {
+    .athlete-search-page { padding-top: 24px; }
+    .athlete-search-box { padding: 0; border: 0; border-radius: 0; box-shadow: none; }
+  }
+
   .athlete-search-results .btn {
     font-size: 1rem;
     border-radius: 1rem;

@@ -490,8 +490,8 @@ const shareStatus = document.getElementById('share-dashboard-status');
     }
 
     function createMedalElement(entry) {
-        const button = document.createElement('a');
-        button.href = resultLink(entry);
+        const button = document.createElement('button');
+        button.type = 'button';
         button.className = 'medal-button';
         const label = entry.place_label || 'Q';
         button.setAttribute('aria-label', `${entry.year || ''} ${entry.event || 'Event'}, ${label}, ${entry.result || 'Qualified'}`);
@@ -610,7 +610,8 @@ const shareStatus = document.getElementById('share-dashboard-status');
             tab.className = 'event-tab';
             tab.setAttribute('role', 'tab');
             tab.setAttribute('aria-controls', 'event-panel');
-            tab.textContent = name;
+            tab.textContent = name.replace(/\bMeters\b/gi, '').replace(/\s+/g, ' ').trim();
+            tab.setAttribute('aria-label', name);
             tab.addEventListener('click', () => activate(index));
             tab.addEventListener('keydown', event => {
                 let next;

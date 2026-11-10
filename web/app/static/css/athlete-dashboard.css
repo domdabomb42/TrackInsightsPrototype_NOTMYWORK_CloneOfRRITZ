@@ -118,16 +118,26 @@
 .athlete-card-action svg { display: block; width: 52px; height: 52px; flex-shrink: 0; }
 .athlete-card-share-status { color: #52617a; font-size: 13px; margin-top: 12px; min-height: 18px; }
 @media (max-width: 767px) {
-  .event-tabs { display: flex; flex-wrap: nowrap; align-items: flex-end; gap: 4px; overflow: visible; padding: 8px 0 0; }
-  .event-tab { flex: 1 1 0; width: 0; min-width: 0; height: 132px; margin-right: 0; padding: 10px 6px; border-radius: 5px 5px 0 0; writing-mode: vertical-rl; text-orientation: mixed; white-space: normal; overflow-wrap: anywhere; font-size: 14px; text-align: center; box-shadow: 1px -2px 4px #74243f14; }
-  .event-tab[aria-selected="true"] { height: 144px; font-size: 14px; }
-  .event-tabs-horizontal { align-items: stretch; padding-top: 2px; }
-  .event-tabs-horizontal .event-tab { height: auto; padding: 14px 10px 12px; border-radius: 13px 18px 0 0; writing-mode: horizontal-tb; box-shadow: none; }
+  .event-tabs { display: flex; flex-wrap: nowrap; align-items: stretch; gap: 0; overflow: visible; padding: 2px 0 0; }
+  .event-tab { flex: 1 1 0; width: 0; min-width: 0; margin-right: 0; padding: 12px 14px; border: 1px solid #d9b6c4; border-bottom: none; border-radius: 13px 18px 0 0; white-space: normal; overflow-wrap: anywhere; font-size: 12px; text-align: center; }
+  .event-tabs:not(.event-tabs-horizontal) .event-tab + .event-tab { margin-left: -12px; }
+  .event-tab[aria-selected="true"] { font-size: 12px; z-index: 2; }
+  .event-tab:focus-visible { z-index: 3; }
+  .event-tabs-horizontal { gap: 4px; }
   .event-columns { grid-template-columns: minmax(0, 1fr); }
   .event-panel { padding: 16px 10px; }
   .event-results table { min-width: 0; font-size: 11px; }
   .event-results td, .event-results th { padding: 8px 3px; }
   .event-progression { padding: 16px 0 0; border-left: none; border-top: 1px solid #edf0f4; }
+  .athlete-dashboard-page { padding-bottom: 24px; }
+  .athlete-card-share { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; margin-bottom: 0; }
+  .athlete-card-share-info { display: contents; }
+  .athlete-card-share-title { order: -3; }
+  .athlete-card-caption { order: -2; margin: 0; }
+  .athlete-card-deck { order: -1; justify-self: center; }
+  .athlete-card-share-tools { min-width: 0; }
+  .athlete-card-share-status { margin-top: 0; min-height: 0; }
+  .athlete-card-share-status:empty { display: none; }
 }
 @media (max-width: 800px) {
   .athlete-card-actions { gap: 10px; }
