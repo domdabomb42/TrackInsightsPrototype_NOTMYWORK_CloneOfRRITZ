@@ -11,7 +11,7 @@ from ..queries.event_ranking import (
     get_event_dashboard_analytics,
     get_event_leaderboard,
 )
-from ..models import Athlete, School, AthleteResult
+from ..models import Athlete, School
 from ..event_dashboards import EVENT_DASHBOARDS
 from ..videos import INTERVIEW_VIDEOS
 from ..services import cards, dashboard_v4
@@ -543,23 +543,6 @@ def sitemap_xml():
         + '\n</urlset>'
     )
     return Response(xml, mimetype='application/xml')
-@main_bp.route('/top-3200')
-def top_3200():
-    results = (
-    AthleteResult.query
-    .join(Athlete)
-    .filter(AthleteResult.event == '3200 Meters')
-    .filter(Athlete.gender == 'Boys')
-    .filter(AthleteResult.result2 < 9999)
-    .order_by(AthleteResult.result2)
-    .limit(10)
-    .all()
-    )
-    return render_template('top-3200.html',
-results=results,
-title='Boys 3200 Meters - Top 10 Since 2023')
-
-
 @main_bp.route('/100m', defaults={"event_slug": "100m"}, endpoint="hundred_meter_leaderboard")
 @main_bp.route('/200m', defaults={"event_slug": "200m"})
 @main_bp.route('/400m', defaults={"event_slug": "400m"})
