@@ -541,6 +541,22 @@ def _files():
     return {"tiLogo": _static_path(theTiLogoFile), "fonts": theFonts}
 
 
+thePublicProblems = [
+    ("Pillow and numpy are not installed", "Pillow is not installed on this server; run pip install Pillow numpy and restart"),
+    ("card assets are missing", "the card fonts or logo are missing from the static folder on this server"),
+    ("card assets could not be loaded", "the card fonts or logo could not be loaded on this server"),
+]
+
+
+def public_paint_problem(theProblem):
+    if theProblem is None:
+        return None
+    for n in range(len(thePublicProblems)):
+        if theProblem.startswith(thePublicProblems[n][0]) == True:
+            return thePublicProblems[n][1]
+    return "the card painter is not working on this server"
+
+
 def paint_problem():
     try:
         from PIL import Image, ImageFont

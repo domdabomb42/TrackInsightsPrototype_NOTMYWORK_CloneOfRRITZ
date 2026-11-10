@@ -515,4 +515,7 @@ def test_the_cards_api_reports_a_painter_problem(client, app):
     assert theResponse.get_json()["problem"] is None
     app.config["CARDS_RENDER_PROBLEM"] = "Pillow and numpy are not installed; run pip install Pillow numpy"
     theAgain = client.get("/api/athletes/102/cards")
-    assert theAgain.get_json()["problem"].startswith("Pillow and numpy are not installed")
+    assert theAgain.get_json()["problem"] == "Pillow is not installed on this server; run pip install Pillow numpy and restart"
+    app.config["CARDS_RENDER_PROBLEM"] = "card assets could not be loaded (cannot open resource /srv/secret/path.ttf)"
+    theThird = client.get("/api/athletes/102/cards").get_json()["problem"]
+    assert "/srv" not in theThird and "cannot open" not in theThird
