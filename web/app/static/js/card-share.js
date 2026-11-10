@@ -90,7 +90,7 @@
                     // No file sharing in this browser: save the card, then open
                     // Instagram on its story camera to pick it from the roll.
                     document.getElementById('card-share-download').click();
-                    setStatus('Card saved to your photos. Opening Instagram: pick it from your camera roll.');
+                    setStatus('Card saved. Opening Instagram: pick it from your files or camera roll.');
                     setTimeout(() => { window.location.href = 'instagram://story-camera'; }, 700);
                     return;
                 }
@@ -131,6 +131,24 @@
             }
             if (await shareImage('Snapchat')) return;
             setStatus('Snapchat sharing works from a phone. Open this page on your phone and tap again.');
+        });
+
+        const downloadLink = document.getElementById('card-share-download');
+        if (isMobile) {
+            downloadLink.querySelector('span').textContent = 'Save to Photos';
+        }
+        downloadLink.addEventListener('click', event => {
+            // On a phone the share sheet's Save Image puts the card in Photos;
+            // the plain download would land in Files. The share call has to
+            // run straight from the tap, so the image must already be fetched.
+            if (!canShareFile()) return;
+            event.preventDefault();
+            navigator.share({files: [imageFile], title}).catch(error => {
+                if (error.name === 'AbortError') { setStatus('Saving canceled.'); return; }
+                console.warn('Share sheet failed', error);
+                window.location.href = downloadLink.href;
+            });
+            setStatus('Tap Save Image in the sheet to add the card to your Photos.');
         });
 
         moreButton.addEventListener('click', async () => {

@@ -460,15 +460,37 @@ const shareStatus = document.getElementById('share-dashboard-status');
         document.getElementById('athlete-card-instagram').addEventListener('click', () => shareToApp('Instagram'));
         document.getElementById('athlete-card-snapchat').addEventListener('click', () => shareToApp('Snapchat'));
 
-        document.getElementById('athlete-card-download').addEventListener('click', () => {
+        const downloadButton = document.getElementById('athlete-card-download');
+        if (isMobile) {
+            downloadButton.querySelector('span').textContent = 'Save to Photos';
+        }
+
+        const saveToPhotos = image => {
+            // The share sheet is the only road from a web page into the photo
+            // library; a download link always lands in Files. It must be called
+            // straight from the tap, with no await before it.
+            const canShareFile = Boolean(isMobile && image?.file && navigator.share && navigator.canShare
+                && navigator.canShare({files: [image.file]}));
+            if (!canShareFile) return false;
+            navigator.share({files: [image.file], title: `${name} - Track Insights`}).catch(error => {
+                if (error.name === 'AbortError') { setStatus('Saving canceled.'); return; }
+                console.warn('Share sheet failed', error);
+                downloadCardImage(image, cards[selectedCard].download_name[design]);
+                setStatus('Athlete card downloaded.');
+            });
+            setStatus('Tap Save Image in the sheet to add the card to your Photos.');
+            return true;
+        };
+
+        downloadButton.addEventListener('click', () => {
             const image = cardImages.get(imageKey(selectedCard));
-            if (image?.blob) {
-                try {
-                    downloadCardImage(image, cards[selectedCard].download_name[design]);
-                    setStatus('Athlete card downloaded.');
-                } catch {
-                    setStatus('Unable to download the card. Please try again.');
-                }
+            if (!image?.blob) return;
+            if (saveToPhotos(image)) return;
+            try {
+                downloadCardImage(image, cards[selectedCard].download_name[design]);
+                setStatus('Athlete card downloaded.');
+            } catch {
+                setStatus('Unable to download the card. Please try again.');
             }
         });
     }
