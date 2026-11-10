@@ -5,6 +5,35 @@
 
 {% block content %}
 <style>
+  .event-dashboard-page {
+    font-size: 1.05rem;
+    line-height: 1.6;
+  }
+
+  .event-dashboard-page .text-xs {
+    font-size: 0.8rem !important;
+  }
+
+  .event-dashboard-page .text-sm {
+    font-size: 0.92rem !important;
+  }
+
+  .event-dashboard-page .text-lg {
+    font-size: 1.12rem !important;
+  }
+
+  .event-dashboard-page .text-xl {
+    font-size: 1.35rem !important;
+  }
+
+  .event-dashboard-page .text-2xl {
+    font-size: 1.7rem !important;
+  }
+
+  .event-dashboard-page .leaderboard-section {
+    font-size: 1.1875rem;
+  }
+
   .dashboard-analytics-grid {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
@@ -52,7 +81,7 @@
   }
 </style>
 
-<main class="min-h-screen bg-white pt-20 sm:pt-24 pb-5 px-3 sm:px-6 font-sans">
+<main class="event-dashboard-page min-h-screen bg-white pt-20 sm:pt-24 pb-5 px-3 sm:px-6 font-sans">
   <div class="relative max-w-6xl mx-auto">
     <div class="absolute inset-0 -z-10 mx-0 sm:mx-[-40px] rounded-[48px] bg-gradient-to-b from-primary/5 via-transparent to-base-200/40 blur-3xl opacity-80 pointer-events-none"></div>
 
@@ -109,11 +138,9 @@
           <div>
             <h2 class="text-lg font-semibold text-base-content">Performance distribution</h2>
             <p class="text-xs text-base-content/55 mt-1">
-              Best mark per athlete and season · {{ meet_type if meet_type != 'All' else 'all meet levels' }} ·
+              {{ meet_type if meet_type != 'All' else 'all meet levels' }}
               {% if selected_year != 'All' %}
                 {{ selected_year }}
-              {% else %}
-                rolling five seasons{% if analytics.window %} ({{ analytics.window[0] }}–{{ analytics.window[-1] }}){% endif %}
               {% endif %}
             </p>
           </div>
@@ -131,11 +158,11 @@
       </article>
 
       <article class="bg-white border border-base-200/80 rounded-2xl shadow-lg shadow-base-300/40 p-4 sm:p-5">
-        <h2 class="text-lg font-semibold text-base-content">Advancement benchmarks</h2>
+        <h2 class="text-lg font-semibold text-base-content">Cutoffs</h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
           {% for target, label, stage in [
-            ('Regional', 'Sectional → Regional', 'Sectional'),
-            ('State', 'Regional → State', 'Regional')
+            ('Regional', 'Regional', 'Sectional'),
+            ('State', 'State', 'Regional')
           ] %}
           {% set cutoff = analytics.advancement_ranges.get(target) %}
           <div class="rounded-xl border border-base-200 bg-base-200/30 p-3">
@@ -155,7 +182,6 @@
         <div class="flex flex-wrap items-baseline justify-between gap-2">
           <div>
             <h2 class="text-lg font-semibold text-base-content">Season-over-season median</h2>
-            <p class="text-xs text-base-content/55 mt-1">Median of each athlete's best mark at each meet level.</p>
           </div>
           {% if analytics.years %}<span class="text-xs text-base-content/55">{{ analytics.years[0] }}–{{ analytics.years[-1] }}</span>{% endif %}
         </div>
@@ -180,7 +206,7 @@
       </article>
     </section>
 
-    <section class="bg-white border border-base-200/80 rounded-2xl shadow-xl shadow-base-300/30 overflow-hidden" aria-labelledby="leaderboard-heading">
+    <section class="leaderboard-section bg-white border border-base-200/80 rounded-2xl shadow-xl shadow-base-300/30 overflow-hidden" aria-labelledby="leaderboard-heading">
       <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 px-4 sm:px-6 py-4 border-b border-base-200">
         <div>
           <p class="text-xs uppercase tracking-[0.2em] text-base-content/50 font-bold">{{ gender }} · {{ meet_type }} · {{ selected_year if selected_year != 'All' else 'All seasons' }}</p>
