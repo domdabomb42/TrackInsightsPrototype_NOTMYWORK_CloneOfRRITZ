@@ -110,7 +110,6 @@ document.addEventListener('DOMContentLoaded', () => {
           },
           y: {
             beginAtZero: true,
-            title: { display: true, text: 'Athletes' },
             ticks: { precision: 0 },
           },
         },

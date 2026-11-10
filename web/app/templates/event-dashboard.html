@@ -43,8 +43,7 @@
   }
 
   .event-dashboard-page .percentile-times .percentile-label {
-    font-size: 0.74rem;
-    letter-spacing: 0.12em;
+    font-size: 1rem;
   }
 
   .event-dashboard-page .percentile-times .percentile-value {
@@ -53,18 +52,13 @@
   }
 
   .event-dashboard-page .cutoff-tile .cutoff-label {
-    font-size: 0.95rem;
-    letter-spacing: 0.14em;
+    font-size: 1.25rem;
   }
 
   .event-dashboard-page .cutoff-tile .cutoff-range {
     font-size: 2.6rem;
     line-height: 1;
     white-space: nowrap;
-  }
-
-  .event-dashboard-page .cutoff-tile .cutoff-note {
-    font-size: 0.9rem;
   }
 
   .event-dashboard-page .leaderboard-section {
@@ -184,16 +178,12 @@
     <section class="dashboard-analytics-grid" aria-label="Historical performance insights">
       <article class="bg-white border border-base-200/80 rounded-2xl shadow-lg shadow-base-300/40 p-4 sm:p-5">
         <h2 class="section-heading font-impact italic text-primary">Performance Distribution</h2>
-        <p class="text-xs text-base-content/55 mt-1">
-          {{ meet_type if meet_type != 'All' else 'All meets' }} ·
-          {% if selected_year != 'All' %}{{ selected_year }}{% elif analytics.window %}{{ analytics.window[0] }}–{{ analytics.window[-1] }}{% else %}all seasons{% endif %}
-        </p>
         {% if analytics.percentiles %}
         <div class="percentile-times mt-4">
           {% for percentile in analytics.percentiles %}
           <div>
-            <p class="percentile-label uppercase font-semibold text-base-content/55">{% if percentile.label == '50th' %}Median{% else %}{{ percentile.label }}{% endif %}</p>
-            <p class="percentile-value font-impact italic text-primary mt-1">{{ percentile.display }}{% if analytics.event_type != 'Field' %}<span class="ml-1 text-sm not-italic text-base-content/55">sec</span>{% endif %}</p>
+            <p class="percentile-label font-impact text-base-content/60">{% if percentile.label == '50th' %}Median{% else %}{{ percentile.label }}{% endif %}</p>
+            <p class="percentile-value font-impact italic text-primary">{{ percentile.display }}</p>
           </div>
           {% endfor %}
         </div>
@@ -207,17 +197,15 @@
 
       <article class="flex flex-col bg-white border border-base-200/80 rounded-2xl shadow-lg shadow-base-300/40 p-4 sm:p-5">
         <h2 class="section-heading font-impact italic text-primary">Cutoffs</h2>
-        <p class="text-xs text-base-content/55 mt-1">3rd place {% if analytics.event_type == 'Field' %}mark{% else %}time{% endif %} at each qualifying meet{% if analytics.window %}, {{ analytics.window[0] }}–{{ analytics.window[-1] }}{% endif %}</p>
         <div class="flex flex-1 flex-col gap-3 mt-4">
-          {% for target, stage in [('Regional', 'Sectional'), ('State', 'Regional')] %}
+          {% for target in ['Regional', 'State'] %}
           {% set cutoff = analytics.advancement_ranges.get(target) %}
           <div class="cutoff-tile flex flex-1 min-h-36 flex-col justify-center rounded-xl border border-base-200 bg-base-200/30 px-5 py-4 sm:px-6">
-            <p class="cutoff-label uppercase font-semibold text-base-content/55">{{ target }}</p>
+            <p class="cutoff-label font-impact text-base-content/60">{{ target }}</p>
             {% if cutoff %}
-            <p class="cutoff-range font-impact italic text-primary mt-2">{{ cutoff.low_display }}–{{ cutoff.high_display }}{% if analytics.event_type != 'Field' %}<span class="ml-1 text-base not-italic text-base-content/55">sec</span>{% endif %}</p>
-            <p class="cutoff-note text-base-content/55 mt-2">{{ cutoff.count }} {{ stage|lower }} meets</p>
+            <p class="cutoff-range font-impact italic text-primary mt-1">{{ cutoff.low_display }}–{{ cutoff.high_display }}{% if analytics.event_type != 'Field' %}<span class="ml-1 text-base not-italic text-base-content/55">sec</span>{% endif %}</p>
             {% else %}
-            <p class="cutoff-note text-base-content/55 mt-2">No third-place results yet.</p>
+            <p class="text-sm text-base-content/55 mt-2">No results yet.</p>
             {% endif %}
           </div>
           {% endfor %}
@@ -229,7 +217,6 @@
           <div>
             <h2 class="section-heading font-impact italic text-primary">Median by Season</h2>
           </div>
-          {% if analytics.years %}<span class="text-xs text-base-content/55">{{ analytics.years[0] }}–{{ analytics.years[-1] }}</span>{% endif %}
         </div>
         <fieldset class="mt-3 flex flex-wrap gap-x-5 gap-y-2" aria-label="Choose trend lines">
           <legend class="sr-only">Choose which meet-level trends to view</legend>
