@@ -55,8 +55,6 @@
 .event-results th { background: #faeef2; color: var(--athlete-accent); font-weight: 700; position: sticky; top: 0; }
 .event-results td, .event-results th { width: calc(100% / 6); padding: 9px 8px; white-space: normal; overflow-wrap: anywhere; border-bottom: 1px solid #edf0f4; }
 .event-results td { color: #52617a; }
-.event-results a { color: inherit; text-decoration: underline; text-decoration-color: #d4b2bf; text-underline-offset: 3px; }
-.event-results a:hover { color: var(--athlete-accent); }
 .prelim-marker { color: var(--athlete-accent); font-size: 10px; }
 .event-progression { min-width: 0; border-left: 1px solid #edf0f4; padding-left: 20px; }
 .progression-chart { width: 100%; height: auto; display: block; overflow: visible; }
