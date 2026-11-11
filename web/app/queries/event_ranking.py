@@ -22,7 +22,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import joinedload
 
 from .. import db
-from ..models import Athlete, AthleteResult, Event, Meet, School
+from ..models import Athlete, AthleteResult, Event, Meet, RelayResult, School
 from .formatting import (
     _format_place_label,
     _format_sectional_name,
@@ -59,6 +59,41 @@ def get_event_leaderboard(event_name, gender, meet_type=None, year=None, limit=5
     """Return each athlete's best valid postseason mark at every filtered meet."""
     event_type = _get_event_types_map().get(event_name, "Track")
     lower_is_better = _is_lower_better(event_type)
+    if event_type == "Relay":
+        query = (
+            RelayResult.query
+            .join(Meet, RelayResult.meet_id == Meet.meet_id)
+            .join(School, RelayResult.school_id == School.school_id)
+            .options(
+                joinedload(RelayResult.school),
+                joinedload(RelayResult.meet),
+            )
+            .filter(
+                RelayResult.event == event_name,
+                RelayResult.result2.isnot(None),
+                RelayResult.result2 > 0,
+                RelayResult.result2 < 9999,
+                Meet.gender == gender,
+                Meet.meet_type.in_(("Sectional", "Regional", "State")),
+            )
+        )
+        if meet_type:
+            query = query.filter(Meet.meet_type == meet_type)
+        if year is not None:
+            query = query.filter(Meet.year == year)
+
+        return [
+            {"result": result, "result_value": float(result.result2)}
+            for result in sorted(
+                query.all(),
+                key=lambda result: (
+                    result.result2 if lower_is_better else -result.result2,
+                    (result.school.school_name or "").lower(),
+                    result.meet_id,
+                ),
+            )[:limit]
+        ]
+
     query = (
         AthleteResult.query
         .join(Meet, AthleteResult.meet_id == Meet.meet_id)
@@ -119,6 +154,54 @@ def get_100m_leaderboard(gender, meet_type=None, year=None, limit=50):
 
 
 def _get_event_result_records(event_name, gender):
+    event_type = _get_event_types_map().get(event_name, "Track")
+    if event_type == "Relay":
+        rows = (
+            db.session.query(
+                RelayResult.school_id.label("athlete_id"),
+                School.school_name.label("school"),
+                Meet.meet_type.label("meet_type"),
+                Meet.year.label("year"),
+                Meet.host.label("host"),
+                Meet.meet_num.label("meet_num"),
+                Event.event_type.label("event_type"),
+                RelayResult.result.label("result"),
+                RelayResult.result2.label("value"),
+                RelayResult.place.label("place"),
+            )
+            .join(School, RelayResult.school_id == School.school_id)
+            .join(Meet, RelayResult.meet_id == Meet.meet_id)
+            .join(Event, RelayResult.event == Event.event)
+            .filter(
+                RelayResult.event == event_name,
+                Meet.gender == gender,
+                RelayResult.result2.isnot(None),
+                RelayResult.result2 > 0,
+                RelayResult.result2 < 9999,
+                Meet.year.isnot(None),
+                Meet.meet_type.in_(("Sectional", "Regional", "State")),
+            )
+            .all()
+        )
+        return [
+            {
+                "athlete_id": row.athlete_id,
+                "first": "",
+                "last": row.school or "",
+                "school": row.school or "—",
+                "meet_type": row.meet_type,
+                "year": row.year,
+                "host": row.host or "",
+                "meet_num": row.meet_num,
+                "event_type": row.event_type or "Relay",
+                "result": row.result or f"{row.value:.2f}",
+                "value": float(row.value),
+                "result_type": "Final",
+                "place": row.place,
+            }
+            for row in rows
+        ]
+
     rows = (
         db.session.query(
             AthleteResult.athlete_id.label("athlete_id"),
@@ -367,7 +450,7 @@ def get_event_dashboard_analytics(event_name, gender, meet_type=None, year=None)
         "distribution": {
             "labels": distribution_labels,
             "counts": distribution_counts,
-            "bin_start": first_bin,
+            "bin_start": None if first_bin is None else round(first_bin, 4),
             "bin_width": bin_width,
             "has_underflow": underflow_count > 0,
         },
