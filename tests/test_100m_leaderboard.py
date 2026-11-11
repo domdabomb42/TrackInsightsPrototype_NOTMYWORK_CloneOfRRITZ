@@ -37,11 +37,13 @@ def test_100m_dashboard_includes_analytics_without_the_top_list_panels(client):
     response = client.get('/100m?gender=Boys')
 
     assert response.status_code == 200
-    assert b'Performance distribution' in response.data
-    assert b'25th' in response.data
-    assert b'50th' in response.data
-    assert b'75th' in response.data
-    assert b'Advancement benchmarks' in response.data
+    assert b'Performance Distribution' in response.data
+    assert b'"label": "25th"' in response.data
+    assert b'"label": "50th"' in response.data
+    assert b'"label": "75th"' in response.data
+    assert response.data.count(b'font-impact italic text-xl text-primary mt-1') == 2
+    assert b'analytics-cutoff-label text-xs' in response.data
+    assert b'Cutoffs' in response.data
     assert b'Season-over-season median' in response.data
     assert b'data-trend="Sectional"' in response.data
     assert b'data-trend="Regional"' in response.data
@@ -119,6 +121,37 @@ def test_event_dashboard_passes_selected_filters_to_distribution(client):
     assert b'2024' in selected_results.data
 
 
+def test_relay_leaderboards_show_school_lineup_and_respect_filters(client, app):
+    import json
+
+    response = client.get('/4x100?gender=Boys&meet_type=Sectional&year=2024')
+    assert response.status_code == 200
+    assert b'Fastest relays' in response.data
+    assert b'Alpha High' in response.data
+    assert b'A Sprinter, B Sprinter, C Curve, D Jumper' in response.data
+    assert b'43.00' in response.data
+    assert b'42.80' not in response.data
+    assert b'Relay members' in response.data
+
+    chart_data = response.data.split(b'id="event-chart-data">', 1)[1]
+    chart_data = chart_data.split(b'</script>', 1)[0]
+    analytics = json.loads(chart_data)
+    assert sum(analytics['distribution']['counts']) == 3
+
+    girls_relay = client.get('/4x400?gender=Girls&meet_type=Sectional&year=2024')
+    assert girls_relay.status_code == 200
+    assert b'4:05.00' in girls_relay.data
+
+    with app.app_context():
+        from app.queries.event_ranking import get_event_leaderboard
+
+        results = get_event_leaderboard(
+            '4 x 100 Relay', 'Boys', meet_type='Regional', year=2024
+        )
+    assert len(results) == 1
+    assert results[0]['result'].school.school_name == 'Alpha High'
+
+
 def test_all_requested_event_dashboard_routes_render(client):
     event_pages = (
         ('/200m', '200 Meters'),
@@ -129,6 +162,9 @@ def test_all_requested_event_dashboard_routes_render(client):
         ('/100h', '100 Hurdles'),
         ('/110h', '110 Hurdles'),
         ('/300h', '300 Hurdles'),
+        ('/4x100', '4x100 Relay'),
+        ('/4x400', '4x400 Relay'),
+        ('/4x800', '4x800 Relay'),
         ('/shot-put', 'Shot Put'),
         ('/discus', 'Discus'),
         ('/pole-vault', 'Pole Vault'),
@@ -143,13 +179,14 @@ def test_all_requested_event_dashboard_routes_render(client):
         assert event_name.encode() in response.data
         assert b'Leaderboard' in response.data
         assert b'aria-label="Event dashboards"' not in response.data
-        assert b'Performance distribution' in response.data
+        assert b'Performance Distribution' in response.data
         assert b'Season-over-season median' in response.data
 
 
 def test_search_returns_matching_event_dashboards(client):
     shot_put = client.get('/api/search?q=shot%20put').get_json()
     compact_hurdles = client.get('/api/search?q=110h').get_json()
+    relay = client.get('/api/search?q=4x100%20relay').get_json()
     existing_athlete = client.get('/api/search?q=Maya').get_json()
 
     assert shot_put[0] == {
@@ -160,6 +197,8 @@ def test_search_returns_matching_event_dashboards(client):
     }
     assert compact_hurdles[0]['type'] == 'event'
     assert compact_hurdles[0]['url'] == '/110h'
+    assert relay[0]['type'] == 'event'
+    assert relay[0]['url'] == '/4x100'
     assert any(item['type'] == 'athlete' and item['name'] == 'Maya Hurdle'
                for item in existing_athlete)
 
@@ -170,7 +209,8 @@ def test_homepage_links_to_every_event_dashboard(client):
     assert response.status_code == 200
     for path in (
         '/100m', '/200m', '/400m', '/800m', '/1600m', '/3200m',
-        '/100h', '/110h', '/300h', '/shot-put', '/discus', '/pole-vault',
+        '/100h', '/110h', '/300h', '/4x100', '/4x400', '/4x800',
+        '/shot-put', '/discus', '/pole-vault',
         '/high-jump', '/long-jump',
     ):
         assert f'href="{path}"'.encode() in response.data

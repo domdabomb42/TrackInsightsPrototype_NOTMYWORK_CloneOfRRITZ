@@ -463,6 +463,9 @@ title='Boys 3200 Meters - Top 10 Since 2023')
 @main_bp.route('/100h', defaults={"event_slug": "100h"})
 @main_bp.route('/110h', defaults={"event_slug": "110h"})
 @main_bp.route('/300h', defaults={"event_slug": "300h"})
+@main_bp.route('/4x100', defaults={"event_slug": "4x100"})
+@main_bp.route('/4x400', defaults={"event_slug": "4x400"})
+@main_bp.route('/4x800', defaults={"event_slug": "4x800"})
 @main_bp.route('/shot-put', defaults={"event_slug": "shot-put"})
 @main_bp.route('/discus', defaults={"event_slug": "discus"})
 @main_bp.route('/pole-vault', defaults={"event_slug": "pole-vault"})
@@ -531,5 +534,6 @@ def event_dashboard(event_slug):
         event_slug=event_slug,
         page_title=f"{event_page['label']} Leaderboard",
         dashboard_url=request.path,
+        is_relay=event_page.get("is_relay", False),
     )
    
