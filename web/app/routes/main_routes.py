@@ -550,6 +550,7 @@ def sitemap_xml():
 @main_bp.route('/1600m', defaults={"event_slug": "1600m"})
 @main_bp.route('/3200m', defaults={"event_slug": "3200m"})
 @main_bp.route('/100h', defaults={"event_slug": "100h"})
+@main_bp.route('/110h', defaults={"event_slug": "110h"})
 @main_bp.route('/300h', defaults={"event_slug": "300h"})
 @main_bp.route('/4x100', defaults={"event_slug": "4x100"})
 @main_bp.route('/4x400', defaults={"event_slug": "4x400"})

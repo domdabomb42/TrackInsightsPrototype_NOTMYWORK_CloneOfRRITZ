@@ -157,6 +157,7 @@ def test_all_requested_event_dashboard_routes_render(client):
         ('/1600m', '1600 Meters'),
         ('/3200m', '3200 Meters'),
         ('/100h', '100 Hurdles'),
+        ('/110h', '110 Hurdles'),
         ('/300h', '300 Hurdles'),
         ('/4x100', '4x100 Relay'),
         ('/4x400', '4x400 Relay'),
@@ -181,7 +182,7 @@ def test_all_requested_event_dashboard_routes_render(client):
 
 def test_search_returns_matching_event_dashboards(client):
     shot_put = client.get('/api/search?q=shot%20put').get_json()
-    compact_hurdles = client.get('/api/search?q=100h').get_json()
+    compact_hurdles = client.get('/api/search?q=110h').get_json()
     relay = client.get('/api/search?q=4x100%20relay').get_json()
     existing_athlete = client.get('/api/search?q=Maya').get_json()
 
@@ -192,7 +193,7 @@ def test_search_returns_matching_event_dashboards(client):
         'url': '/shot-put',
     }
     assert compact_hurdles[0]['type'] == 'event'
-    assert compact_hurdles[0]['url'] == '/100h'
+    assert compact_hurdles[0]['url'] == '/110h'
     assert relay[0]['type'] == 'event'
     assert relay[0]['url'] == '/4x100'
     assert any(item['type'] == 'athlete' and item['name'] == 'Maya Hurdle'
@@ -205,12 +206,11 @@ def test_homepage_links_to_every_event_dashboard(client):
     assert response.status_code == 200
     for path in (
         '/100m', '/200m', '/400m', '/800m', '/1600m', '/3200m',
-        '/100h', '/300h', '/4x100', '/4x400', '/4x800',
+        '/100h', '/110h', '/300h', '/4x100', '/4x400', '/4x800',
         '/shot-put', '/discus', '/pole-vault',
         '/high-jump', '/long-jump',
     ):
         assert f'href="{path}"'.encode() in response.data
-    assert b'href="/110h"' not in response.data
 
 
 def test_event_dashboard_gender_defaults_and_track_filters(client):

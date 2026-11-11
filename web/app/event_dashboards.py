@@ -52,6 +52,13 @@ EVENT_DASHBOARDS = (
         "search_terms": ("100h", "100 hurdle", "100 hurdles"),
     },
     {
+        "slug": "110h",
+        "event": "110 Hurdles",
+        "label": "110 Hurdles",
+        "genders": [CONST.GENDER.BOYS],
+        "search_terms": ("110h", "110 hurdle", "110 hurdles"),
+    },
+    {
         "slug": "300h",
         "event": "300 Hurdles",
         "label": "300 Hurdles",
