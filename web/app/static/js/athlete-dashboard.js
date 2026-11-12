@@ -567,10 +567,16 @@ const shareStatus = document.getElementById('share-dashboard-status');
     function renderPersonalBests(bests) {
         const container = document.getElementById('personal-bests-container');
         container.style.setProperty('--personal-best-count', Math.max(bests.length, 3));
-        container.innerHTML = bests.map(best => `<div class="personal-best">
-            <span class="personal-best-label">${escapeHtml(best.event)}</span>
+        container.innerHTML = bests.map(best => {
+            const relay = /^(.*?)\s+Relay$/i.exec(best.event);
+            const label = relay
+                ? `<span class="personal-best-distance">${escapeHtml(relay[1])}</span> <span class="personal-best-relay">Relay</span>`
+                : escapeHtml(best.event);
+            return `<div class="personal-best">
+            <span class="personal-best-label">${label}</span>
             <span class="personal-best-value">${escapeHtml(best.result)}</span>
-        </div>`).join('') || '<p class="dashboard-empty">No personal bests recorded yet.</p>';
+        </div>`;
+        }).join('') || '<p class="dashboard-empty">No personal bests recorded yet.</p>';
     }
 
     function renderProgression(eventName, rows, eventType) {
