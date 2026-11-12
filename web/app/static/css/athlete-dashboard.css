@@ -196,3 +196,8 @@
 .athlete-card-handoff-qr { width: 220px; margin: 0 auto 14px; padding: 10px; border: 1px solid #e0e4eb; border-radius: 14px; background: white; }
 .athlete-card-handoff-qr svg { display: block; width: 100%; height: auto; }
 .athlete-card-handoff-link { font-size: 13px; color: var(--athlete-accent); text-decoration: underline; text-underline-offset: 2px; }
+.athlete-photo-save { width: min(92vw, 440px); max-height: 90vh; overflow-y: auto; margin: auto; padding: 18px; border: 0; border-radius: 16px; background: white; color: #172033; }
+.athlete-photo-save::backdrop { background: #172033bb; }
+.athlete-photo-save h2 { font-size: 22px; font-weight: 700; }
+.athlete-photo-save p { margin: 8px 0 12px; }
+.athlete-photo-save img { display: block; width: 100%; height: auto; margin-top: 14px; border-radius: 12px; -webkit-touch-callout: default; user-select: auto; }
