@@ -1,4 +1,7 @@
-# Track Insights
+This is a cloned reposity for the purpose of temprorary prototype webhosting. 
+The actual working repository is https://github.com/rtritz/trackinsights
+
+#Track Insights
 
 An Indiana high school track & field data analysis app: athlete/school dashboards, result comparisons, percentile rankings, and meet-projection tools, built on a SQLite database of meet results.
 
