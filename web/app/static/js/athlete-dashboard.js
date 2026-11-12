@@ -632,9 +632,9 @@ const shareStatus = document.getElementById('share-dashboard-status');
         // Include personal-best events even when there is no playoff history.
         bests.forEach(best => { if (!events.has(best.event)) events.set(best.event, []); });
         const eventOrder = new Map([
-            '100 Meters', '100 Hurdles', '110 Hurdles', '200 Meters',
-            '300 Hurdles', '400 Meters', '4 x 100 Relay', '800 Meters',
-            '4 x 400 Relay', '1600 Meters', '4 x 800 Relay', '3200 Meters',
+            '100 Meters', '100 Hurdles', '110 Hurdles', '4 x 100 Relay',
+            '200 Meters', '300 Hurdles', '400 Meters', '4 x 400 Relay',
+            '800 Meters', '4 x 800 Relay', '1600 Meters', '3200 Meters',
             'Long Jump', 'High Jump', 'Pole Vault', 'Shot Put', 'Discus',
         ].map((name, index) => [name, index]));
         const names = [...events.keys()].sort((a, b) =>
