@@ -50,4 +50,6 @@ Both import shared code the same way the web app does: `from common.db import Da
 
 ## More detail
 
+For deploying this prototype to Vercel, see [docs/VERCEL.md](docs/VERCEL.md).
+
 See `CLAUDE.md` for the full project structure, database schema, coding conventions, and route reference.

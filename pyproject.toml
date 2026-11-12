@@ -9,6 +9,10 @@ description = "Shared library for the Track Insights web app and standalone data
 requires-python = ">=3.10"
 dependencies = [
     "pandas",
+    "Flask",
+    "Flask-SQLAlchemy",
+    "Pillow",
+    "numpy",
 ]
 
 [project.optional-dependencies]
@@ -43,3 +47,6 @@ dev = [
 
 [tool.setuptools]
 packages = ["common"]
+
+[tool.vercel]
+entrypoint = "wsgi:app"
